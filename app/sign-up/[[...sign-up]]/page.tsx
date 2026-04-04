@@ -39,9 +39,9 @@ export default function SignUpPage() {
               socialButtonsVariant: "iconButton",
             },
           }}
-          routing="path"
-          path="/sign-up"
-          signInUrl="/sign-in"
+        forceRedirectUrl={'/app'}
+          afterSignOutUrl={'/'}
+          signInUrl={"/sign-in"}
         />
       </div>
     </div>

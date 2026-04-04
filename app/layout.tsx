@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Third Eye",
-  description: "Track companies and people on LinkedIn",
+  title: "Third Eye - Custom Growth Signals in Plain English",
+  description: "Create any custom signal you need in plain English. Track job changes, funding, company growth, hiring patterns, and more. Get notified via Slack or Webhooks instantly.",
 };
 
 export default function RootLayout({

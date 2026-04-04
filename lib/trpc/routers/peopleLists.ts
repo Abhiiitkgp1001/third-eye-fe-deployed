@@ -1,55 +1,88 @@
 import { z } from "zod";
-import { eq, and } from "drizzle-orm";
 import { protectedProcedure, router } from "../trpc";
-import { peopleLists, profiles } from "@/lib/db/schema";
+import { getBackendAxios } from "../backend-client";
 import { TRPCError } from "@trpc/server";
+import {
+  GetAllPeopleListsResponseSchema,
+  CreatePeopleListResponseSchema,
+  GetPeopleListResponseSchema,
+  ProfileOpResponseSchema,
+  type GetAllPeopleListsResponse,
+  type CreatePeopleListResponse,
+  type GetPeopleListResponse,
+  type ProfileOpResponse,
+} from "../schemas/peopleList-schemas";
 
 export const peopleListsRouter = router({
   /**
    * Get all people lists for the current user's organization
    */
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    const lists = await ctx.db
-      .select()
-      .from(peopleLists)
-      .where(eq(peopleLists.orgId, ctx.orgId));
+  getAll: protectedProcedure
+    .output(GetAllPeopleListsResponseSchema)
+    .query(async ({ ctx }): Promise<GetAllPeopleListsResponse> => {
+      const axios = await getBackendAxios();
 
-    return lists;
-  }),
+      try {
+        const response = await axios.post("/peopleList.getAllLists", {
+          orgId: ctx.orgId,
+        });
+
+        const parsed = GetAllPeopleListsResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse people lists response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error: any) {
+        console.error("Error fetching people lists from backend:", error);
+        console.error("Error response data:", error.response?.data);
+        console.error("Error response status:", error.response?.status);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch people lists from backend: ${error.message}`,
+          cause: error,
+        });
+      }
+    }),
 
   /**
    * Get a single people list by ID
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const [list] = await ctx.db
-        .select()
-        .from(peopleLists)
-        .where(
-          and(
-            eq(peopleLists.id, input.id),
-            eq(peopleLists.orgId, ctx.orgId)
-          )
-        );
+    .output(GetPeopleListResponseSchema)
+    .query(async ({ ctx, input }): Promise<GetPeopleListResponse> => {
+      const axios = await getBackendAxios();
 
-      if (!list) {
+      try {
+        const response = await axios.post("/peopleList.getList", {
+          listId: input.id,
+        });
+
+        const parsed = GetPeopleListResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse people list response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error: any) {
+        console.error("Error fetching people list from backend:", error);
+        console.error("Error response data:", error.response?.data);
+        console.error("Error response status:", error.response?.status);
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "People list not found",
+          message: `People list not found: ${error.message}`,
+          cause: error,
         });
       }
-
-      // Get profiles in this list
-      const listProfiles = await ctx.db
-        .select()
-        .from(profiles)
-        .where(eq(profiles.peopleListId, input.id));
-
-      return {
-        ...list,
-        profiles: listProfiles,
-      };
     }),
 
   /**
@@ -64,22 +97,37 @@ export const peopleListsRouter = router({
         max: z.number().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const [newList] = await ctx.db
-        .insert(peopleLists)
-        .values({
+    .output(CreatePeopleListResponseSchema)
+    .mutation(async ({ ctx, input }): Promise<CreatePeopleListResponse> => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/peopleList.create", {
           orgId: ctx.orgId,
           name: input.name,
           prompt: input.prompt,
           min: input.min,
           max: input.max,
-          enabled: false,
-          syncStatus: "DRAFT",
-          cadence: "MANUAL",
-        })
-        .returning();
+          profiles: [], // Backend requires at least 1 profile, but for now we'll create empty lists
+        });
 
-      return newList;
+        const parsed = CreatePeopleListResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse create people list response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error) {
+        console.error("Error creating people list in backend:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create people list",
+        });
+      }
     }),
 
   /**
@@ -97,32 +145,12 @@ export const peopleListsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [updatedList] = await ctx.db
-        .update(peopleLists)
-        .set({
-          ...(input.name && { name: input.name }),
-          ...(input.prompt !== undefined && { prompt: input.prompt }),
-          ...(input.enabled !== undefined && { enabled: input.enabled }),
-          ...(input.min !== undefined && { min: input.min }),
-          ...(input.max !== undefined && { max: input.max }),
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(peopleLists.id, input.id),
-            eq(peopleLists.orgId, ctx.orgId)
-          )
-        )
-        .returning();
-
-      if (!updatedList) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "People list not found",
-        });
-      }
-
-      return updatedList;
+      // Backend doesn't have an update endpoint yet
+      // For now, throw an error
+      // throw new TRPCError({
+      //   code: "UNIMPLEMENTED",
+      //   message: "Update endpoint not implemented in backend yet",
+      // });
     }),
 
   /**
@@ -130,25 +158,26 @@ export const peopleListsRouter = router({
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const [deletedList] = await ctx.db
-        .delete(peopleLists)
-        .where(
-          and(
-            eq(peopleLists.id, input.id),
-            eq(peopleLists.orgId, ctx.orgId)
-          )
-        )
-        .returning();
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }): Promise<{ success: boolean }> => {
+      const axios = await getBackendAxios();
 
-      if (!deletedList) {
+      try {
+        // Use profileOp with DELETE operation to remove the list
+        await axios.post("/peopleList.profileOp", {
+          op: "remove",
+          peopleListId: input.id,
+          orgId: ctx.orgId,
+          operation: "DELETE_LIST",
+        });
+        return { success: true };
+      } catch (error) {
+        console.error("Error deleting people list from backend:", error);
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "People list not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete people list",
         });
       }
-
-      return { success: true };
     }),
 
   /**
@@ -162,55 +191,66 @@ export const peopleListsRouter = router({
         metadata: z.any().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      // Verify list exists and belongs to user's organization
-      const [list] = await ctx.db
-        .select()
-        .from(peopleLists)
-        .where(
-          and(
-            eq(peopleLists.id, input.listId),
-            eq(peopleLists.orgId, ctx.orgId)
-          )
-        );
+    .output(ProfileOpResponseSchema)
+    .mutation(async ({ ctx, input }): Promise<ProfileOpResponse> => {
+      const axios = await getBackendAxios();
 
-      if (!list) {
+      try {
+        const response = await axios.post("/peopleList.profileOp", {
+          op: "add",
+          listId: input.listId,
+          orgId: ctx.orgId,
+          profile: {
+            type: "liUrl",
+            value: input.linkedinUrl,
+          },
+        });
+
+        const parsed = ProfileOpResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse add profile response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error) {
+        console.error("Error adding profile to list in backend:", error);
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "People list not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to add profile to list",
         });
       }
-
-      const [newProfile] = await ctx.db
-        .insert(profiles)
-        .values({
-          peopleListId: input.listId,
-          linkedinUrl: input.linkedinUrl,
-          latestMetadata: input.metadata,
-        })
-        .returning();
-
-      return newProfile;
     }),
 
   /**
    * Remove a profile from a list
    */
   removeProfile: protectedProcedure
-    .input(z.object({ profileId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const [deletedProfile] = await ctx.db
-        .delete(profiles)
-        .where(eq(profiles.id, input.profileId))
-        .returning();
+    .input(z.object({ liUrl: z.string(), listId: z.string() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }): Promise<{ success: boolean }> => {
+      const axios = await getBackendAxios();
 
-      if (!deletedProfile) {
+      try {
+        await axios.post("/peopleList.profileOp", {
+          op: "remove",
+          listId: input.listId,
+          orgId: ctx.orgId,
+          profile: {
+            type: "liUrl",
+            value: input.liUrl,
+          },
+        });
+        return { success: true };
+      } catch (error) {
+        console.error("Error removing profile from backend:", error);
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Profile not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to remove profile",
         });
       }
-
-      return { success: true };
     }),
 });
