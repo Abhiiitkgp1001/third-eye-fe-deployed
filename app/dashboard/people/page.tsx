@@ -54,7 +54,7 @@ export default function PeoplePage() {
 
   if (!isLoaded || isLoadingPeople) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-jungle-teal-950 via-muted-teal-900 to-frozen-water-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-secondary-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
@@ -65,11 +65,11 @@ export default function PeoplePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-jungle-teal-950 via-muted-teal-900 to-frozen-water-900 flex">
+    <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-secondary-900 flex">
       {/* Sidebar */}
-      <aside className="w-64 backdrop-blur-xl bg-jungle-teal-900/95 border-r border-jungle-teal-700/40 flex flex-col">
+      <aside className="w-64 backdrop-blur-xl bg-primary-900/95 border-r border-primary-700/40 flex flex-col">
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-jungle-teal-700/40">
+        <div className="p-4 border-b border-primary-700/40">
           <h2 className="text-white font-semibold text-lg">Navigation</h2>
         </div>
 
@@ -79,14 +79,14 @@ export default function PeoplePage() {
             href="/dashboard/companies"
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               pathname === '/dashboard/companies'
-                ? 'bg-gradient-to-r from-jungle-teal-600 to-muted-teal-600 shadow-lg'
-                : 'bg-jungle-teal-800/90 hover:bg-jungle-teal-700/90'
+                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 shadow-lg'
+                : 'bg-primary-800/90 hover:bg-primary-700/90'
             }`}
           >
             <span className="text-2xl">🏢</span>
             <div className="flex-1">
               <p className="text-white font-medium">Companies</p>
-              <p className="text-muted-teal-50 text-xs">{companyLists.length} lists</p>
+              <p className="text-secondary-50 text-xs">{companyLists.length} lists</p>
             </div>
           </Link>
 
@@ -94,14 +94,14 @@ export default function PeoplePage() {
             href="/dashboard/people"
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               pathname === '/dashboard/people'
-                ? 'bg-gradient-to-r from-frozen-water-600 to-azure-mist-600 shadow-lg'
-                : 'bg-jungle-teal-800/90 hover:bg-jungle-teal-700/90'
+                ? 'bg-gradient-to-r from-tertiary-600 to-secondary-600 shadow-lg'
+                : 'bg-primary-800/90 hover:bg-primary-700/90'
             }`}
           >
             <span className="text-2xl">👥</span>
             <div className="flex-1">
               <p className="text-white font-medium">People</p>
-              <p className="text-muted-teal-50 text-xs">{peopleLists.length} lists</p>
+              <p className="text-secondary-50 text-xs">{peopleLists.length} lists</p>
             </div>
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default function PeoplePage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Top Navigation */}
-        <nav className="backdrop-blur-xl bg-jungle-teal-900/95 border-b border-jungle-teal-700/40">
+        <nav className="backdrop-blur-xl bg-primary-900/95 border-b border-primary-700/40">
           <div className="px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/" className="text-white text-xl font-bold">
@@ -141,13 +141,13 @@ export default function PeoplePage() {
             </div>
 
             {/* People Lists Table */}
-            <div className="backdrop-blur-xl bg-jungle-teal-900/95 rounded-2xl border border-jungle-teal-700/40 overflow-hidden">
-              <div className="p-6 border-b border-jungle-teal-700/40">
+            <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden">
+              <div className="p-6 border-b border-primary-700/40">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-white">All People Lists</h2>
                   <button
                     onClick={() => setIsCreatingList(true)}
-                    className="px-4 py-2 bg-gradient-to-r from-frozen-water-600 to-azure-mist-600 hover:from-frozen-water-700 hover:to-azure-mist-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -161,10 +161,10 @@ export default function PeoplePage() {
                 <div className="p-12 text-center">
                   <div className="text-7xl mb-4">👥</div>
                   <h3 className="text-2xl font-bold text-white mb-2">No people lists yet</h3>
-                  <p className="text-muted-teal-50 mb-6">Create your first people tracking list to get started</p>
+                  <p className="text-secondary-50 mb-6">Create your first people tracking list to get started</p>
                   <button
                     onClick={() => setIsCreatingList(true)}
-                    className="px-6 py-3 bg-gradient-to-r from-frozen-water-600 to-azure-mist-600 hover:from-frozen-water-700 hover:to-azure-mist-700 text-white font-semibold rounded-lg transition-all inline-flex items-center gap-2"
+                    className="px-6 py-3 bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white font-semibold rounded-lg transition-all inline-flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -176,7 +176,7 @@ export default function PeoplePage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-jungle-teal-700/40">
+                      <tr className="border-b border-primary-700/40">
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white">Name</th>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white">Items</th>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white">Created</th>
@@ -187,8 +187,8 @@ export default function PeoplePage() {
                       {peopleLists.map((list, index) => (
                         <tr
                           key={list.id}
-                          className={`border-b border-jungle-teal-700/30 hover:bg-jungle-teal-800/90 transition-colors ${
-                            index % 2 === 0 ? 'bg-jungle-teal-900/50' : ''
+                          className={`border-b border-primary-700/30 hover:bg-primary-800/90 transition-colors ${
+                            index % 2 === 0 ? 'bg-primary-900/50' : ''
                           }`}
                         >
                           <td className="px-6 py-4">
@@ -201,7 +201,7 @@ export default function PeoplePage() {
                             <span className="text-white">0</span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-muted-teal-50 text-sm">
+                            <span className="text-secondary-50 text-sm">
                               {list.createdAt ? new Date(list.createdAt).toLocaleDateString() : 'N/A'}
                             </span>
                           </td>
@@ -209,7 +209,7 @@ export default function PeoplePage() {
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => router.push(`/dashboard/list/${list.id}`)}
-                                className="px-3 py-1.5 bg-gradient-to-r from-frozen-water-600 to-azure-mist-600 hover:from-frozen-water-700 hover:to-azure-mist-700 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1"
+                                className="px-3 py-1.5 bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -242,7 +242,7 @@ export default function PeoplePage() {
       {/* Create List Modal */}
       {isCreatingList && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="backdrop-blur-xl bg-jungle-teal-900/90 border border-jungle-teal-700/30 rounded-2xl p-8 max-w-md w-full">
+          <div className="backdrop-blur-xl bg-primary-900/90 border border-primary-700/30 rounded-2xl p-8 max-w-md w-full">
             <h2 className="text-2xl font-bold text-white mb-6">Create New People List</h2>
 
             <div className="mb-6">
@@ -254,7 +254,7 @@ export default function PeoplePage() {
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="e.g., LinkedIn Leads"
-                className="w-full px-4 py-3 bg-jungle-teal-800/90 border border-jungle-teal-700/30 rounded-lg text-white placeholder-muted-teal-300 focus:outline-none focus:ring-2 focus:ring-frozen-water-500"
+                className="w-full px-4 py-3 bg-primary-800/90 border border-primary-700/30 rounded-lg text-white placeholder-secondary-300 focus:outline-none focus:ring-2 focus:ring-tertiary-500"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCreateList();
@@ -267,8 +267,8 @@ export default function PeoplePage() {
                 disabled={!newListName.trim() || createList.isPending}
                 className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
                   newListName.trim() && !createList.isPending
-                    ? 'bg-gradient-to-r from-frozen-water-600 to-azure-mist-600 hover:from-frozen-water-700 hover:to-azure-mist-700 text-white'
-                    : 'bg-jungle-teal-800/90 text-muted-teal-400 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white'
+                    : 'bg-primary-800/90 text-secondary-400 cursor-not-allowed'
                 }`}
               >
                 {createList.isPending ? 'Creating...' : 'Create List'}
@@ -279,7 +279,7 @@ export default function PeoplePage() {
                   setNewListName('');
                 }}
                 disabled={createList.isPending}
-                className="px-6 py-3 bg-jungle-teal-800/90 hover:bg-jungle-teal-700/90 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-primary-800/90 hover:bg-primary-700/90 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
