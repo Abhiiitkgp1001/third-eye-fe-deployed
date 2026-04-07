@@ -55,7 +55,13 @@ export const peopleListsRouter = router({
    * Get a single people list by ID
    */
   getById: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(
+      z.object({
+        id: z.string(),
+        limit: z.number().int().positive().max(1000).default(15),
+        offset: z.number().int().min(0).default(0),
+      })
+    )
     .output(GetPeopleListResponseSchema)
     .query(async ({ ctx, input }): Promise<GetPeopleListResponse> => {
       const axios = await getBackendAxios();
@@ -64,6 +70,8 @@ export const peopleListsRouter = router({
         const response = await axios.post("/peopleList.getList", {
           orgId: ctx.orgId,
           listId: input.id,
+          limit: input.limit,
+          offset: input.offset,
         });
 
         const parsed = GetPeopleListResponseSchema.safeParse(response.data.result.data);
@@ -152,12 +160,24 @@ export const peopleListsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Backend doesn't have an update endpoint yet
-      // For now, throw an error
-      // throw new TRPCError({
-      //   code: "UNIMPLEMENTED",
-      //   message: "Update endpoint not implemented in backend yet",
-      // });
+      const axios = await getBackendAxios();
+
+      try {
+        const { id, ...patch } = input;
+        const response = await axios.post("/peopleList.update", {
+          orgId: ctx.orgId,
+          listId: id,
+          patch,
+        });
+
+        return response.data.result.data;
+      } catch (error) {
+        console.error("Error updating people list in backend:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update people list",
+        });
+      }
     }),
 
   /**
