@@ -1,8 +1,12 @@
 'use client';
 
+/**
+ * The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ */
 import React, { useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
+import type { Company } from "@/lib/trpc/schemas/companyList-schemas";
 import CompanyRow from "./CompanyRow";
 
 export default function CompanyListDetailsPage() {
@@ -135,15 +139,15 @@ export default function CompanyListDetailsPage() {
                   onClick={() => router.push('/app/companies')}
                   className="text-secondary-50 hover:text-white transition-colors"
                 >
-                  � Back to Companies
+                  ← Back to Companies
                 </button>
                 <h1 className="text-3xl font-bold text-white">{list.name}</h1>
                 <span className="px-3 py-1 rounded-full text-sm bg-primary-700/50 text-white">
-                  <� Company List
+                  🏢 Company List
                 </span>
               </div>
               <p className="text-secondary-50">
-                {total} companies " Created {new Date(list.createdAt).toLocaleDateString()}
+                {total} companies · Created {new Date(list.createdAt).toLocaleDateString()}
               </p>
             </div>
 
@@ -158,7 +162,7 @@ export default function CompanyListDetailsPage() {
                       : 'bg-gray-600 hover:bg-gray-700 text-white'
                   }`}
                 >
-                  {list.enabled ? ' Active' : '� Inactive'}
+                  {list.enabled ? '✓ Active' : '⏸ Inactive'}
                 </button>
               </div>
             </div>
@@ -176,7 +180,7 @@ export default function CompanyListDetailsPage() {
               disabled={uploadingCsv}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
             >
-              {uploadingCsv ? 'Uploading...' : '=� Upload CSV'}
+              {uploadingCsv ? 'Uploading...' : '📤 Upload CSV'}
             </button>
             <input
               ref={fileInputRef}
@@ -202,7 +206,7 @@ export default function CompanyListDetailsPage() {
               </thead>
               <tbody className="divide-y divide-primary-700/40">
                 {companies && companies.length > 0 ? (
-                  companies.map((company: any) => (
+                  companies.map((company: Company) => (
                     <CompanyRow
                       key={company.id}
                       company={company}
@@ -241,10 +245,10 @@ export default function CompanyListDetailsPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleAddItem}
-                  disabled={addCompanyMutation.isLoading}
+                  disabled={addCompanyMutation.isPending}
                   className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
-                  {addCompanyMutation.isLoading ? 'Adding...' : 'Add'}
+                  {addCompanyMutation.isPending ? 'Adding...' : 'Add'}
                 </button>
                 <button
                   onClick={() => {

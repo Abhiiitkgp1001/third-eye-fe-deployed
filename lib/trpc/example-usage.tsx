@@ -94,15 +94,15 @@ export function CompanyListDetailExample({ listId }: { listId: string }) {
 
   return (
     <div>
-      <h1>{list.name}</h1>
-      <p>Prompt: {list.prompt}</p>
+      <h1>{list.list.name}</h1>
+      <p>Prompt: {list.list.prompt}</p>
 
       <h2>Companies ({list.companies?.length || 0})</h2>
       <ul>
         {list.companies?.map((company) => (
           <li key={company.id}>
             <a href={company.linkedinUrl}>{company.linkedinUrl}</a>
-            <button onClick={() => removeCompany.mutate({ companyId: company.id })}>
+            <button onClick={() => removeCompany.mutate({ companyId: company.id, listId })}>
               Remove
             </button>
           </li>
