@@ -6,7 +6,7 @@ interface ProfileRowProps {
   listId: string;
   isExpanded: boolean;
   onToggleExpanded: (profileId: string) => void;
-  onDelete: (liUrl: string) => Promise<void>;
+  onDelete: (profileId: string) => Promise<void>;
 }
 
 export default function ProfileRow({
@@ -36,7 +36,7 @@ export default function ProfileRow({
     }
     setIsDeleting(true);
     try {
-      await onDelete(profile.linkedinUrl);
+      await onDelete(profile.id);
     } finally {
       setIsDeleting(false);
     }

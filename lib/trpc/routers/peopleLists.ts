@@ -7,10 +7,12 @@ import {
   CreatePeopleListResponseSchema,
   GetPeopleListResponseSchema,
   ProfileOpResponseSchema,
+  AddProfilesResponseSchema,
   type GetAllPeopleListsResponse,
   type CreatePeopleListResponse,
   type GetPeopleListResponse,
   type ProfileOpResponse,
+  type AddProfilesResponse,
 } from "../schemas/peopleList-schemas";
 
 export const peopleListsRouter = router({
@@ -60,6 +62,7 @@ export const peopleListsRouter = router({
 
       try {
         const response = await axios.post("/peopleList.getList", {
+          orgId: ctx.orgId,
           listId: input.id,
         });
 
@@ -95,6 +98,10 @@ export const peopleListsRouter = router({
         prompt: z.string().optional(),
         min: z.number().optional(),
         max: z.number().optional(),
+        profiles: z.array(z.object({
+          type: z.enum(["slug", "liUrl"]),
+          value: z.string(),
+        })).min(1).default([{ type: "slug", value: "linkedin" }]),
       })
     )
     .output(CreatePeopleListResponseSchema)
@@ -108,7 +115,7 @@ export const peopleListsRouter = router({
           prompt: input.prompt,
           min: input.min,
           max: input.max,
-          profiles: [], // Backend requires at least 1 profile, but for now we'll create empty lists
+          profiles: input.profiles,
         });
 
         const parsed = CreatePeopleListResponseSchema.safeParse(response.data.result.data);
@@ -198,8 +205,8 @@ export const peopleListsRouter = router({
       try {
         const response = await axios.post("/peopleList.profileOp", {
           op: "add",
-          listId: input.listId,
           orgId: ctx.orgId,
+          listId: input.listId,
           profile: {
             type: "liUrl",
             value: input.linkedinUrl,
@@ -229,7 +236,7 @@ export const peopleListsRouter = router({
    * Remove a profile from a list
    */
   removeProfile: protectedProcedure
-    .input(z.object({ liUrl: z.string(), listId: z.string() }))
+    .input(z.object({ profileId: z.string(), listId: z.string() }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ ctx, input }): Promise<{ success: boolean }> => {
       const axios = await getBackendAxios();
@@ -237,12 +244,9 @@ export const peopleListsRouter = router({
       try {
         await axios.post("/peopleList.profileOp", {
           op: "remove",
-          listId: input.listId,
           orgId: ctx.orgId,
-          profile: {
-            type: "liUrl",
-            value: input.liUrl,
-          },
+          listId: input.listId,
+          profileId: input.profileId,
         });
         return { success: true };
       } catch (error) {
@@ -250,6 +254,49 @@ export const peopleListsRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to remove profile",
+        });
+      }
+    }),
+
+  /**
+   * Add multiple profiles to a list (bulk upload)
+   */
+  addProfiles: protectedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        linkedinUrls: z.array(z.string().url()).min(1),
+      })
+    )
+    .output(AddProfilesResponseSchema)
+    .mutation(async ({ ctx, input }): Promise<AddProfilesResponse> => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/peopleList.addProfiles", {
+          orgId: ctx.orgId,
+          listId: input.listId,
+          profiles: input.linkedinUrls.map((url) => ({
+            type: "liUrl",
+            value: url,
+          })),
+        });
+
+        const parsed = AddProfilesResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse add profiles response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error) {
+        console.error("Error adding profiles to list in backend:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to add profiles to list",
         });
       }
     }),

@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import ProfileRow from "./ProfileRow";
+import CsvUploadModal from "./CsvUploadModal";
 import { Profile } from "@/lib/trpc/schemas/peopleList-schemas";
 
 export default function PeopleListDetailsPage() {
@@ -12,12 +13,11 @@ export default function PeopleListDetailsPage() {
   const listId = params.id as string;
   const [isAddingLoading, setIsAddingLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
-  const [uploadingCsv, setUploadingCsv] = useState(false);
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(
     null,
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: listData, isLoading } = trpc.peopleLists.getById.useQuery({
     id: listId,
@@ -43,6 +43,12 @@ export default function PeopleListDetailsPage() {
   });
 
   const updatePeopleListMutation = trpc.peopleLists.update.useMutation({
+    onSuccess: () => {
+      utils.peopleLists.getById.invalidate({ id: listId });
+    },
+  });
+
+  const addProfilesMutation = trpc.peopleLists.addProfiles.useMutation({
     onSuccess: () => {
       utils.peopleLists.getById.invalidate({ id: listId });
     },
@@ -80,10 +86,10 @@ export default function PeopleListDetailsPage() {
     });
   };
 
-  const handleDeleteItem = async (liUrl: string) => {
+  const handleDeleteItem = async (profileId: string) => {
     return new Promise<void>((resolve, reject) => {
       removeProfileMutation.mutate(
-        { liUrl: liUrl, listId },
+        { profileId: profileId, listId },
         {
           onSuccess: () => resolve(),
           onError: (error) => reject(error),
@@ -99,42 +105,11 @@ export default function PeopleListDetailsPage() {
     });
   };
 
-  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingCsv(true);
-
-    try {
-      const text = await file.text();
-      const lines = text.split("\n").filter((line) => line.trim());
-
-      const urls = lines
-        .slice(1)
-        .map((line) => {
-          const url = line.split(",")[0].trim();
-          return url;
-        })
-        .filter((url) => url && url.startsWith("http"));
-
-      for (const url of urls) {
-        await addProfileMutation.mutateAsync({
-          listId,
-          linkedinUrl: url,
-        });
-      }
-
-      alert(`Successfully added ${urls.length} profiles`);
-      utils.peopleLists.getById.invalidate({ id: listId });
-    } catch (error) {
-      console.error("Error uploading CSV:", error);
-      alert("Failed to upload CSV");
-    } finally {
-      setUploadingCsv(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
+  const handleCsvUpload = async (linkedinUrls: string[]) => {
+    await addProfilesMutation.mutateAsync({
+      listId,
+      linkedinUrls,
+    });
   };
 
   return (
@@ -186,19 +161,11 @@ export default function PeopleListDetailsPage() {
               + Add Single Profile
             </button>
             <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingCsv}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              onClick={() => setShowCsvUploadModal(true)}
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
             >
-              {uploadingCsv ? "Uploading..." : "=� Upload CSV"}
+              📄 Upload CSV
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleCsvUpload}
-              className="hidden"
-            />
           </div>
         </div>
 
@@ -288,6 +255,12 @@ export default function PeopleListDetailsPage() {
             </div>
           </div>
         )}
+
+        <CsvUploadModal
+          isOpen={showCsvUploadModal}
+          onClose={() => setShowCsvUploadModal(false)}
+          onUpload={handleCsvUpload}
+        />
       </div>
     </div>
   );

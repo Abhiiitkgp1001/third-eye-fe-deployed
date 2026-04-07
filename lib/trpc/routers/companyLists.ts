@@ -95,6 +95,10 @@ export const companyListsRouter = router({
         prompt: z.string().optional(),
         min: z.number().optional(),
         max: z.number().optional(),
+        companies: z.array(z.object({
+          type: z.enum(["slug", "orgId", "liUrl"]),
+          value: z.string(),
+        })).min(1).default([{ type: "slug", value: "microsoft" }]),
       })
     )
     .output(CreateCompanyListResponseSchema)
@@ -108,7 +112,7 @@ export const companyListsRouter = router({
           prompt: input.prompt,
           min: input.min,
           max: input.max,
-          companies: [], // Backend requires at least 1 company, but for now we'll create empty lists
+          companies: input.companies,
         });
 
         const parsed = CreateCompanyListResponseSchema.safeParse(response.data.result.data);
@@ -198,8 +202,8 @@ export const companyListsRouter = router({
       try {
         const response = await axios.post("/companyList.companyOp", {
           op: "add",
-          listId: input.listId,
           orgId: ctx.orgId,
+          listId: input.listId,
           company: {
             type: "liUrl",
             value: input.linkedinUrl,
@@ -237,10 +241,10 @@ export const companyListsRouter = router({
       try {
         await axios.post("/companyList.companyOp", {
           op: "remove",
-          listId: input.listId,
           orgId: ctx.orgId,
+          listId: input.listId,
           company: {
-            type: "orgId",
+            type: "slug",
             value: input.companyId,
           },
         });

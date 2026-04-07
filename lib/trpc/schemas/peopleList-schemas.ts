@@ -70,9 +70,15 @@ export const ProfileOpResponseSchema = z.union([
   ProfileRemoveResponseSchema,
 ]);
 
+export const AddProfilesResponseSchema = z.object({
+  insertedCount: z.number(),
+  skippedCount: z.number(),
+});
+
 // ── Type exports ───────────────────────────────────────────────────────
 
 export type GetAllPeopleListsResponse = z.infer<typeof GetAllPeopleListsResponseSchema>;
 export type CreatePeopleListResponse = z.infer<typeof CreatePeopleListResponseSchema>;
 export type GetPeopleListResponse = z.infer<typeof GetPeopleListResponseSchema>;
 export type ProfileOpResponse = z.infer<typeof ProfileOpResponseSchema>;
+export type AddProfilesResponse = z.infer<typeof AddProfilesResponseSchema>;

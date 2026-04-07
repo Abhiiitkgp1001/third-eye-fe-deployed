@@ -41,6 +41,20 @@ export default function AppLayout({
         {/* Sidebar Content */}
         <div className="flex-1 p-4 space-y-2">
           <Link
+            href="/app"
+            className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+              pathname === '/app'
+                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 shadow-lg'
+                : 'bg-primary-800/90 hover:bg-primary-700/90'
+            }`}
+          >
+            <span className="text-2xl">📊</span>
+            <div className="flex-1">
+              <p className="text-white font-medium">Dashboard</p>
+            </div>
+          </Link>
+
+          <Link
             href="/app/companies"
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               pathname === '/app/companies'
@@ -69,6 +83,36 @@ export default function AppLayout({
               <p className="text-secondary-50 text-xs">{peopleLists.length} lists</p>
             </div>
           </Link>
+
+          <div className="pt-4 mt-4 border-t border-primary-700/40">
+            <Link
+              href="/app/settings"
+              className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                pathname === '/app/settings'
+                  ? 'bg-gradient-to-r from-primary-600 to-secondary-600 shadow-lg'
+                  : 'bg-primary-800/90 hover:bg-primary-700/90'
+              }`}
+            >
+              <span className="text-2xl">⚙️</span>
+              <div className="flex-1">
+                <p className="text-white font-medium">Settings</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/app/debug"
+              className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                pathname === '/app/debug'
+                  ? 'bg-gradient-to-r from-primary-600 to-secondary-600 shadow-lg'
+                  : 'bg-primary-800/90 hover:bg-primary-700/90'
+              }`}
+            >
+              <span className="text-2xl">🔧</span>
+              <div className="flex-1">
+                <p className="text-white font-medium">Debug</p>
+              </div>
+            </Link>
+          </div>
         </div>
       </aside>
 

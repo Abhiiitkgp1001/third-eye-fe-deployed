@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from "next/navigation";
+import { useOrganization } from "@clerk/nextjs";
 import { trpc } from "@/lib/trpc";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { organization } = useOrganization();
 
   // Fetch lists using tRPC
   const { data: companyLists = [], isLoading: isLoadingCompany } = trpc.companyLists.getAll.useQuery();
@@ -26,7 +28,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Dashboard Overview</h1>
-          <p className="text-white">Welcome to your tracking dashboard</p>
+          <p className="text-white">Welcome to your tracking dashboard{organization?.name ? `, ${organization.name}` : ''}</p>
         </div>
 
         {/* Stats Cards */}
