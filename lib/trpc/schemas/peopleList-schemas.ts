@@ -44,7 +44,11 @@ export type Profile = z.infer<typeof ProfileSchema>;
 
 // ── Response Schemas ───────────────────────────────────────────────────
 
-export const GetAllPeopleListsResponseSchema = z.array(PeopleListSchema);
+export const PeopleListWithCountSchema = PeopleListSchema.extend({
+  profileCount: z.number(),
+});
+
+export const GetAllPeopleListsResponseSchema = z.array(PeopleListWithCountSchema);
 
 export const CreatePeopleListResponseSchema = z.object({
   list: PeopleListSchema,

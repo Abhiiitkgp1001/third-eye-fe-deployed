@@ -100,7 +100,8 @@ export default function PeoplePage() {
                 <thead>
                   <tr className="border-b border-primary-700/40">
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Items</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Total People</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Created</th>
                     <th className="px-6 py-4 text-right text-sm font-semibold text-white">Actions</th>
                   </tr>
@@ -120,7 +121,19 @@ export default function PeoplePage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-white">0</span>
+                        <span className="text-white font-semibold">{list.profileCount}</span>
+                        <span className="text-secondary-50 text-sm ml-1">profiles</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            list.enabled
+                              ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                              : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
+                          }`}
+                        >
+                          {list.enabled ? '✓ Active' : '○ Inactive'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-secondary-50 text-sm">

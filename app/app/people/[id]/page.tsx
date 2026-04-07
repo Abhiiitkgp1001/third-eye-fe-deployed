@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import ProfileRow from "./ProfileRow";
 import CsvUploadModal from "./CsvUploadModal";
+import Pagination from "./Pagination";
+import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Profile } from "@/lib/trpc/schemas/peopleList-schemas";
 
 export default function PeopleListDetailsPage() {
@@ -14,13 +16,18 @@ export default function PeopleListDetailsPage() {
   const [isAddingLoading, setIsAddingLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
+  const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(
     null,
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   const { data: listData, isLoading } = trpc.peopleLists.getById.useQuery({
     id: listId,
+    limit: ITEMS_PER_PAGE,
+    offset: (currentPage - 1) * ITEMS_PER_PAGE,
   });
   const utils = trpc.useUtils();
 
@@ -29,6 +36,7 @@ export default function PeopleListDetailsPage() {
       setShowAddModal(false);
       setIsAddingLoading(false);
       setNewItemUrl("");
+      setCurrentPage(1); // Reset to first page when adding
       utils.peopleLists.getById.invalidate({ id: listId });
     },
     onError: () => {
@@ -50,6 +58,7 @@ export default function PeopleListDetailsPage() {
 
   const addProfilesMutation = trpc.peopleLists.addProfiles.useMutation({
     onSuccess: () => {
+      setCurrentPage(1); // Reset to first page when adding bulk
       utils.peopleLists.getById.invalidate({ id: listId });
     },
   });
@@ -99,10 +108,15 @@ export default function PeopleListDetailsPage() {
   };
 
   const handleToggleEnabled = () => {
+    setShowConfirmToggleModal(true);
+  };
+
+  const handleConfirmToggle = () => {
     updatePeopleListMutation.mutate({
       id: listId,
       enabled: !list.enabled,
     });
+    setShowConfirmToggleModal(false);
   };
 
   const handleCsvUpload = async (linkedinUrls: string[]) => {
@@ -216,6 +230,14 @@ export default function PeopleListDetailsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={total}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
 
         {showAddModal && (
@@ -260,6 +282,15 @@ export default function PeopleListDetailsPage() {
           isOpen={showCsvUploadModal}
           onClose={() => setShowCsvUploadModal(false)}
           onUpload={handleCsvUpload}
+        />
+
+        <ConfirmToggleModal
+          isOpen={showConfirmToggleModal}
+          currentStatus={list?.enabled ?? false}
+          listName={list?.name ?? ""}
+          onConfirm={handleConfirmToggle}
+          onCancel={() => setShowConfirmToggleModal(false)}
+          isLoading={updatePeopleListMutation.isPending}
         />
       </div>
     </div>
