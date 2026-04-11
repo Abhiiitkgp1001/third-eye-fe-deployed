@@ -1,11 +1,23 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui";
 
 interface CompanyRowProps {
   company: any;
   listId: string;
   isExpanded: boolean;
-  onToggleExpanded: (companyId: string) => void;
+  onToggleExpanded: () => void;
   onDelete: (companyId: string) => Promise<void>;
+  index: number;
 }
 
 export default function CompanyRow({
@@ -14,8 +26,10 @@ export default function CompanyRow({
   isExpanded,
   onToggleExpanded,
   onDelete,
+  index,
 }: CompanyRowProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getDisplayName = () => {
     if (company.latestMetadata?.company_name) {
@@ -25,12 +39,10 @@ export default function CompanyRow({
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to remove this company?")) {
-      return;
-    }
     setIsDeleting(true);
     try {
       await onDelete(company.id);
+      setShowDeleteConfirm(false);
     } finally {
       setIsDeleting(false);
     }
@@ -41,10 +53,15 @@ export default function CompanyRow({
 
   return (
     <React.Fragment>
-      <tr className="hover:bg-primary-800/50 transition-colors group cursor-pointer">
+      <motion.tr
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: index * 0.05 }}
+        className="hover:bg-dark-200/50 transition-colors group cursor-pointer border-b border-gray-800"
+      >
         <td
           className="px-6 py-4"
-          onClick={() => metadata && onToggleExpanded(company.id)}
+          onClick={() => metadata && onToggleExpanded()}
         >
           <div className="flex items-center gap-3">
             {metadata?.logo_url && (
@@ -59,7 +76,7 @@ export default function CompanyRow({
                 href={company.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-400 hover:text-primary-300 hover:underline flex items-center gap-2"
+                className="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-2 text-white font-medium"
                 onClick={(e) => e.stopPropagation()}
               >
                 <svg
@@ -72,7 +89,7 @@ export default function CompanyRow({
                 {displayName || company.linkedinUrl}
               </a>
               {metadata && (
-                <span className="text-secondary-50 text-sm">
+                <span className="text-gray-400 text-sm">
                   {isExpanded ? "▼" : "▶"}
                 </span>
               )}
@@ -80,8 +97,8 @@ export default function CompanyRow({
           </div>
         </td>
         <td
-          className="px-6 py-4 text-secondary-50"
-          onClick={() => metadata && onToggleExpanded(company.id)}
+          className="px-6 py-4 text-gray-300"
+          onClick={() => metadata && onToggleExpanded()}
         >
           <div className="line-clamp-2">
             {metadata?.description || "-"}
@@ -89,7 +106,7 @@ export default function CompanyRow({
         </td>
         <td
           className="px-6 py-4"
-          onClick={() => metadata && onToggleExpanded(company.id)}
+          onClick={() => metadata && onToggleExpanded()}
         >
           <span
             className={`px-2 py-1 rounded text-xs ${
@@ -102,8 +119,8 @@ export default function CompanyRow({
           </span>
         </td>
         <td
-          className="px-6 py-4 text-secondary-50"
-          onClick={() => metadata && onToggleExpanded(company.id)}
+          className="px-6 py-4 text-gray-400 text-sm"
+          onClick={() => metadata && onToggleExpanded()}
         >
           {new Date(company.createdAt).toLocaleDateString()}
         </td>
@@ -113,7 +130,7 @@ export default function CompanyRow({
               disabled={isDeleting}
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete();
+                setShowDeleteConfirm(true);
               }}
               className="text-red-400 hover:text-red-300 font-medium transition-colors disabled:opacity-50"
             >
@@ -121,11 +138,15 @@ export default function CompanyRow({
             </button>
           </div>
         </td>
-      </tr>
+      </motion.tr>
 
       {isExpanded && metadata && (
-        <tr>
-          <td colSpan={5} className="px-6 py-4 bg-primary-800/30">
+        <motion.tr
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <td colSpan={5} className="px-6 py-4 bg-dark-200/30 border-b border-gray-800">
             <div className="space-y-6">
               {/* Company Overview */}
               <div className="grid grid-cols-2 gap-6">
@@ -246,8 +267,26 @@ export default function CompanyRow({
               )}
             </div>
           </td>
-        </tr>
+        </motion.tr>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Company</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this company from the list? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteConfirm(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </React.Fragment>
   );
 }

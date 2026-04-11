@@ -3,12 +3,23 @@
 import { useState, useEffect } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { trpc } from "@/lib/trpc";
-import { PageSpinner } from "@/components/ui";
+import {
+  PageSpinner,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui";
 
 export default function SettingsPage() {
   const { organization, isLoaded } = useOrganization();
   const [orgName, setOrgName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showDeletionInfo, setShowDeletionInfo] = useState(false);
 
   // Fetch organization from backend
   const { data: backendOrg, isLoading: isLoadingOrg, refetch } = trpc.organization.get.useQuery(
@@ -23,7 +34,7 @@ export default function SettingsPage() {
       setIsEditing(false);
     },
     onError: (error) => {
-      alert(`Error updating organization: ${error.message}`);
+      setErrorMessage(`Error updating organization: ${error.message}`);
     },
   });
 
@@ -177,9 +188,7 @@ export default function SettingsPage() {
                 Organization deletion is not self-serve. This action requires manual review and cannot be undone.
               </p>
               <button
-                onClick={() => {
-                  alert('Organization deletion is not self-serve. Please contact team@tryhog.com to delete your organization.');
-                }}
+                onClick={() => setShowDeletionInfo(true)}
                 className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg font-semibold transition-all border border-red-500/30"
               >
                 Request Organization Deletion
@@ -188,6 +197,35 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Error Dialog */}
+      <AlertDialog open={!!errorMessage} onOpenChange={() => setErrorMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{errorMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Deletion Info Dialog */}
+      <AlertDialog open={showDeletionInfo} onOpenChange={setShowDeletionInfo}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Organization Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Organization deletion is not self-serve. Please contact team@tryhog.com to delete your organization.
+              This action requires manual review and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowDeletionInfo(false)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -13,8 +13,11 @@ import {
   DialogFooter,
   Input,
   Label,
+  Badge,
+  Checkbox,
 } from "@/components/ui";
-import { Loader2, ArrowLeft,  CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, X } from "lucide-react";
+import { COMPANY_SIGNAL_GROUPS, type CompanySignal } from "@/lib/companyMovements";
 import { cn } from "@/lib/utils";
 
 interface MovementDefinition {
@@ -34,19 +37,20 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [listName, setListName] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [movements, setMovements] = useState<MovementDefinition[]>([]);
-  const [promptError, setPromptError] = useState('');
+  const [selectedSignals, setSelectedSignals] = useState<Set<CompanySignal>>(new Set());
+  const [aiMovements, setAiMovements] = useState<MovementDefinition[]>([]);
+  const [error, setError] = useState('');
   const [cadence, setCadence] = useState<"MANUAL" | "DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
   const [cadenceInterval, setCadenceInterval] = useState(10);
 
   const processPrompt = trpc.prompts.processForCompanyList.useMutation({
     onSuccess: (data) => {
-      setMovements(data.movements);
-      setPromptError('');
+      setAiMovements(data.movements);
+      setError('');
     },
-    onError: (error) => {
-      setPromptError(error.message);
-      setMovements([]);
+    onError: (err) => {
+      setError(err.message);
+      setAiMovements([]);
     },
   });
 
@@ -56,10 +60,21 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       handleClose();
       router.push(`/app/companies/${data.list.id}`);
     },
-    onError: (error) => {
-      setPromptError(`Error creating list: ${error.message}`);
+    onError: (err) => {
+      setError(`Error creating list: ${err.message}`);
     },
   });
+
+  // Merge selected signals + AI-generated movements, deduped by name
+  const allMovements: MovementDefinition[] = [
+    ...Array.from(selectedSignals).map((key) => {
+      const def = COMPANY_SIGNAL_GROUPS.flatMap((g) => g.signals).find((s) => s.key === key)!;
+      return { name: key, description: def.description };
+    }),
+    ...aiMovements.filter(
+      (m) => !Array.from(selectedSignals).some((k) => k === m.name),
+    ),
+  ];
 
   function handleClose() {
     onOpenChange(false);
@@ -67,22 +82,30 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       setStep(1);
       setListName('');
       setPrompt('');
-      setMovements([]);
-      setPromptError('');
+      setSelectedSignals(new Set());
+      setAiMovements([]);
       setCadence("DAILY");
       setCadenceInterval(10);
+      setError('');
     }, 200);
   }
 
   function handleNext() {
-    if (step === 1 && listName.trim()) {
-      setStep(2);
-    }
+    if (listName.trim()) setStep(2);
+  }
+
+  function toggleSignal(key: CompanySignal) {
+    setSelectedSignals((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   }
 
   function handleProcessPrompt() {
     if (!prompt.trim()) return;
-    setPromptError('');
+    setError('');
     processPrompt.mutate({ prompt: prompt.trim() });
   }
 
@@ -93,6 +116,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       cadence,
       cadenceInterval,
       companies: [],
+      movementDefinitions: allMovements.length > 0 ? allMovements : undefined,
     });
   }
 
@@ -148,44 +172,120 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
         {step === 2 && (
           <>
             <DialogHeader>
-              <DialogTitle>Describe Your List (Optional)</DialogTitle>
+              <DialogTitle>Configure Company Signals</DialogTitle>
               <DialogDescription>
-                Optionally describe what kind of companies you want to track.
+                Select predefined signals or define custom ones using AI.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="prompt">Prompt</Label>
-                <textarea
-                  id="prompt"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="e.g., Early-stage B2B SaaS startups that raised a seed round in the last 6 months..."
-                  rows={4}
-                  className="flex w-full rounded-base border-2 border-border bg-main px-3 py-2 text-sm text-main-foreground placeholder:text-main-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                  disabled={isBusy}
-                />
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+              {/* Signal Groups */}
+              {COMPANY_SIGNAL_GROUPS.map((group) => (
+                <div key={group.id} className="space-y-2">
+                  <h4 className={cn("text-sm font-semibold", group.color)}>
+                    {group.label}
+                  </h4>
+                  <div className="grid gap-2">
+                    {group.signals.map((signal) => {
+                      const isSelected = selectedSignals.has(signal.key);
+                      return (
+                        <label
+                          key={signal.key}
+                          className={cn(
+                            "flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/50 hover:bg-secondary/20"
+                          )}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleSignal(signal.key)}
+                            disabled={isBusy}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm">{signal.label}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {signal.description}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* AI Custom Prompt */}
+              <div className="space-y-2 pt-4 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <h4 className="text-sm font-semibold text-purple-400">
+                    Custom AI Signals (Optional)
+                  </h4>
+                </div>
+                <div className="grid gap-2">
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="e.g., Companies that post about sustainability 5+ times per month..."
+                    rows={3}
+                    className="flex w-full rounded-base border-2 border-border bg-main px-3 py-2 text-sm text-main-foreground placeholder:text-main-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                    disabled={isBusy}
+                  />
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    onClick={handleProcessPrompt}
+                    disabled={!prompt.trim() || isBusy}
+                  >
+                    {processPrompt.isPending ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
+                    ) : (
+                      <><Sparkles className="mr-2 h-4 w-4" /> Generate AI Signals</>
+                    )}
+                  </Button>
+                </div>
               </div>
 
-              {/* Note about not implemented */}
-              <div className="flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2">
-                <AlertCircle className="h-4 w-4 text-yellow-400 shrink-0 mt-0.5" />
-                <span className="text-xs text-yellow-300">
-                  AI prompt processing for company lists is not yet implemented. You can still save a description for reference.
-                </span>
-              </div>
-
-              {promptError && (
-                <p className="text-sm text-red-400">{promptError}</p>
+              {/* AI-generated movements display */}
+              {aiMovements.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-purple-400">
+                      AI-Generated Signals ({aiMovements.length})
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAiMovements([])}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {aiMovements.map((m) => (
+                      <Badge key={m.name} variant="neutral" className="text-xs">
+                        {m.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               )}
 
-              {movements.length > 0 && (
+              {error && (
+                <p className="text-sm text-red-400 p-2 rounded bg-red-500/10 border border-red-500/20">
+                  {error}
+                </p>
+              )}
+
+              {/* Summary */}
+              {allMovements.length > 0 && (
                 <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-400 shrink-0" />
-                  <span className="text-sm text-green-300">
-                    Generated <strong>{movements.length}</strong> movement{movements.length !== 1 ? 's' : ''}
-                  </span>
+                  <Badge variant="default" className="text-xs">
+                    {allMovements.length} signal{allMovements.length !== 1 ? 's' : ''} selected
+                  </Badge>
                 </div>
               )}
             </div>
@@ -193,13 +293,12 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
             <DialogFooter className="flex gap-3 sm:gap-3">
               <Button
                 variant="neutral"
-                onClick={() => { setStep(1); setMovements([]); setPromptError(''); }}
+                onClick={() => { setStep(1); setAiMovements([]); setError(''); }}
                 disabled={isBusy}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-
               <Button onClick={() => setStep(3)} disabled={isBusy}>
                 Next
               </Button>

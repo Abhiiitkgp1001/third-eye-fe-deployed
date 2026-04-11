@@ -3,7 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { Button, Badge, EmptyState, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, PageSpinner } from "@/components/ui";
+import {
+  Button,
+  Badge,
+  EmptyState,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  PageSpinner,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui";
 import { Plus, Users, Eye, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateListWizard } from "./CreateListWizard";
@@ -12,6 +31,8 @@ import { formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 export default function PeoplePage() {
   const router = useRouter();
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Fetch people lists using tRPC
   const { data: peopleLists = [], isLoading } = trpc.peopleLists.getAll.useQuery();
@@ -21,15 +42,21 @@ export default function PeoplePage() {
   const deleteListMutation = trpc.peopleLists.delete.useMutation({
     onSuccess: () => {
       utils.peopleLists.getAll.invalidate();
+      setDeleteConfirmId(null);
     },
     onError: (error) => {
-      alert(`Error deleting list: ${error.message}`);
+      setErrorMessage(`Error deleting list: ${error.message}`);
+      setDeleteConfirmId(null);
     },
   });
 
   const handleDeleteList = (listId: string) => {
-    if (confirm('Are you sure you want to delete this list?')) {
-      deleteListMutation.mutate({ id: listId });
+    setDeleteConfirmId(listId);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmId) {
+      deleteListMutation.mutate({ id: deleteConfirmId });
     }
   };
 
@@ -177,6 +204,44 @@ export default function PeoplePage() {
       </motion.div>
 
       <CreateListWizard open={isCreatingList} onOpenChange={setIsCreatingList} />
+
+      {/* Error Dialog */}
+      <AlertDialog open={!!errorMessage} onOpenChange={() => setErrorMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{errorMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete People List</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this list? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={deleteListMutation.isPending}>
+              {deleteListMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

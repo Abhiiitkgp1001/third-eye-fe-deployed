@@ -1,4 +1,13 @@
 import React, { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui";
 
 interface CsvUploadModalProps {
   isOpen: boolean;
@@ -24,6 +33,7 @@ export default function CsvUploadModal({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -39,7 +49,7 @@ export default function CsvUploadModal({
       // Parse CSV
       const lines = text.split("\n").filter((line) => line.trim());
       if (lines.length < 2) {
-        alert("CSV file must have at least a header row and one data row");
+        setErrorMessage("CSV file must have at least a header row and one data row");
         return;
       }
 
@@ -85,7 +95,7 @@ export default function CsvUploadModal({
       .filter((url) => url && LINKEDIN_URL_REGEX.test(url));
 
     if (linkedinUrls.length === 0) {
-      alert("No valid LinkedIn URLs found in the selected column");
+      setErrorMessage("No valid LinkedIn URLs found in the selected column");
       return;
     }
 
@@ -100,7 +110,7 @@ export default function CsvUploadModal({
       }, 1500);
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Failed to upload profiles. Please try again.");
+      setErrorMessage("Failed to upload profiles. Please try again.");
       setIsUploading(false);
       setUploadProgress("");
     }
@@ -287,6 +297,19 @@ export default function CsvUploadModal({
           </div>
         )}
       </div>
+
+      {/* Error Dialog */}
+      <AlertDialog open={!!errorMessage} onOpenChange={() => setErrorMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{errorMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

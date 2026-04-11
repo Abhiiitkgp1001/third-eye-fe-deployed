@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -8,7 +8,9 @@ import CompanyRow from "./CompanyRow";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
-import { PageSpinner } from "@/components/ui";
+import { Button, Badge, Card, PageSpinner } from "@/components/ui";
+import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CompanyListDetailsPage() {
   const params = useParams();
@@ -76,10 +78,6 @@ export default function CompanyListDetailsPage() {
 
   const { list, companies, total } = listData;
 
-  const toggleExpanded = (companyId: string) => {
-    setExpandedCompanyId(expandedCompanyId === companyId ? null : companyId);
-  };
-
   const handleAddItem = () => {
     if (!newItemUrl.trim()) return;
 
@@ -122,156 +120,283 @@ export default function CompanyListDetailsPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 p-6">
-          <div className="flex items-center justify-between mb-4">
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-6"
+      >
+        <Card>
+          <div className="space-y-4">
+            {/* Breadcrumb & Title */}
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <button
-                  onClick={() => router.push('/app/companies')}
-                  className="text-secondary-50 hover:text-white transition-colors"
-                >
-                  ← Back to Companies
-                </button>
-                <h1 className="text-3xl font-bold text-white">{list.name}</h1>
-                <span className="px-3 py-1 rounded-full text-sm bg-primary-700/50 text-white">
-                  🏢 Company List
-                </span>
-              </div>
-              <p className="text-secondary-50">
-                {total} companies • Created {new Date(list.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-white">Status:</span>
-                <button
-                  onClick={handleToggleEnabled}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    list.enabled
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-gray-600 hover:bg-gray-700 text-white'
-                  }`}
-                >
-                  {list.enabled ? '✓ Active' : '○ Inactive'}
-                </button>
+              <button
+                onClick={() => router.push("/app/companies")}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-3 group"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span className="text-sm">Back to Company Lists</span>
+              </button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">{list.name}</h1>
+                  <p className="text-gray-400 text-sm">
+                    {total} companies • Created {new Date(list.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant={list.enabled ? 'default' : 'neutral'}>
+                    {list.enabled ? 'Active' : 'Inactive'}
+                  </Badge>
+                  <Button
+                    variant={list.enabled ? 'neutral' : 'default'}
+                    size="sm"
+                    onClick={handleToggleEnabled}
+                  >
+                    {list.enabled ? 'Deactivate' : 'Activate'}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
-            >
-              + Add Single Company
-            </button>
-            <button
-              onClick={() => setShowCsvUploadModal(true)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
-            >
-              📄 Upload CSV
-            </button>
-          </div>
-        </div>
-
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-primary-800/90 border-b border-primary-700/40">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Company Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Description</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Added</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-primary-700/40">
-                {companies && companies.length > 0 ? (
-                  companies.map((company: Company) => (
-                    <CompanyRow
-                      key={company.id}
-                      company={company}
-                      listId={listId}
-                      isExpanded={expandedCompanyId === company.id}
-                      onToggleExpanded={toggleExpanded}
-                      onDelete={handleDeleteItem}
-                    />
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-secondary-50">
-                      No companies in this list yet. Add some to get started!
-                    </td>
-                  </tr>
+            {/* List Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-800">
+              {/* Cadence Info */}
+              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
+                <p className="text-xs text-gray-400 mb-1">Enrichment Cadence</p>
+                <p className="text-sm font-medium text-white">
+                  {list.cadence || 'MANUAL'}
+                  {list.cadenceInterval && ` (every ${list.cadenceInterval} ${list.cadence === 'DAILY' ? 'days' : list.cadence === 'WEEKLY' ? 'weeks' : 'months'})`}
+                </p>
+                {list.nextRunAt && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Next: {new Date(list.nextRunAt).toLocaleString()}
+                  </p>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </div>
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalItems={total}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
+              {/* Last Run */}
+              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
+                <p className="text-xs text-gray-400 mb-1">Last Enrichment</p>
+                <p className="text-sm font-medium text-white">
+                  {list.lastRunAt
+                    ? new Date(list.lastRunAt).toLocaleString()
+                    : 'Never'}
+                </p>
+              </div>
+
+              {/* Sync Status */}
+              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
+                <p className="text-xs text-gray-400 mb-1">Sync Status</p>
+                <Badge variant={list.syncStatus === 'NORMAL' ? 'default' : 'neutral'}>
+                  {list.syncStatus}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Movements/Signals */}
+            {list.movementDefinitions && list.movementDefinitions.length > 0 && (
+              <div className="pt-4 border-t border-gray-800">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                  Tracking {list.movementDefinitions.length} Signal{list.movementDefinitions.length !== 1 ? 's' : ''}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {list.movementDefinitions.map((movement) => (
+                    <div
+                      key={movement.name}
+                      className="group relative"
+                    >
+                      <Badge
+                        variant="neutral"
+                        className="font-mono text-[10px] cursor-help"
+                      >
+                        {movement.name}
+                      </Badge>
+                      {/* Tooltip on hover */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-64 pointer-events-none">
+                        <div className="bg-dark-200 border border-gray-700 rounded-lg p-3 shadow-xl">
+                          <p className="text-xs text-gray-300 leading-relaxed">
+                            {movement.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-gray-800">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowAddModal(true)}
+              >
+                <Plus className="h-4 w-4" /> Add Company
+              </Button>
+              <Button
+                variant="neutral"
+                size="sm"
+                onClick={() => setShowCsvUploadModal(true)}
+              >
+                <Upload className="h-4 w-4" /> Upload CSV
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Companies Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="glass rounded-xl overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b border-gray-800">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Company Name
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Description
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Added
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {companies && companies.length > 0 ? (
+                companies.map((company: Company, index: number) => (
+                  <CompanyRow
+                    key={company.id}
+                    company={company}
+                    listId={listId}
+                    isExpanded={expandedCompanyId === company.id}
+                    onToggleExpanded={() => setExpandedCompanyId(expandedCompanyId === company.id ? null : company.id)}
+                    onDelete={handleDeleteItem}
+                    index={index}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
+                    <p className="text-lg mb-2">No companies in this list yet</p>
+                    <p className="text-sm">Add companies to get started tracking</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={total}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setCurrentPage}
+        />
+      </motion.div>
+
+      {/* Add Company Modal */}
+      <AnimatePresence>
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 p-6 w-full max-w-md">
-              <h2 className="text-2xl font-bold text-white mb-4">Add Company</h2>
-              <div className="mb-4">
-                <label className="block text-white mb-2">LinkedIn URL</label>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass p-8 rounded-2xl max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Add Company</h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  LinkedIn URL
+                </label>
                 <input
                   type="url"
                   value={newItemUrl}
                   onChange={(e) => setNewItemUrl(e.target.value)}
                   placeholder="https://linkedin.com/company/companyname"
-                  className="w-full px-4 py-2 bg-primary-800 border border-primary-700 rounded-lg text-white placeholder-secondary-50 focus:outline-none focus:ring-2 focus:ring-primary-600"
+                  className="w-full px-4 py-3 bg-dark-200 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddItem();
+                  }}
                 />
               </div>
+
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="default"
                   onClick={handleAddItem}
-                  disabled={isAddingLoading}
-                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  disabled={isAddingLoading || !newItemUrl.trim()}
+                  className="flex-1"
                 >
-                  {isAddingLoading ? 'Adding...' : 'Add'}
-                </button>
-                <button
+                  Add Company
+                </Button>
+                <Button
+                  variant="neutral"
                   onClick={() => {
                     setShowAddModal(false);
                     setNewItemUrl("");
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                  disabled={isAddingLoading}
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        <CsvUploadModal
-          isOpen={showCsvUploadModal}
-          onClose={() => setShowCsvUploadModal(false)}
-          onUpload={handleCsvUpload}
-        />
+      <CsvUploadModal
+        isOpen={showCsvUploadModal}
+        onClose={() => setShowCsvUploadModal(false)}
+        onUpload={handleCsvUpload}
+      />
 
-        <ConfirmToggleModal
-          isOpen={showConfirmToggleModal}
-          currentStatus={list?.enabled ?? false}
-          listName={list?.name ?? ""}
-          onConfirm={handleConfirmToggle}
-          onCancel={() => setShowConfirmToggleModal(false)}
-          isLoading={updateCompanyListMutation.isPending}
-        />
-      </div>
+      <ConfirmToggleModal
+        isOpen={showConfirmToggleModal}
+        currentStatus={list?.enabled ?? false}
+        listName={list?.name ?? ""}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => setShowConfirmToggleModal(false)}
+        isLoading={updateCompanyListMutation.isPending}
+      />
     </div>
   );
 }
