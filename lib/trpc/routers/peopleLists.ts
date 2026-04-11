@@ -109,7 +109,7 @@ export const peopleListsRouter = router({
         profiles: z.array(z.object({
           type: z.enum(["slug", "liUrl"]),
           value: z.string(),
-        })).min(1).default([{ type: "slug", value: "linkedin" }]),
+        })).min(0).default([]),
       })
     )
     .output(CreatePeopleListResponseSchema)
@@ -190,12 +190,9 @@ export const peopleListsRouter = router({
       const axios = await getBackendAxios();
 
       try {
-        // Use profileOp with DELETE operation to remove the list
-        await axios.post("/peopleList.profileOp", {
-          op: "remove",
-          peopleListId: input.id,
+        await axios.post("/peopleList.deleteList", {
           orgId: ctx.orgId,
-          operation: "DELETE_LIST",
+          listId: input.id,
         });
         return { success: true };
       } catch (error) {

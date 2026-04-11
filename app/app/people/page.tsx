@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
+import { Button, Badge, EmptyState, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Input, Label, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui";
+import { Plus, Users, Eye, Trash2, X, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PeoplePage() {
   const router = useRouter();
@@ -55,171 +58,166 @@ export default function PeoplePage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">People Lists</h1>
-          <p className="text-white">Manage and track your people lists</p>
-        </div>
-
-        {/* People Lists Table */}
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden">
-          <div className="p-6 border-b border-primary-700/40">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">All People Lists</h2>
-              <button
-                onClick={() => setIsCreatingList(true)}
-                className="px-4 py-2 bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create People List
-              </button>
-            </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-8"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">People Lists</h1>
+            <p className="text-gray-400">Manage and track your people lists</p>
           </div>
-
-          {peopleLists.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="text-7xl mb-4">👥</div>
-              <h3 className="text-2xl font-bold text-white mb-2">No people lists yet</h3>
-              <p className="text-secondary-50 mb-6">Create your first people tracking list to get started</p>
-              <button
-                onClick={() => setIsCreatingList(true)}
-                className="px-6 py-3 bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white font-semibold rounded-lg transition-all inline-flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create Your First People List
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-primary-700/40">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Total People</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Created</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-white">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {peopleLists.map((list, index) => (
-                    <tr
-                      key={list.id}
-                      className={`border-b border-primary-700/30 hover:bg-primary-800/90 transition-colors ${
-                        index % 2 === 0 ? 'bg-primary-900/50' : ''
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">👥</span>
-                          <span className="text-white font-medium">{list.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-white font-semibold">{list.profileCount}</span>
-                        <span className="text-secondary-50 text-sm ml-1">profiles</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            list.enabled
-                              ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                              : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
-                          }`}
-                        >
-                          {list.enabled ? '✓ Active' : '○ Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-secondary-50 text-sm">
-                          {list.createdAt ? new Date(list.createdAt).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => router.push(`/app/people/${list.id}`)}
-                            className="px-3 py-1.5 bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteList(list.id)}
-                            disabled={deleteListMutation.isPending}
-                            className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-sm font-medium rounded-lg transition-all flex items-center gap-1 border border-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            {deleteListMutation.isPending ? 'Deleting...' : 'Delete'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <Button onClick={() => setIsCreatingList(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create List
+          </Button>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Lists Grid/Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="glass rounded-xl overflow-hidden"
+      >
+        {peopleLists.length === 0 ? (
+          <div className="p-12">
+            <EmptyState
+              icon={Users}
+              title="No people lists yet"
+              description="Create your first people tracking list to get started"
+              actionLabel="Create Your First List"
+              onAction={() => setIsCreatingList(true)}
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Total People</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {peopleLists.map((list, index) => (
+                  <motion.tr
+                    key={list.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="hover:bg-dark-200/50 transition-colors border-b border-gray-800"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <span className="text-white font-medium">{list.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-white font-semibold">{list.profileCount}</span>
+                      <span className="text-gray-400 text-sm ml-1">profiles</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={list.enabled ? 'default' : 'secondary'}>
+                        {list.enabled ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-400 text-sm">
+                        {list.createdAt ? new Date(list.createdAt).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/app/people/${list.id}`)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteList(list.id)}
+                          disabled={deleteListMutation.isPending}
+                        >
+                          {deleteListMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="mr-2 h-4 w-4" />
+                          )}
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </motion.div>
 
       {/* Create List Modal */}
-      {isCreatingList && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="backdrop-blur-xl bg-primary-900/90 border border-primary-700/30 rounded-2xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-white mb-6">Create New People List</h2>
+      <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New People List</DialogTitle>
+            <DialogDescription>
+              Enter a name for your new people tracking list.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="mb-6">
-              <label className="block text-white text-sm font-medium mb-2">
-                List Name
-              </label>
-              <input
-                type="text"
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="listName">List Name</Label>
+              <Input
+                id="listName"
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="e.g., LinkedIn Leads"
-                className="w-full px-4 py-3 bg-primary-800/90 border border-primary-700/30 rounded-lg text-white placeholder-secondary-300 focus:outline-none focus:ring-2 focus:ring-tertiary-500"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCreateList();
                 }}
               />
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleCreateList}
-                disabled={!newListName.trim() || createList.isPending}
-                className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
-                  newListName.trim() && !createList.isPending
-                    ? 'bg-gradient-to-r from-tertiary-600 to-secondary-600 hover:from-tertiary-700 hover:to-secondary-700 text-white'
-                    : 'bg-primary-800/90 text-secondary-400 cursor-not-allowed'
-                }`}
-              >
-                {createList.isPending ? 'Creating...' : 'Create List'}
-              </button>
-              <button
-                onClick={() => {
-                  setIsCreatingList(false);
-                  setNewListName('');
-                }}
-                disabled={createList.isPending}
-                className="px-6 py-3 bg-primary-800/90 hover:bg-primary-700/90 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter className="flex gap-3 sm:gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setIsCreatingList(false);
+                setNewListName('');
+              }}
+              disabled={createList.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateList}
+              disabled={!newListName.trim() || createList.isPending}
+            >
+              {createList.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

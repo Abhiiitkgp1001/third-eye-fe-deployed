@@ -1,0 +1,165 @@
+import React from "react";
+
+interface ConfirmToggleModalProps {
+  isOpen: boolean;
+  currentStatus: boolean;
+  listName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+}
+
+export default function ConfirmToggleModal({
+  isOpen,
+  currentStatus,
+  listName,
+  onConfirm,
+  onCancel,
+  isLoading = false,
+}: ConfirmToggleModalProps) {
+  if (!isOpen) return null;
+
+  const isActivating = !currentStatus;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 p-6 w-full max-w-md">
+        <div className="flex items-start gap-4 mb-6">
+          <div
+            className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+              isActivating
+                ? "bg-green-600/20 text-green-400"
+                : "bg-yellow-600/20 text-yellow-400"
+            }`}
+          >
+            {isActivating ? (
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            )}
+          </div>
+
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {isActivating ? "Activate List" : "Deactivate List"}
+            </h2>
+            <p className="text-secondary-50 text-sm">
+              {isActivating
+                ? `Are you sure you want to activate "${listName}"?`
+                : `Are you sure you want to deactivate "${listName}"?`}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-primary-800/50 rounded-lg p-4 mb-6">
+          <p className="text-white text-sm mb-2 font-semibold">
+            {isActivating ? "What will happen:" : "What will stop:"}
+          </p>
+          <ul className="text-secondary-50 text-sm space-y-2">
+            {isActivating ? (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">✓</span>
+                  <span>
+                    Company monitoring will begin based on the configured
+                    cadence
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">✓</span>
+                  <span>
+                    Company enrichment will run to gather latest data
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">✓</span>
+                  <span>
+                    Movement notifications will be enabled for tracked changes
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">✓</span>
+                  <span className="text-yellow-300">
+                    This list will become billable
+                  </span>
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-400 mt-0.5">⚠</span>
+                  <span>Company monitoring will be paused</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-400 mt-0.5">⚠</span>
+                  <span>No new company data will be collected</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-400 mt-0.5">⚠</span>
+                  <span>Movement notifications will be disabled</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">✓</span>
+                  <span className="text-green-300">
+                    This list will stop being billable
+                  </span>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              isActivating
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-yellow-600 hover:bg-yellow-700 text-white"
+            }`}
+          >
+            {isLoading
+              ? isActivating
+                ? "Activating..."
+                : "Deactivating..."
+              : isActivating
+              ? "Yes, Activate"
+              : "Yes, Deactivate"}
+          </button>
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

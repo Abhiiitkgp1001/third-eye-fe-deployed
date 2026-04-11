@@ -7,10 +7,12 @@ import {
   CreateCompanyListResponseSchema,
   GetCompanyListResponseSchema,
   CompanyOpResponseSchema,
+  AddCompaniesResponseSchema,
   type GetAllCompanyListsResponse,
   type CreateCompanyListResponse,
   type GetCompanyListResponse,
   type CompanyOpResponse,
+  type AddCompaniesResponse,
 } from "../schemas/companyList-schemas";
 
 export const companyListsRouter = router({
@@ -53,14 +55,23 @@ export const companyListsRouter = router({
    * Get a single company list by ID
    */
   getById: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(
+      z.object({
+        id: z.string(),
+        limit: z.number().int().positive().max(1000).default(15),
+        offset: z.number().int().min(0).default(0),
+      })
+    )
     .output(GetCompanyListResponseSchema)
     .query(async ({ ctx, input }): Promise<GetCompanyListResponse> => {
       const axios = await getBackendAxios();
 
       try {
         const response = await axios.post("/companyList.getList", {
+          orgId: ctx.orgId,
           listId: input.id,
+          limit: input.limit,
+          offset: input.offset,
         });
 
         const parsed = GetCompanyListResponseSchema.safeParse(response.data.result.data);
@@ -98,7 +109,7 @@ export const companyListsRouter = router({
         companies: z.array(z.object({
           type: z.enum(["slug", "orgId", "liUrl"]),
           value: z.string(),
-        })).min(1).default([{ type: "slug", value: "microsoft" }]),
+        })).min(0).default([]),
       })
     )
     .output(CreateCompanyListResponseSchema)
@@ -149,12 +160,24 @@ export const companyListsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Backend doesn't have an update endpoint yet
-      // For now, throw an error
-      // throw new TRPCError({
-      //   code: "UNIMPLEMENTED",
-      //   message: "Update endpoint not implemented in backend yet",
-      // });
+      const axios = await getBackendAxios();
+
+      try {
+        const { id, ...patch } = input;
+        const response = await axios.post("/companyList.update", {
+          orgId: ctx.orgId,
+          listId: id,
+          patch,
+        });
+
+        return response.data.result.data;
+      } catch (error) {
+        console.error("Error updating company list in backend:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update company list",
+        });
+      }
     }),
 
   /**
@@ -167,12 +190,9 @@ export const companyListsRouter = router({
       const axios = await getBackendAxios();
 
       try {
-        // Use companyOp with DELETE operation to remove the list
-        await axios.post("/companyList.companyOp", {
-          op: "remove",
-          companyListId: input.id,
+        await axios.post("/companyList.deleteList", {
           orgId: ctx.orgId,
-          operation: "DELETE_LIST",
+          listId: input.id,
         });
         return { success: true };
       } catch (error) {
@@ -243,10 +263,7 @@ export const companyListsRouter = router({
           op: "remove",
           orgId: ctx.orgId,
           listId: input.listId,
-          company: {
-            type: "slug",
-            value: input.companyId,
-          },
+          companyId: input.companyId,
         });
         return { success: true };
       } catch (error) {
@@ -254,6 +271,49 @@ export const companyListsRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to remove company",
+        });
+      }
+    }),
+
+  /**
+   * Add multiple companies to a list (bulk upload)
+   */
+  addCompanies: protectedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        linkedinUrls: z.array(z.string().url()).min(1),
+      })
+    )
+    .output(AddCompaniesResponseSchema)
+    .mutation(async ({ ctx, input }): Promise<AddCompaniesResponse> => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/companyList.addCompanies", {
+          orgId: ctx.orgId,
+          listId: input.listId,
+          companies: input.linkedinUrls.map((url) => ({
+            type: "liUrl",
+            value: url,
+          })),
+        });
+
+        const parsed = AddCompaniesResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse add companies response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error) {
+        console.error("Error adding companies to list in backend:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to add companies to list",
         });
       }
     }),

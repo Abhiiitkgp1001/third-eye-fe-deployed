@@ -4,6 +4,7 @@ import { z } from "zod";
 
 export const SyncStatusSchema = z.enum(["DRAFT", "BUILDING", "ENRICHING", "NORMAL", "FAILED"]);
 export const CadenceSchema = z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]);
+export const CompanyMovementSchema = z.enum(["COMPANY_ENRICHED", "COMPANY_NOT_FOUND", "ENRICHMENT_FAILED"]);
 
 // ── CompanyList Schema ─────────────────────────────────────────────────
 
@@ -43,7 +44,11 @@ export type Company = z.infer<typeof CompanySchema>;
 
 // ── Response Schemas ───────────────────────────────────────────────────
 
-export const GetAllCompanyListsResponseSchema = z.array(CompanyListSchema);
+export const CompanyListWithCountSchema = CompanyListSchema.extend({
+  companyCount: z.number(),
+});
+
+export const GetAllCompanyListsResponseSchema = z.array(CompanyListWithCountSchema);
 
 export const CreateCompanyListResponseSchema = z.object({
   list: CompanyListSchema,
@@ -69,9 +74,15 @@ export const CompanyOpResponseSchema = z.union([
   CompanyRemoveResponseSchema,
 ]);
 
+export const AddCompaniesResponseSchema = z.object({
+  insertedCount: z.number(),
+  skippedCount: z.number(),
+});
+
 // ── Type exports ───────────────────────────────────────────────────────
 
 export type GetAllCompanyListsResponse = z.infer<typeof GetAllCompanyListsResponseSchema>;
 export type CreateCompanyListResponse = z.infer<typeof CreateCompanyListResponseSchema>;
 export type GetCompanyListResponse = z.infer<typeof GetCompanyListResponseSchema>;
 export type CompanyOpResponse = z.infer<typeof CompanyOpResponseSchema>;
+export type AddCompaniesResponse = z.infer<typeof AddCompaniesResponseSchema>;

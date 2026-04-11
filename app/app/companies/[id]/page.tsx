@@ -1,29 +1,44 @@
 'use client';
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import CompanyRow from "./CompanyRow";
+import CsvUploadModal from "./CsvUploadModal";
+import Pagination from "./Pagination";
+import ConfirmToggleModal from "./ConfirmToggleModal";
+import { Company } from "@/lib/trpc/schemas/companyList-schemas";
 
 export default function CompanyListDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const listId = params.id as string;
-
+  const [isAddingLoading, setIsAddingLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
+  const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
-  const [uploadingCsv, setUploadingCsv] = useState(false);
   const [expandedCompanyId, setExpandedCompanyId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
-  const { data: listData, isLoading } = trpc.companyLists.getById.useQuery({ id: listId });
+  const { data: listData, isLoading } = trpc.companyLists.getById.useQuery({
+    id: listId,
+    limit: ITEMS_PER_PAGE,
+    offset: (currentPage - 1) * ITEMS_PER_PAGE,
+  });
   const utils = trpc.useUtils();
 
   const addCompanyMutation = trpc.companyLists.addCompany.useMutation({
     onSuccess: () => {
       setShowAddModal(false);
+      setIsAddingLoading(false);
       setNewItemUrl("");
+      setCurrentPage(1); // Reset to first page when adding
       utils.companyLists.getById.invalidate({ id: listId });
+    },
+    onError: () => {
+      setIsAddingLoading(false);
     },
   });
 
@@ -35,6 +50,13 @@ export default function CompanyListDetailsPage() {
 
   const updateCompanyListMutation = trpc.companyLists.update.useMutation({
     onSuccess: () => {
+      utils.companyLists.getById.invalidate({ id: listId });
+    },
+  });
+
+  const addCompaniesMutation = trpc.companyLists.addCompanies.useMutation({
+    onSuccess: () => {
+      setCurrentPage(1); // Reset to first page when adding bulk
       utils.companyLists.getById.invalidate({ id: listId });
     },
   });
@@ -64,16 +86,17 @@ export default function CompanyListDetailsPage() {
   const handleAddItem = () => {
     if (!newItemUrl.trim()) return;
 
+    setIsAddingLoading(true);
     addCompanyMutation.mutate({
       listId,
       linkedinUrl: newItemUrl,
     });
   };
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = async (companyId: string) => {
     return new Promise<void>((resolve, reject) => {
       removeCompanyMutation.mutate(
-        { companyId: itemId, listId },
+        { companyId: companyId, listId },
         {
           onSuccess: () => resolve(),
           onError: (error) => reject(error),
@@ -83,45 +106,22 @@ export default function CompanyListDetailsPage() {
   };
 
   const handleToggleEnabled = () => {
+    setShowConfirmToggleModal(true);
+  };
+
+  const handleConfirmToggle = () => {
     updateCompanyListMutation.mutate({
       id: listId,
       enabled: !list.enabled,
     });
+    setShowConfirmToggleModal(false);
   };
 
-  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingCsv(true);
-
-    try {
-      const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-
-      const urls = lines.slice(1).map(line => {
-        const url = line.split(',')[0].trim();
-        return url;
-      }).filter(url => url && url.startsWith('http'));
-
-      for (const url of urls) {
-        await addCompanyMutation.mutateAsync({
-          listId,
-          linkedinUrl: url,
-        });
-      }
-
-      alert(`Successfully added ${urls.length} companies`);
-      utils.companyLists.getById.invalidate({ id: listId });
-    } catch (error) {
-      console.error('Error uploading CSV:', error);
-      alert('Failed to upload CSV');
-    } finally {
-      setUploadingCsv(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
+  const handleCsvUpload = async (linkedinUrls: string[]) => {
+    await addCompaniesMutation.mutateAsync({
+      listId,
+      linkedinUrls,
+    });
   };
 
   return (
@@ -135,15 +135,15 @@ export default function CompanyListDetailsPage() {
                   onClick={() => router.push('/app/companies')}
                   className="text-secondary-50 hover:text-white transition-colors"
                 >
-                  � Back to Companies
+                  ← Back to Companies
                 </button>
                 <h1 className="text-3xl font-bold text-white">{list.name}</h1>
                 <span className="px-3 py-1 rounded-full text-sm bg-primary-700/50 text-white">
-                  <� Company List
+                  🏢 Company List
                 </span>
               </div>
               <p className="text-secondary-50">
-                {total} companies " Created {new Date(list.createdAt).toLocaleDateString()}
+                {total} companies • Created {new Date(list.createdAt).toLocaleDateString()}
               </p>
             </div>
 
@@ -158,7 +158,7 @@ export default function CompanyListDetailsPage() {
                       : 'bg-gray-600 hover:bg-gray-700 text-white'
                   }`}
                 >
-                  {list.enabled ? ' Active' : '� Inactive'}
+                  {list.enabled ? '✓ Active' : '○ Inactive'}
                 </button>
               </div>
             </div>
@@ -172,19 +172,11 @@ export default function CompanyListDetailsPage() {
               + Add Single Company
             </button>
             <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingCsv}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              onClick={() => setShowCsvUploadModal(true)}
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
             >
-              {uploadingCsv ? 'Uploading...' : '=� Upload CSV'}
+              📄 Upload CSV
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleCsvUpload}
-              className="hidden"
-            />
           </div>
         </div>
 
@@ -202,7 +194,7 @@ export default function CompanyListDetailsPage() {
               </thead>
               <tbody className="divide-y divide-primary-700/40">
                 {companies && companies.length > 0 ? (
-                  companies.map((company: any) => (
+                  companies.map((company: Company) => (
                     <CompanyRow
                       key={company.id}
                       company={company}
@@ -222,6 +214,14 @@ export default function CompanyListDetailsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={total}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
 
         {showAddModal && (
@@ -241,10 +241,10 @@ export default function CompanyListDetailsPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleAddItem}
-                  disabled={addCompanyMutation.isLoading}
+                  disabled={isAddingLoading}
                   className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
-                  {addCompanyMutation.isLoading ? 'Adding...' : 'Add'}
+                  {isAddingLoading ? 'Adding...' : 'Add'}
                 </button>
                 <button
                   onClick={() => {
@@ -259,6 +259,21 @@ export default function CompanyListDetailsPage() {
             </div>
           </div>
         )}
+
+        <CsvUploadModal
+          isOpen={showCsvUploadModal}
+          onClose={() => setShowCsvUploadModal(false)}
+          onUpload={handleCsvUpload}
+        />
+
+        <ConfirmToggleModal
+          isOpen={showConfirmToggleModal}
+          currentStatus={list?.enabled ?? false}
+          listName={list?.name ?? ""}
+          onConfirm={handleConfirmToggle}
+          onCancel={() => setShowConfirmToggleModal(false)}
+          isLoading={updateCompanyListMutation.isPending}
+        />
       </div>
     </div>
   );

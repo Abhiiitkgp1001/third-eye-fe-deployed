@@ -5,7 +5,7 @@ interface CompanyRowProps {
   listId: string;
   isExpanded: boolean;
   onToggleExpanded: (companyId: string) => void;
-  onDelete: (companyId: string) => void;
+  onDelete: (companyId: string) => Promise<void>;
 }
 
 export default function CompanyRow({
@@ -18,8 +18,8 @@ export default function CompanyRow({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const getDisplayName = () => {
-    if (company.latestMetadata?.name) {
-      return company.latestMetadata.name;
+    if (company.latestMetadata?.company_name) {
+      return company.latestMetadata.company_name;
     }
     return null;
   };
@@ -47,9 +47,9 @@ export default function CompanyRow({
           onClick={() => metadata && onToggleExpanded(company.id)}
         >
           <div className="flex items-center gap-3">
-            {metadata?.logo && (
+            {metadata?.logo_url && (
               <img
-                src={metadata.logo}
+                src={metadata.logo_url}
                 alt={displayName || "Company"}
                 className="w-10 h-10 rounded object-contain bg-white p-1"
               />
@@ -134,64 +134,77 @@ export default function CompanyRow({
                     Company Details
                   </h4>
                   <div className="space-y-2 text-sm">
-                    {metadata.industry && (
+                    {metadata.industries && metadata.industries.length > 0 && (
                       <div>
-                        <span className="text-secondary-50/70">Industry: </span>
-                        <span className="text-white">{metadata.industry}</span>
+                        <span className="text-secondary-50/70">Industries: </span>
+                        <span className="text-white">
+                          {metadata.industries.map((i: any) => i.name).filter(Boolean).join(", ")}
+                        </span>
                       </div>
                     )}
-                    {metadata.company_size && (
+                    {metadata.staff_info?.staff_count && (
                       <div>
                         <span className="text-secondary-50/70">
                           Company Size:{" "}
                         </span>
                         <span className="text-white">
-                          {metadata.company_size}
+                          {metadata.staff_info.staff_count.toLocaleString()} employees
                         </span>
                       </div>
                     )}
-                    {metadata.headquarters && (
+                    {metadata.locations?.headquarter && (
                       <div>
                         <span className="text-secondary-50/70">
                           Headquarters:{" "}
                         </span>
                         <span className="text-white">
-                          {metadata.headquarters}
+                          {[
+                            metadata.locations.headquarter.city,
+                            metadata.locations.headquarter.country
+                          ].filter(Boolean).join(", ")}
                         </span>
                       </div>
                     )}
-                    {metadata.founded && (
+                    {metadata.founded_on?.year && (
                       <div>
                         <span className="text-secondary-50/70">Founded: </span>
-                        <span className="text-white">{metadata.founded}</span>
+                        <span className="text-white">{metadata.founded_on.year}</span>
                       </div>
                     )}
-                    {metadata.specialties && (
+                    {metadata.specialities && metadata.specialities.length > 0 && (
                       <div>
                         <span className="text-secondary-50/70">
                           Specialties:{" "}
                         </span>
                         <span className="text-white">
-                          {metadata.specialties}
+                          {metadata.specialities.join(", ")}
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {metadata.website && (
-                  <div>
-                    <h4 className="text-white font-semibold mb-3">Website</h4>
-                    <a
-                      href={metadata.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-400 hover:text-primary-300 hover:underline text-sm"
-                    >
-                      {metadata.website}
-                    </a>
-                  </div>
-                )}
+                <div>
+                  {metadata.company_url && (
+                    <div className="mb-4">
+                      <h4 className="text-white font-semibold mb-2">Website</h4>
+                      <a
+                        href={metadata.company_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-400 hover:text-primary-300 hover:underline text-sm"
+                      >
+                        {metadata.company_url}
+                      </a>
+                    </div>
+                  )}
+                  {metadata.tagline && (
+                    <div>
+                      <h4 className="text-white font-semibold mb-2">Tagline</h4>
+                      <p className="text-secondary-50 text-sm">{metadata.tagline}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Description */}
@@ -204,18 +217,31 @@ export default function CompanyRow({
                 </div>
               )}
 
-              {/* Follower Count */}
-              {metadata.follower_count && (
+              {/* Funding & Employee Info */}
+              {(metadata.funding_data || metadata.followers_count) && (
                 <div className="flex gap-6 text-sm">
-                  <div>
-                    <span className="text-white font-medium">
-                      {metadata.follower_count.toLocaleString()}
-                    </span>
-                    <span className="text-secondary-50">
-                      {" "}
-                      followers on LinkedIn
-                    </span>
-                  </div>
+                  {metadata.funding_data?.last_funding_round?.money_raised && (
+                    <div>
+                      <span className="text-white font-medium">
+                        {metadata.funding_data.last_funding_round.money_raised.currency || '$'}
+                        {metadata.funding_data.last_funding_round.money_raised.amount?.toLocaleString()}
+                      </span>
+                      <span className="text-secondary-50"> last funding round</span>
+                      {metadata.funding_data.num_of_funding_rounds && (
+                        <span className="text-secondary-50/70 ml-2">
+                          ({metadata.funding_data.num_of_funding_rounds} rounds)
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {metadata.followers_count && (
+                    <div>
+                      <span className="text-white font-medium">
+                        {metadata.followers_count.toLocaleString()}
+                      </span>
+                      <span className="text-secondary-50"> followers on LinkedIn</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

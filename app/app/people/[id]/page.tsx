@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import ProfileRow from "./ProfileRow";
@@ -8,6 +8,9 @@ import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Profile } from "@/lib/trpc/schemas/peopleList-schemas";
+import { Button, Badge, Card } from "@/components/ui";
+import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PeopleListDetailsPage() {
   const params = useParams();
@@ -18,9 +21,7 @@ export default function PeopleListDetailsPage() {
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
-  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(
-    null,
-  );
+  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
@@ -36,7 +37,7 @@ export default function PeopleListDetailsPage() {
       setShowAddModal(false);
       setIsAddingLoading(false);
       setNewItemUrl("");
-      setCurrentPage(1); // Reset to first page when adding
+      setCurrentPage(1);
       utils.peopleLists.getById.invalidate({ id: listId });
     },
     onError: () => {
@@ -58,7 +59,7 @@ export default function PeopleListDetailsPage() {
 
   const addProfilesMutation = trpc.peopleLists.addProfiles.useMutation({
     onSuccess: () => {
-      setCurrentPage(1); // Reset to first page when adding bulk
+      setCurrentPage(1);
       utils.peopleLists.getById.invalidate({ id: listId });
     },
   });
@@ -87,7 +88,6 @@ export default function PeopleListDetailsPage() {
 
   const handleAddItem = () => {
     if (!newItemUrl.trim()) return;
-
     setIsAddingLoading(true);
     addProfileMutation.mutate({
       listId,
@@ -127,172 +127,221 @@ export default function PeopleListDetailsPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 p-6">
-          <div className="flex items-center justify-between mb-4">
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-6"
+      >
+        <Card>
+          <div className="space-y-4">
+            {/* Breadcrumb & Title */}
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <button
-                  onClick={() => router.push("/app/people")}
-                  className="text-secondary-50 hover:text-white transition-colors"
-                >
-                  � Back to People
-                </button>
-                <h1 className="text-3xl font-bold text-white">{list.name}</h1>
-                <span className="px-3 py-1 rounded-full text-sm bg-primary-700/50 text-white">
-                  =e People List
-                </span>
-              </div>
-              <p className="text-secondary-50">
-                {total} profiles " Created{" "}
-                {new Date(list.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-white">Status:</span>
-                <button
-                  onClick={handleToggleEnabled}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    list.enabled
-                      ? "bg-green-600 hover:bg-green-700 text-white"
-                      : "bg-gray-600 hover:bg-gray-700 text-white"
-                  }`}
-                >
-                  {list.enabled ? " Active" : "� Inactive"}
-                </button>
+              <button
+                onClick={() => router.push("/app/people")}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-3 group"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span className="text-sm">Back to People Lists</span>
+              </button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">{list.name}</h1>
+                  <p className="text-gray-400 text-sm">
+                    {total} profiles • Created {new Date(list.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant={list.enabled ? 'success' : 'neutral'} size="md">
+                    {list.enabled ? 'Active' : 'Inactive'}
+                  </Badge>
+                  <Button
+                    variant={list.enabled ? 'secondary' : 'primary'}
+                    size="sm"
+                    onClick={handleToggleEnabled}
+                  >
+                    {list.enabled ? 'Deactivate' : 'Activate'}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
-            >
-              + Add Single Profile
-            </button>
-            <button
-              onClick={() => setShowCsvUploadModal(true)}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
-            >
-              📄 Upload CSV
-            </button>
-          </div>
-        </div>
-
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-primary-800/90 border-b border-primary-700/40">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">
-                    Name / Profile
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">
-                    Headline
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">
-                    Added
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-primary-700/40">
-                {profiles && profiles.length > 0 ? (
-                  profiles.map((profile: Profile) => (
-                    <ProfileRow
-                      key={profile.id}
-                      profile={profile}
-                      listId={listId}
-                      isExpanded={expandedProfileId === profile.id}
-                      onToggleExpanded={toggleExpanded}
-                      onDelete={handleDeleteItem}
-                    />
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-8 text-center text-secondary-50"
-                    >
-                      No profiles in this list yet. Add some to get started!
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalItems={total}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 p-6 w-full max-w-md">
-              <h2 className="text-2xl font-bold text-white mb-4">
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-gray-800">
+              <Button
+                variant="primary"
+                size="sm"
+                icon={Plus}
+                onClick={() => setShowAddModal(true)}
+              >
                 Add Profile
-              </h2>
-              <div className="mb-4">
-                <label className="block text-white mb-2">LinkedIn URL</label>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={Upload}
+                onClick={() => setShowCsvUploadModal(true)}
+              >
+                Upload CSV
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Profiles Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="glass rounded-xl overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b border-gray-800">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Name / Profile
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Headline
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Added
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {profiles && profiles.length > 0 ? (
+                profiles.map((profile: Profile, index: number) => (
+                  <ProfileRow
+                    key={profile.id}
+                    profile={profile}
+                    listId={listId}
+                    isExpanded={expandedProfileId === profile.id}
+                    onToggleExpanded={toggleExpanded}
+                    onDelete={handleDeleteItem}
+                    index={index}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
+                    <p className="text-lg mb-2">No profiles in this list yet</p>
+                    <p className="text-sm">Add profiles to get started tracking</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={total}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setCurrentPage}
+        />
+      </motion.div>
+
+      {/* Add Profile Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass p-8 rounded-2xl max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Add Profile</h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  LinkedIn URL
+                </label>
                 <input
                   type="url"
                   value={newItemUrl}
                   onChange={(e) => setNewItemUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/username"
-                  className="w-full px-4 py-2 bg-primary-800 border border-primary-700 rounded-lg text-white placeholder-secondary-50 focus:outline-none focus:ring-2 focus:ring-primary-600"
+                  className="w-full px-4 py-3 bg-dark-200 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddItem();
+                  }}
                 />
               </div>
+
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={handleAddItem}
-                  disabled={isAddingLoading}
-                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  disabled={isAddingLoading || !newItemUrl.trim()}
+                  loading={isAddingLoading}
+                  className="flex-1"
                 >
-                  {isAddingLoading ? "Adding..." : "Add"}
-                </button>
-                <button
+                  Add Profile
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={() => {
                     setShowAddModal(false);
                     setNewItemUrl("");
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                  disabled={isAddingLoading}
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        <CsvUploadModal
-          isOpen={showCsvUploadModal}
-          onClose={() => setShowCsvUploadModal(false)}
-          onUpload={handleCsvUpload}
-        />
+      <CsvUploadModal
+        isOpen={showCsvUploadModal}
+        onClose={() => setShowCsvUploadModal(false)}
+        onUpload={handleCsvUpload}
+      />
 
-        <ConfirmToggleModal
-          isOpen={showConfirmToggleModal}
-          currentStatus={list?.enabled ?? false}
-          listName={list?.name ?? ""}
-          onConfirm={handleConfirmToggle}
-          onCancel={() => setShowConfirmToggleModal(false)}
-          isLoading={updatePeopleListMutation.isPending}
-        />
-      </div>
+      <ConfirmToggleModal
+        isOpen={showConfirmToggleModal}
+        currentStatus={list?.enabled ?? false}
+        listName={list?.name ?? ""}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => setShowConfirmToggleModal(false)}
+        isLoading={updatePeopleListMutation.isPending}
+      />
     </div>
   );
 }
