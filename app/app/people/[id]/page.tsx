@@ -10,7 +10,7 @@ import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Profile, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PeopleListDetailsPage() {
@@ -61,6 +61,12 @@ export default function PeopleListDetailsPage() {
   const addProfilesMutation = trpc.peopleLists.addProfiles.useMutation({
     onSuccess: () => {
       setCurrentPage(1);
+      utils.peopleLists.getById.invalidate({ id: listId });
+    },
+  });
+
+  const triggerRefreshMutation = trpc.peopleLists.triggerRefresh.useMutation({
+    onSuccess: () => {
       utils.peopleLists.getById.invalidate({ id: listId });
     },
   });
@@ -119,6 +125,10 @@ export default function PeopleListDetailsPage() {
     });
   };
 
+  const handleTriggerRefresh = () => {
+    triggerRefreshMutation.mutate({ id: listId });
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header Card */}
@@ -129,7 +139,7 @@ export default function PeopleListDetailsPage() {
         className="mb-6"
       >
         <Card>
-          <div className="space-y-4">
+          <div className="p-6 space-y-4">
             {/* Breadcrumb & Title */}
             <div>
               <button
@@ -150,6 +160,15 @@ export default function PeopleListDetailsPage() {
                   <Badge variant={list.enabled ? 'default' : 'neutral'}>
                     {list.enabled ? 'Active' : 'Inactive'}
                   </Badge>
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    onClick={handleTriggerRefresh}
+                    disabled={triggerRefreshMutation.isPending}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${triggerRefreshMutation.isPending ? 'animate-spin' : ''}`} />
+                    {triggerRefreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
+                  </Button>
                   <Button
                     variant={list.enabled ? 'neutral' : 'default'}
                     size="sm"

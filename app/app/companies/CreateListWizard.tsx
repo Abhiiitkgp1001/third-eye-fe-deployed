@@ -106,7 +106,19 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   function handleProcessPrompt() {
     if (!prompt.trim()) return;
     setError('');
+    setAiMovements([]);
     processPrompt.mutate({ prompt: prompt.trim() });
+  }
+
+  function removeMovement(name: string) {
+    // Remove from selected signals if it's one
+    setSelectedSignals((prev) => {
+      const next = new Set(prev);
+      next.delete(name as CompanySignal);
+      return next;
+    });
+    // Remove from AI movements
+    setAiMovements((prev) => prev.filter((m) => m.name !== name));
   }
 
   function handleCreate() {
@@ -116,15 +128,15 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       cadence,
       cadenceInterval,
       companies: [],
-      movementDefinitions: allMovements.length > 0 ? allMovements : undefined,
+      ...(allMovements.length > 0 && { movementDefinitions: allMovements }),
     });
   }
 
   const isBusy = processPrompt.isPending || createList.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!isBusy) { if (!v) handleClose(); else onOpenChange(v); } }}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog  open={open} onOpenChange={(v) => { if (!isBusy) { if (!v) handleClose(); else onOpenChange(v); } }}>
+      <DialogContent className="w-[90vw] max-w-[90vw]">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs text-gray-400 font-medium">Step {step} of 3</span>
@@ -178,14 +190,14 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-dark-200/50 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-600">
               {/* Signal Groups */}
               {COMPANY_SIGNAL_GROUPS.map((group) => (
-                <div key={group.id} className="space-y-2">
+                <div key={group.id} className="space-y-3">
                   <h4 className={cn("text-sm font-semibold", group.color)}>
                     {group.label}
                   </h4>
-                  <div className="grid gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {group.signals.map((signal) => {
                       const isSelected = selectedSignals.has(signal.key);
                       return (
@@ -206,7 +218,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
                           />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm">{signal.label}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">
+                            <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                               {signal.description}
                             </div>
                           </div>
@@ -235,57 +247,60 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
                     disabled={isBusy}
                   />
                   <Button
-                    variant="neutral"
-                    size="sm"
+                    variant="noShadow"
                     onClick={handleProcessPrompt}
                     disabled={!prompt.trim() || isBusy}
+                    className="w-fit"
                   >
-                    {processPrompt.isPending ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-                    ) : (
-                      <><Sparkles className="mr-2 h-4 w-4" /> Generate AI Signals</>
-                    )}
+                    {processPrompt.isPending
+                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : <Sparkles className="mr-2 h-4 w-4" />
+                    }
+                    {aiMovements.length > 0 ? 'Re-generate signals' : 'Generate signals'}
                   </Button>
                 </div>
               </div>
 
-              {/* AI-generated movements display */}
-              {aiMovements.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-purple-400">
-                      AI-Generated Signals ({aiMovements.length})
-                    </h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setAiMovements([])}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {aiMovements.map((m) => (
-                      <Badge key={m.name} variant="neutral" className="text-xs">
-                        {m.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {error && <p className="text-sm text-red-400">{error}</p>}
 
-              {error && (
-                <p className="text-sm text-red-400 p-2 rounded bg-red-500/10 border border-red-500/20">
-                  {error}
-                </p>
-              )}
-
-              {/* Summary */}
+              {/* All movements (selected + AI-generated) */}
               {allMovements.length > 0 && (
-                <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2">
-                  <Badge variant="default" className="text-xs">
-                    {allMovements.length} signal{allMovements.length !== 1 ? 's' : ''} selected
-                  </Badge>
+                <div className="grid gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {allMovements.length} signal{allMovements.length !== 1 ? 's' : ''} selected — click × to remove
+                  </p>
+                  <div className="grid gap-2">
+                    {allMovements.map((m) => {
+                      const isManual = selectedSignals.has(m.name as CompanySignal);
+                      return (
+                        <div
+                          key={m.name}
+                          className="flex items-start justify-between gap-3 rounded-lg border border-border bg-secondary/20 px-3 py-2"
+                        >
+                          <div className="grid gap-0.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="neutral" className="font-mono text-[10px]">
+                                {m.name}
+                              </Badge>
+                              {isManual && (
+                                <span className="text-[10px] text-muted-foreground">manual</span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground leading-relaxed">
+                              {m.description}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => removeMovement(m.name)}
+                            disabled={isBusy}
+                            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40 mt-0.5"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -299,7 +314,10 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button onClick={() => setStep(3)} disabled={isBusy}>
+              <Button
+                onClick={() => setStep(3)}
+                disabled={allMovements.length === 0 || isBusy}
+              >
                 Next
               </Button>
             </DialogFooter>
@@ -378,7 +396,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
             <DialogFooter className="flex gap-3 sm:gap-3">
               <Button
                 variant="neutral"
-                onClick={() => { setStep(2); setPromptError(''); }}
+                onClick={() => { setStep(2); setError(''); }}
                 disabled={isBusy}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />

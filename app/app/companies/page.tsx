@@ -26,6 +26,7 @@ import {
 import { Plus, Building2, Eye, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateListWizard } from "./CreateListWizard";
+import { formatCadence } from "@/lib/trpc/schemas/companyList-schemas";
 
 export default function CompaniesPage() {
   const router = useRouter();
@@ -109,6 +110,8 @@ export default function CompaniesPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Total Companies</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Signals</TableHead>
+                  <TableHead>Cadence</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -138,6 +141,29 @@ export default function CompaniesPage() {
                       <Badge variant={list.enabled ? 'default' : 'neutral'}>
                         {list.enabled ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {list.movementDefinitions && list.movementDefinitions.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {list.movementDefinitions.slice(0, 3).map((movement) => (
+                            <Badge key={movement.name} variant="neutral" className="font-mono text-[9px]">
+                              {movement.name}
+                            </Badge>
+                          ))}
+                          {list.movementDefinitions.length > 3 && (
+                            <Badge variant="neutral" className="text-[9px]">
+                              +{list.movementDefinitions.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-xs">None</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-300 text-sm">
+                        {formatCadence(list.cadence, list.cadenceInterval)}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-400 text-sm">

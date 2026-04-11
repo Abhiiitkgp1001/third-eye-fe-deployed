@@ -48,14 +48,34 @@ export const promptsRouter = router({
       }
     }),
 
-  // Placeholder — not implemented yet
   processForCompanyList: protectedProcedure
     .input(z.object({ prompt: z.string().min(1).max(2000) }))
     .output(ProcessPromptResponseSchema)
-    .mutation(async () => {
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Company list prompt processing not implemented yet",
-      });
+    .mutation(async ({ input }) => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/companyList.processPrompt", {
+          prompt: input.prompt,
+        });
+
+        const parsed = ProcessPromptResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("[prompts.processForCompanyList] Bad response from backend:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error("[prompts.processForCompanyList] Error:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to process prompt",
+        });
+      }
     }),
 });

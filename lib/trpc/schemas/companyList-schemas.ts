@@ -8,6 +8,11 @@ export const CompanyMovementSchema = z.enum(["COMPANY_ENRICHED", "COMPANY_NOT_FO
 
 // ── CompanyList Schema ─────────────────────────────────────────────────
 
+export const MovementDefinitionSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
 export const CompanyListSchema = z.object({
   id: z.string(),
   orgId: z.string(),
@@ -17,8 +22,10 @@ export const CompanyListSchema = z.object({
   enabled: z.boolean(),
   syncStatus: SyncStatusSchema,
   allowedMovements: z.array(z.string()).nullable(),
+  movementDefinitions: z.array(MovementDefinitionSchema).nullable(),
   prompt: z.string().nullable(),
   cadence: CadenceSchema,
+  cadenceInterval: z.number().default(10),
   nextRunAt: z.coerce.date().nullable(),
   lastRunAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
@@ -27,6 +34,7 @@ export const CompanyListSchema = z.object({
 });
 
 export type CompanyList = z.infer<typeof CompanyListSchema>;
+export type MovementDefinition = z.infer<typeof MovementDefinitionSchema>;
 
 // ── Company Schema ─────────────────────────────────────────────────────
 
@@ -86,3 +94,14 @@ export type CreateCompanyListResponse = z.infer<typeof CreateCompanyListResponse
 export type GetCompanyListResponse = z.infer<typeof GetCompanyListResponseSchema>;
 export type CompanyOpResponse = z.infer<typeof CompanyOpResponseSchema>;
 export type AddCompaniesResponse = z.infer<typeof AddCompaniesResponseSchema>;
+
+// ── Helper functions ───────────────────────────────────────────────────────
+
+export function formatCadence(cadence: z.infer<typeof CadenceSchema>, interval: number = 1): string {
+  if (cadence === "MANUAL") return "Manual";
+  if (interval === 1) {
+    return cadence.charAt(0) + cadence.slice(1).toLowerCase();
+  }
+  const unit = cadence === "DAILY" ? "day" : cadence === "WEEKLY" ? "week" : "month";
+  return `Every ${interval} ${unit}${interval > 1 ? "s" : ""}`;
+}

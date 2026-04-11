@@ -5,11 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import type { Company } from "@/lib/trpc/schemas/companyList-schemas";
 import CompanyRow from "./CompanyRow";
+import CompanySheet from "./CompanySheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CompanyListDetailsPage() {
@@ -21,7 +22,7 @@ export default function CompanyListDetailsPage() {
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
-  const [expandedCompanyId, setExpandedCompanyId] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
@@ -60,6 +61,12 @@ export default function CompanyListDetailsPage() {
   const addCompaniesMutation = trpc.companyLists.addCompanies.useMutation({
     onSuccess: () => {
       setCurrentPage(1); // Reset to first page when adding bulk
+      utils.companyLists.getById.invalidate({ id: listId });
+    },
+  });
+
+  const triggerRefreshMutation = trpc.companyLists.triggerRefresh.useMutation({
+    onSuccess: () => {
       utils.companyLists.getById.invalidate({ id: listId });
     },
   });
@@ -119,6 +126,10 @@ export default function CompanyListDetailsPage() {
     });
   };
 
+  const handleTriggerRefresh = () => {
+    triggerRefreshMutation.mutate({ id: listId });
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header Card */}
@@ -129,7 +140,7 @@ export default function CompanyListDetailsPage() {
         className="mb-6"
       >
         <Card>
-          <div className="space-y-4">
+          <div className="p-6 space-y-4">
             {/* Breadcrumb & Title */}
             <div>
               <button
@@ -150,6 +161,15 @@ export default function CompanyListDetailsPage() {
                   <Badge variant={list.enabled ? 'default' : 'neutral'}>
                     {list.enabled ? 'Active' : 'Inactive'}
                   </Badge>
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    onClick={handleTriggerRefresh}
+                    disabled={triggerRefreshMutation.isPending}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${triggerRefreshMutation.isPending ? 'animate-spin' : ''}`} />
+                    {triggerRefreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
+                  </Button>
                   <Button
                     variant={list.enabled ? 'neutral' : 'default'}
                     size="sm"
@@ -283,9 +303,7 @@ export default function CompanyListDetailsPage() {
                   <CompanyRow
                     key={company.id}
                     company={company}
-                    listId={listId}
-                    isExpanded={expandedCompanyId === company.id}
-                    onToggleExpanded={() => setExpandedCompanyId(expandedCompanyId === company.id ? null : company.id)}
+                    onViewCompany={setSelectedCompany}
                     onDelete={handleDeleteItem}
                     index={index}
                   />
@@ -396,6 +414,11 @@ export default function CompanyListDetailsPage() {
         onConfirm={handleConfirmToggle}
         onCancel={() => setShowConfirmToggleModal(false)}
         isLoading={updateCompanyListMutation.isPending}
+      />
+
+      <CompanySheet
+        company={selectedCompany}
+        onClose={() => setSelectedCompany(null)}
       />
     </div>
   );

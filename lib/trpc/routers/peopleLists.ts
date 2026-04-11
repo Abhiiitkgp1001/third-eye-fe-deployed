@@ -362,4 +362,28 @@ export const peopleListsRouter = router({
         });
       }
     }),
+
+  /**
+   * Trigger immediate refresh/enrichment for a people list
+   */
+  triggerRefresh: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }): Promise<{ success: boolean }> => {
+      const axios = await getBackendAxios();
+
+      try {
+        await axios.post("/peopleList.triggerRefresh", {
+          orgId: ctx.orgId,
+          listId: input.id,
+        });
+        return { success: true };
+      } catch (error) {
+        console.error("Error triggering refresh for people list:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to trigger refresh",
+        });
+      }
+    }),
 });

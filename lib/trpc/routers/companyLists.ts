@@ -102,6 +102,10 @@ export const companyListsRouter = router({
         prompt: z.string().optional(),
         min: z.number().optional(),
         max: z.number().optional(),
+        movementDefinitions: z.array(z.object({
+          name: z.string(),
+          description: z.string(),
+        })).optional(),
         cadence: z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]).optional(),
         cadenceInterval: z.number().int().positive().max(365).optional(),
         companies: z.array(z.object({
@@ -121,6 +125,7 @@ export const companyListsRouter = router({
           prompt: input.prompt,
           min: input.min,
           max: input.max,
+          movementDefinitions: input.movementDefinitions,
           cadence: input.cadence,
           cadenceInterval: input.cadenceInterval,
           companies: input.companies,
@@ -314,6 +319,30 @@ export const companyListsRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to add companies to list",
+        });
+      }
+    }),
+
+  /**
+   * Trigger immediate refresh/enrichment for a company list
+   */
+  triggerRefresh: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }): Promise<{ success: boolean }> => {
+      const axios = await getBackendAxios();
+
+      try {
+        await axios.post("/companyList.triggerRefresh", {
+          orgId: ctx.orgId,
+          listId: input.id,
+        });
+        return { success: true };
+      } catch (error) {
+        console.error("Error triggering refresh for company list:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to trigger refresh",
         });
       }
     }),

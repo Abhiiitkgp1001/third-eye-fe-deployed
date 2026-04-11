@@ -140,7 +140,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       open={open}
       onOpenChange={(v) => { if (!isBusy) { if (!v) handleClose(); else onOpenChange(v); } }}
     >
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[90vw] max-w-[90vw] max-h-[90vh] overflow-hidden flex flex-col">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs text-gray-400 font-medium">Step {step} of 3</span>
@@ -192,14 +192,14 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-6 py-4">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-dark-200/50 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-600">
               {/* Signal checkbox cards */}
               {SIGNAL_GROUPS.map((group) => (
-                <div key={group.id} className="grid gap-2">
+                <div key={group.id} className="grid gap-3">
                   <p className={cn("text-xs font-semibold uppercase tracking-wider", group.color)}>
                     {group.label}
                   </p>
-                  <div className="grid gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {group.signals.map((signal) => {
                       const checked = selectedSignals.has(signal.key);
                       return (
@@ -227,7 +227,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
                                 {signal.key}
                               </Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
+                            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                               {signal.description}
                             </p>
                           </div>
