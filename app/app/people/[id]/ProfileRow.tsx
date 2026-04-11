@@ -51,7 +51,9 @@ export default function ProfileRow({
         <div className="flex items-center gap-3">
           <Avatar className="size-9">
             <AvatarImage src={metadata?.profile_photo_url} alt={displayName ?? "Profile"} />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           <a
             href={profile.linkedinUrl}

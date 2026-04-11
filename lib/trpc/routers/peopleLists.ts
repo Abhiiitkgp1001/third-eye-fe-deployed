@@ -228,32 +228,68 @@ export const peopleListsRouter = router({
     .mutation(async ({ ctx, input }): Promise<ProfileOpResponse> => {
       const axios = await getBackendAxios();
 
+      // Clean the LinkedIn URL using the same regex pattern as backend (@fiberai/common approach)
+      const PROFILE_LI_SLUG_REGEX =
+        /^(https?:\/\/)?(\w+\.)?linkedin\.\w+(\.\w+)?\/in\/(?<slug>[^/?#]+)\/?(\?.*)?(#.*)?$/iu;
+
+      const cleanUrl = (rawUrl: string): string => {
+        const match = PROFILE_LI_SLUG_REGEX.exec(rawUrl.trim());
+        const slug = match?.groups?.["slug"];
+
+        if (slug != null && slug !== "") {
+          const cleaned = `https://www.linkedin.com/in/${slug}`;
+          console.log(`[FE addProfile] Cleaning LinkedIn URL: "${rawUrl}" → "${cleaned}"`);
+          return cleaned;
+        }
+
+        console.warn(`[FE addProfile] Could not extract slug from "${rawUrl}", using as-is`);
+        return rawUrl;
+      };
+
+      const cleanedUrl = cleanUrl(input.linkedinUrl);
+
       try {
+        console.log(`[FE addProfile] Sending to backend:`, {
+          op: "add",
+          orgId: ctx.orgId,
+          listId: input.listId,
+          profile: { type: "liUrl", value: cleanedUrl },
+        });
+
         const response = await axios.post("/peopleList.profileOp", {
           op: "add",
           orgId: ctx.orgId,
           listId: input.listId,
           profile: {
             type: "liUrl",
-            value: input.linkedinUrl,
+            value: cleanedUrl,
           },
+        });
+
+        console.log(`[FE addProfile] Backend response:`, {
+          status: response.status,
+          data: response.data,
         });
 
         const parsed = ProfileOpResponseSchema.safeParse(response.data.result.data);
         if (!parsed.success) {
-          console.error("Failed to parse add profile response:", parsed.error);
+          console.error("[FE addProfile] Failed to parse backend response:", parsed.error);
+          console.error("[FE addProfile] Received data:", JSON.stringify(response.data.result.data, null, 2));
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Invalid response format from backend",
           });
         }
 
+        console.log(`[FE addProfile] Successfully parsed profile:`, parsed.data);
         return parsed.data;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error adding profile to list in backend:", error);
+        console.error("Error response:", error.response?.data);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to add profile to list",
+          message: `Failed to add profile to list: ${error.message}`,
+          cause: error,
         });
       }
     }),

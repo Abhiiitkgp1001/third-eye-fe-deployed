@@ -83,6 +83,7 @@ export default function PeoplePage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Total People</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Signals</TableHead>
                   <TableHead>Cadence</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -113,6 +114,24 @@ export default function PeoplePage() {
                       <Badge variant={list.enabled ? 'default' : 'neutral'}>
                         {list.enabled ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {list.movementDefinitions && list.movementDefinitions.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {list.movementDefinitions.slice(0, 3).map((movement) => (
+                            <Badge key={movement.name} variant="neutral" className="font-mono text-[9px]">
+                              {movement.name}
+                            </Badge>
+                          ))}
+                          {list.movementDefinitions.length > 3 && (
+                            <Badge variant="neutral" className="text-[9px]">
+                              +{list.movementDefinitions.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-xs">None</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-300 text-sm">

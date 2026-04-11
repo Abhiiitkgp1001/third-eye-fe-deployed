@@ -73,7 +73,9 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
               <div className="flex items-center gap-4 min-w-0">
                 <Avatar className="size-14">
                   <AvatarImage src={metadata?.profile_photo_url} alt={displayName ?? "Profile"} />
-                  <AvatarFallback>{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30 text-2xl">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
                   <h2 className="text-xl font-bold text-white truncate">

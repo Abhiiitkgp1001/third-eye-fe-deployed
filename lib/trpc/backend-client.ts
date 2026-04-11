@@ -21,5 +21,6 @@ export async function getBackendAxios(): Promise<AxiosInstance> {
       "Content-Type": "application/json",
       ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
+    timeout: 120000, // 2 minutes - enrichment can be slow
   });
 }

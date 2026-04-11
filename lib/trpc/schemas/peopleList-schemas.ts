@@ -8,6 +8,11 @@ export const ProfileMovementSchema = z.enum(["PROFILE_ENRICHED", "PROFILE_NOT_FO
 
 // ── PeopleList Schema ──────────────────────────────────────────────────
 
+export const MovementDefinitionSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
 export const PeopleListSchema = z.object({
   id: z.string(),
   orgId: z.string(),
@@ -17,6 +22,7 @@ export const PeopleListSchema = z.object({
   enabled: z.boolean(),
   syncStatus: SyncStatusSchema,
   allowedMovements: z.array(z.string()).nullable(),
+  movementDefinitions: z.array(MovementDefinitionSchema).nullable(),
   prompt: z.string().nullable(),
   cadence: CadenceSchema,
   cadenceInterval: z.number().default(1),

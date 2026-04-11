@@ -8,7 +8,7 @@ import ProfileSheet from "./ProfileSheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
-import { Profile } from "@/lib/trpc/schemas/peopleList-schemas";
+import { Profile, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
 import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -160,6 +160,72 @@ export default function PeopleListDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {/* List Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-800">
+              {/* Cadence Info */}
+              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
+                <p className="text-xs text-gray-400 mb-1">Enrichment Cadence</p>
+                <p className="text-sm font-medium text-white">
+                  {formatCadence(list.cadence, list.cadenceInterval)}
+                </p>
+                {list.nextRunAt && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Next: {new Date(list.nextRunAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+
+              {/* Last Run */}
+              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
+                <p className="text-xs text-gray-400 mb-1">Last Enrichment</p>
+                <p className="text-sm font-medium text-white">
+                  {list.lastRunAt
+                    ? new Date(list.lastRunAt).toLocaleString()
+                    : 'Never'}
+                </p>
+              </div>
+
+              {/* Sync Status */}
+              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
+                <p className="text-xs text-gray-400 mb-1">Sync Status</p>
+                <Badge variant={list.syncStatus === 'NORMAL' ? 'default' : 'neutral'}>
+                  {list.syncStatus}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Movements/Signals */}
+            {list.movementDefinitions && list.movementDefinitions.length > 0 && (
+              <div className="pt-4 border-t border-gray-800">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                  Tracking {list.movementDefinitions.length} Signal{list.movementDefinitions.length !== 1 ? 's' : ''}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {list.movementDefinitions.map((movement) => (
+                    <div
+                      key={movement.name}
+                      className="group relative"
+                    >
+                      <Badge
+                        variant="neutral"
+                        className="font-mono text-[10px] cursor-help"
+                      >
+                        {movement.name}
+                      </Badge>
+                      {/* Tooltip on hover */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-64 pointer-events-none">
+                        <div className="bg-dark-200 border border-gray-700 rounded-lg p-3 shadow-xl">
+                          <p className="text-xs text-gray-300 leading-relaxed">
+                            {movement.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-gray-800">
