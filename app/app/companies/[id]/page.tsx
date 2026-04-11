@@ -8,6 +8,7 @@ import CompanyRow from "./CompanyRow";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
+import { PageSpinner } from "@/components/ui";
 
 export default function CompanyListDetailsPage() {
   const params = useParams();
@@ -62,11 +63,7 @@ export default function CompanyListDetailsPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   if (!listData) {

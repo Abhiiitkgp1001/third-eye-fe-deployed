@@ -1,7 +1,7 @@
 import { Profile } from "@/lib/db/schema";
 import React, { useState } from "react";
 import { Badge, Button } from "@/components/ui";
-import { Trash2, ChevronDown, ChevronRight, ExternalLink, Linkedin } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProfileRowProps {
@@ -119,7 +119,7 @@ export default function ProfileRow({
           className="px-6 py-4 cursor-pointer"
           onClick={() => metadata && onToggleExpanded(profile.id)}
         >
-          <Badge variant={metadata ? 'success' : 'neutral'} size="sm">
+          <Badge variant={metadata ? 'default' : 'neutral'}>
             {metadata ? 'Enriched' : 'Pending'}
           </Badge>
         </td>
@@ -132,14 +132,12 @@ export default function ProfileRow({
         <td className="px-6 py-4">
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
-              variant="danger"
+              variant="neutral"
               size="sm"
-              icon={Trash2}
               onClick={handleDelete}
               disabled={isDeleting}
-              loading={isDeleting}
             >
-              Delete
+              <Trash2 className="h-4 w-4" /> Delete
             </Button>
           </div>
         </td>
@@ -286,7 +284,7 @@ export default function ProfileRow({
                       {metadata.skills
                         .slice(0, 20)
                         .map((skill: string, idx: number) => (
-                          <Badge key={idx} variant="info" size="sm">
+                          <Badge key={idx} variant="neutral">
                             {skill}
                           </Badge>
                         ))}

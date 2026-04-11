@@ -8,7 +8,7 @@ import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Profile } from "@/lib/trpc/schemas/peopleList-schemas";
-import { Button, Badge, Card } from "@/components/ui";
+import { Button, Badge, Card, PageSpinner } from "@/components/ui";
 import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -65,11 +65,7 @@ export default function PeopleListDetailsPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   if (!listData) {
@@ -154,11 +150,11 @@ export default function PeopleListDetailsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge variant={list.enabled ? 'success' : 'neutral'} size="md">
+                  <Badge variant={list.enabled ? 'default' : 'neutral'}>
                     {list.enabled ? 'Active' : 'Inactive'}
                   </Badge>
                   <Button
-                    variant={list.enabled ? 'secondary' : 'primary'}
+                    variant={list.enabled ? 'neutral' : 'default'}
                     size="sm"
                     onClick={handleToggleEnabled}
                   >
@@ -171,20 +167,18 @@ export default function PeopleListDetailsPage() {
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-gray-800">
               <Button
-                variant="primary"
+                variant="default"
                 size="sm"
-                icon={Plus}
                 onClick={() => setShowAddModal(true)}
               >
-                Add Profile
+                <Plus className="h-4 w-4" /> Add Profile
               </Button>
               <Button
-                variant="secondary"
+                variant="neutral"
                 size="sm"
-                icon={Upload}
                 onClick={() => setShowCsvUploadModal(true)}
               >
-                Upload CSV
+                <Upload className="h-4 w-4" /> Upload CSV
               </Button>
             </div>
           </div>
@@ -302,18 +296,15 @@ export default function PeopleListDetailsPage() {
 
               <div className="flex gap-3">
                 <Button
-                  variant="primary"
-                  size="md"
+                  variant="default"
                   onClick={handleAddItem}
                   disabled={isAddingLoading || !newItemUrl.trim()}
-                  loading={isAddingLoading}
                   className="flex-1"
                 >
                   Add Profile
                 </Button>
                 <Button
-                  variant="secondary"
-                  size="md"
+                  variant="neutral"
                   onClick={() => {
                     setShowAddModal(false);
                     setNewItemUrl("");

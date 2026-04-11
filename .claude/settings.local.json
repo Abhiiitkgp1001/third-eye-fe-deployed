@@ -1,11 +1,18 @@
 {
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.neobrutalism.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm run:*)",
+      "Bash(npx shadcn@latest:*)",
+      "Bash(sed -i '' 's/variant={list\\\\.enabled ? '\\\\''default'\\\\'' : '\\\\''secondary'\\\\''}/variant={list.enabled ? '\\\\''default'\\\\'' : '\\\\''neutral'\\\\''}/g' /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/companies/page.tsx /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/people/page.tsx)",
+      "Bash(sed -i '' 's/variant=\"secondary\"/variant=\"neutral\"/g' /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/companies/page.tsx /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/people/page.tsx '/Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/people/[id]/page.tsx' /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/page.tsx)",
+      "Bash(sed -i '' 's/variant=\"destructive\"/variant=\"neutral\"/g' /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/companies/page.tsx /Users/mukundsinghbisht/Documents/area51/complete3rd/third-eye-fe/app/app/people/page.tsx)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
-  ],
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:www.neobrutalism.dev)"
-    ]
-  }
+  ]
 }

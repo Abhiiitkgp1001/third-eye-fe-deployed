@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { trpc } from "@/lib/trpc";
+import { PageSpinner } from "@/components/ui";
 
 export default function SettingsPage() {
   const { organization, isLoaded } = useOrganization();
@@ -44,11 +45,7 @@ export default function SettingsPage() {
   };
 
   if (!isLoaded || isLoadingOrg) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   return (

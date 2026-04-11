@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { Button, Badge, EmptyState, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Input, Label, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui";
+import { Button, Badge, EmptyState, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Input, Label, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, PageSpinner } from "@/components/ui";
 import { Plus, Building2, Eye, Trash2, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -50,11 +50,7 @@ export default function CompaniesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   return (
@@ -129,7 +125,7 @@ export default function CompaniesPage() {
                       <span className="text-gray-400 text-sm ml-1">companies</span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={list.enabled ? 'default' : 'secondary'}>
+                      <Badge variant={list.enabled ? 'default' : 'neutral'}>
                         {list.enabled ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
@@ -141,7 +137,7 @@ export default function CompaniesPage() {
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <Button
-                          variant="ghost"
+                          variant="noShadow"
                           size="sm"
                           onClick={() => router.push(`/app/companies/${list.id}`)}
                         >
@@ -149,7 +145,7 @@ export default function CompaniesPage() {
                           View
                         </Button>
                         <Button
-                          variant="destructive"
+                          variant="neutral"
                           size="sm"
                           onClick={() => handleDeleteList(list.id)}
                           disabled={deleteListMutation.isPending}
@@ -199,7 +195,7 @@ export default function CompaniesPage() {
 
           <DialogFooter className="flex gap-3 sm:gap-3">
             <Button
-              variant="secondary"
+              variant="neutral"
               onClick={() => {
                 setIsCreatingList(false);
                 setNewListName('');

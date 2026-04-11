@@ -25,17 +25,17 @@ const features = [
 
 const steps = [
   {
-    number: 1,
+    number: '01',
     title: 'Create Lists',
     description: 'Build lists of companies or people you want to track.',
   },
   {
-    number: 2,
+    number: '02',
     title: 'Define Signals',
     description: 'Set up custom watchers for specific growth signals.',
   },
   {
-    number: 3,
+    number: '03',
     title: 'Get Notified',
     description: 'Receive instant alerts when signals trigger.',
   },
@@ -43,18 +43,18 @@ const steps = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-dark-400">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-800">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b-2 border-border">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-base bg-main border-2 border-border flex items-center justify-center shadow-shadow">
+              <Shield className="w-4 h-4 text-main-foreground" />
             </div>
-            <span className="text-xl font-bold text-white">Third Eye</span>
+            <span className="text-lg font-heading text-foreground">Third Eye</span>
           </Link>
           <Link href="/sign-in">
-            <Button variant="ghost" size="sm">
+            <Button variant="noShadow" size="sm">
               Sign In
             </Button>
           </Link>
@@ -62,51 +62,46 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-brand-500/5 rounded-full blur-3xl" />
-          <div className="absolute top-20 left-0 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-400/10 rounded-full blur-3xl" />
-        </div>
-
-        <div className="max-w-6xl mx-auto relative">
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
+            transition={{ duration: 0.5 }}
           >
+            {/* Badge */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-brand-500/30 mb-8"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 bg-main border-2 border-border shadow-shadow rounded-base"
             >
-              <Zap className="w-4 h-4 text-brand-400" />
-              <span className="text-sm text-gray-300">Track growth signals like never before</span>
+              <Zap className="w-3.5 h-3.5 text-main-foreground" />
+              <span className="text-xs font-heading text-main-foreground uppercase tracking-widest">
+                Growth Intelligence Platform
+              </span>
             </motion.div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-              Monitor Growth Signals
+            <h1 className="text-6xl md:text-8xl font-heading text-foreground mb-6 leading-none tracking-tight">
+              Monitor
               <br />
-              <span className="bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
-                In Real-Time
-              </span>
+              <span className="text-main">Growth</span>
+              <br />
+              Signals.
             </h1>
 
-            <p className="text-xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg text-foreground/60 mb-10 max-w-xl font-base leading-relaxed">
               Track companies, people, and events that matter to your business.
               Get instant notifications when important changes happen.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-wrap gap-4 items-center">
               <Link href="/sign-in">
-                <Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">
-                  Get Started
+                <Button size="lg">
+                  Get Started <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
-              <Button variant="secondary" size="lg">
+              <Button variant="neutral" size="lg">
                 See Demo
               </Button>
             </div>
@@ -115,38 +110,40 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-dark-300/50">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-20 px-6 border-t-2 border-border bg-secondary-background">
+        <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            transition={{ duration: 0.5 }}
+            className="mb-14"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Everything you need to stay ahead
+            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
+              Everything you need
+              <br />
+              to stay ahead.
             </h2>
-            <p className="text-xl text-gray-400">
+            <p className="text-foreground/60 font-base">
               Powerful monitoring tools designed for modern teams
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="glass-hover p-8 rounded-xl group"
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="bg-background border-2 border-border shadow-shadow rounded-base p-6 hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
               >
-                <div className="w-12 h-12 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center mb-6 group-hover:bg-brand-500/20 transition-colors">
-                  <feature.icon className="w-6 h-6 text-brand-400" />
+                <div className="w-10 h-10 rounded-base bg-main border-2 border-border flex items-center justify-center mb-5">
+                  <feature.icon className="w-5 h-5 text-main-foreground" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                <h3 className="text-lg font-heading text-foreground mb-2">{feature.title}</h3>
+                <p className="text-foreground/60 font-base text-sm leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -154,37 +151,36 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 border-t-2 border-border">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            transition={{ duration: 0.5 }}
+            className="mb-14"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-xl text-gray-400">Get started in minutes</p>
+            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
+              How It Works
+            </h2>
+            <p className="text-foreground/60 font-base">Get started in minutes</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connection line */}
-            <div className="hidden md:block absolute top-12 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-500/0 via-brand-500/50 to-brand-500/0" />
-
+          <div className="grid md:grid-cols-3 gap-6">
             {steps.map((step, index) => (
               <motion.div
                 key={step.number}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="text-center relative"
+                transition={{ duration: 0.4, delay: index * 0.15 }}
+                className="border-2 border-border rounded-base p-6 bg-secondary-background shadow-shadow"
               >
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-bold text-white shadow-glow-md relative z-10">
+                <span className="text-5xl font-heading text-main leading-none block mb-4">
                   {step.number}
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
-                <p className="text-gray-400">{step.description}</p>
+                </span>
+                <h3 className="text-lg font-heading text-foreground mb-2">{step.title}</h3>
+                <p className="text-foreground/60 font-base text-sm">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -192,43 +188,41 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-dark-400 to-dark-300">
-        <div className="max-w-4xl mx-auto">
+      <section className="py-20 px-6 border-t-2 border-border bg-main">
+        <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="glass p-12 rounded-2xl text-center relative overflow-hidden"
+            transition={{ duration: 0.5 }}
           >
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 to-brand-600/10 pointer-events-none" />
+            <h2 className="text-4xl md:text-6xl font-heading text-main-foreground mb-4">
+              Ready to get started?
+            </h2>
+            <p className="text-main-foreground/70 font-base text-lg mb-8">
+              Join teams who never miss critical growth signals
+            </p>
 
-            <div className="relative z-10">
-              <h2 className="text-4xl font-bold text-white mb-4">
-                Ready to get started?
-              </h2>
-              <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-                Join teams who never miss critical growth signals
-              </p>
+            <div className="flex flex-wrap gap-4 items-center mb-10">
+              <Link href="/sign-in">
+                <Button variant="neutral" size="lg">
+                  Start Tracking Now <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/sign-in">
-                  <Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">
-                    Start Tracking Now
-                  </Button>
-                </Link>
+            <div className="flex flex-wrap gap-6 text-sm text-main-foreground/70 font-base">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-main-foreground" />
+                <span>Free to start</span>
               </div>
-
-              <div className="mt-8 flex items-center justify-center gap-8 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-brand-400" />
-                  <span>Free to start</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-brand-400" />
-                  <span>No credit card required</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-main-foreground" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-main-foreground" />
+                <span>Setup in minutes</span>
               </div>
             </div>
           </motion.div>
@@ -236,9 +230,15 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto text-center text-gray-400 text-sm">
-          <p>&copy; 2025 Third Eye. All rights reserved.</p>
+      <footer className="py-8 px-6 border-t-2 border-border bg-background">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center">
+              <Shield className="w-3 h-3 text-main-foreground" />
+            </div>
+            <span className="text-sm font-heading text-foreground">Third Eye</span>
+          </div>
+          <p className="text-foreground/40 text-sm font-base">&copy; 2025 Third Eye. All rights reserved.</p>
         </div>
       </footer>
     </main>

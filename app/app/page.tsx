@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useOrganization } from "@clerk/nextjs";
 import { trpc } from "@/lib/trpc";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, PageSpinner } from "@/components/ui";
 import { Building2, Users, TrendingUp, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,11 +19,7 @@ export default function DashboardPage() {
   const isLoading = isLoadingCompany || isLoadingPeople;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   const stats = [
@@ -171,11 +167,11 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
-                    onClick={() => router.push(`/app/${peopleLists.includes(list) ? 'people' : 'companies'}/${list.id}`)}
+                    onClick={() => router.push(`/app/${peopleLists.some(p => p.id === list.id) ? 'people' : 'companies'}/${list.id}`)}
                     className="w-full flex items-center justify-between p-4 glass-hover rounded-lg group"
                   >
                     <div className="flex items-center gap-3">
-                      {peopleLists.includes(list) ? (
+                      {peopleLists.some(p => p.id === list.id) ? (
                         <Users className="w-5 h-5 text-purple-400" />
                       ) : (
                         <Building2 className="w-5 h-5 text-blue-400" />
