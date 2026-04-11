@@ -39,13 +39,11 @@ export const companyListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching company lists from backend:", error);
-        console.error("Error response data:", error.response?.data);
-        console.error("Error response status:", error.response?.status);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch company lists from backend: ${error.message}`,
+          message: `Failed to fetch company lists from backend: ${error instanceof Error ? error.message : String(error)}`,
           cause: error,
         });
       }
@@ -84,13 +82,11 @@ export const companyListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching company list from backend:", error);
-        console.error("Error response data:", error.response?.data);
-        console.error("Error response status:", error.response?.status);
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Company list not found: ${error.message}`,
+          message: `Company list not found: ${error instanceof Error ? error.message : String(error)}`,
           cause: error,
         });
       }

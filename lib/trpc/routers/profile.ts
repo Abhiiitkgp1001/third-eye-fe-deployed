@@ -80,7 +80,7 @@ export const profileRouter = router({
     .subscription(async function* ({ input }) {
       // This would use WebSocket when enabled in backend
       throw new TRPCError({
-        code: "UNIMPLEMENTED",
+        code: "NOT_IMPLEMENTED",
         message: "WebSocket subscriptions are currently disabled in the backend",
       });
     }),

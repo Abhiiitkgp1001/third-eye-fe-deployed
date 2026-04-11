@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
+import type { Company } from "@/lib/trpc/schemas/companyList-schemas";
 import CompanyRow from "./CompanyRow";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
