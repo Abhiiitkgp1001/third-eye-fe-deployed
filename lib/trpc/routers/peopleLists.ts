@@ -106,6 +106,10 @@ export const peopleListsRouter = router({
         prompt: z.string().optional(),
         min: z.number().optional(),
         max: z.number().optional(),
+        movementDefinitions: z.array(z.object({
+          name: z.string(),
+          description: z.string(),
+        })).optional(),
         profiles: z.array(z.object({
           type: z.enum(["slug", "liUrl"]),
           value: z.string(),
@@ -123,6 +127,7 @@ export const peopleListsRouter = router({
           prompt: input.prompt,
           min: input.min,
           max: input.max,
+          movementDefinitions: input.movementDefinitions,
           profiles: input.profiles,
         });
 

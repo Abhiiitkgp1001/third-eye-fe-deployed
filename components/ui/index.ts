@@ -44,3 +44,4 @@ export type { EmptyStateProps } from './EmptyState';
 
 export { Skeleton } from './skeleton';
 export { Spinner, PageSpinner } from './spinner';
+export { Avatar, AvatarImage, AvatarFallback } from './avatar';

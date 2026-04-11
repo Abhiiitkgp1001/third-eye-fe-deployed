@@ -3,32 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { Button, Badge, EmptyState, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Input, Label, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, PageSpinner } from "@/components/ui";
-import { Plus, Users, Eye, Trash2, X, Loader2 } from 'lucide-react';
+import { Button, Badge, EmptyState, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, PageSpinner } from "@/components/ui";
+import { Plus, Users, Eye, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CreateListWizard } from "./CreateListWizard";
 
 export default function PeoplePage() {
   const router = useRouter();
   const [isCreatingList, setIsCreatingList] = useState(false);
-  const [newListName, setNewListName] = useState('');
 
   // Fetch people lists using tRPC
   const { data: peopleLists = [], isLoading } = trpc.peopleLists.getAll.useQuery();
 
-  // Create list mutation
-  const utils = trpc.useUtils();
-  const createList = trpc.peopleLists.create.useMutation({
-    onSuccess: () => {
-      utils.peopleLists.getAll.invalidate();
-      setNewListName('');
-      setIsCreatingList(false);
-    },
-    onError: (error) => {
-      alert(`Error creating list: ${error.message}`);
-    },
-  });
-
   // Delete list mutation
+  const utils = trpc.useUtils();
   const deleteListMutation = trpc.peopleLists.delete.useMutation({
     onSuccess: () => {
       utils.peopleLists.getAll.invalidate();
@@ -37,11 +25,6 @@ export default function PeoplePage() {
       alert(`Error deleting list: ${error.message}`);
     },
   });
-
-  const handleCreateList = () => {
-    if (!newListName.trim()) return;
-    createList.mutate({ name: newListName });
-  };
 
   const handleDeleteList = (listId: string) => {
     if (confirm('Are you sure you want to delete this list?')) {
@@ -167,53 +150,7 @@ export default function PeoplePage() {
         )}
       </motion.div>
 
-      {/* Create List Modal */}
-      <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create New People List</DialogTitle>
-            <DialogDescription>
-              Enter a name for your new people tracking list.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="listName">List Name</Label>
-              <Input
-                id="listName"
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                placeholder="e.g., LinkedIn Leads"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateList();
-                }}
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-3 sm:gap-3">
-            <Button
-              variant="neutral"
-              onClick={() => {
-                setIsCreatingList(false);
-                setNewListName('');
-              }}
-              disabled={createList.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateList}
-              disabled={!newListName.trim() || createList.isPending}
-            >
-              {createList.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create List
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateListWizard open={isCreatingList} onOpenChange={setIsCreatingList} />
     </div>
   );
 }

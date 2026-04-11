@@ -28,6 +28,49 @@ export const PeopleListSchema = z.object({
 
 export type PeopleList = z.infer<typeof PeopleListSchema>;
 
+// ── Profile Metadata ───────────────────────────────────────────────────
+
+export interface ProfileMetadataExperience {
+  company_name?: string;
+  company_logo_url?: string;
+  date_range?: {
+    start?: { iso: string };
+    end?: { iso: string } | null;
+  };
+  positions?: {
+    title?: string;
+    employment_type?: string;
+    description?: string;
+  }[];
+}
+
+export interface ProfileMetadataEducation {
+  school_name?: string;
+  school_logo_url?: string;
+  degree?: string;
+  field_of_study?: string;
+  grade?: string;
+  date_range?: {
+    start?: { year: number };
+    end?: { year: number };
+  };
+}
+
+export interface ProfileMetadata {
+  first_name?: string;
+  last_name?: string;
+  headline?: string;
+  summary?: string;
+  profile_photo_url?: string;
+  skills?: string[];
+  experience?: ProfileMetadataExperience[];
+  education?: ProfileMetadataEducation[];
+  network_info?: {
+    connections_count?: number;
+    followers_count?: number;
+  };
+}
+
 // ── Profile Schema ─────────────────────────────────────────────────────
 
 export const ProfileSchema = z.object({
@@ -41,6 +84,11 @@ export const ProfileSchema = z.object({
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;
+
+/** Type-safe accessor — latestMetadata is `unknown` from Zod; we trust the server shape. */
+export function getProfileMetadata(profile: Profile): ProfileMetadata | null {
+  return (profile.latestMetadata ?? null) as ProfileMetadata | null;
+}
 
 // ── Response Schemas ───────────────────────────────────────────────────
 

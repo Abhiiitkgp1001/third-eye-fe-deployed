@@ -6,6 +6,7 @@ import { vigilRouter } from "./vigil";
 import { censusRouter } from "./census";
 import { organizationRouter } from "./organization";
 import { testRouter } from "./test";
+import { promptsRouter } from "./prompts";
 
 /**
  * Main app router
@@ -19,6 +20,7 @@ export const appRouter = router({
   peopleList: peopleListsRouter,
   companyList: companyListsRouter,
   test: testRouter,
+  prompts: promptsRouter,
   // Legacy naming (deprecated, use peopleList and companyList instead)
   peopleLists: peopleListsRouter,
   companyLists: companyListsRouter,

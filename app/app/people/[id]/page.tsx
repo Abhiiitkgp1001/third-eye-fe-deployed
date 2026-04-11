@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import ProfileRow from "./ProfileRow";
+import ProfileSheet from "./ProfileSheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
@@ -21,7 +22,7 @@ export default function PeopleListDetailsPage() {
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
-  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
@@ -77,10 +78,6 @@ export default function PeopleListDetailsPage() {
   }
 
   const { list, profiles, total } = listData;
-
-  const toggleExpanded = (profileId: string) => {
-    setExpandedProfileId(expandedProfileId === profileId ? null : profileId);
-  };
 
   const handleAddItem = () => {
     if (!newItemUrl.trim()) return;
@@ -219,9 +216,7 @@ export default function PeopleListDetailsPage() {
                   <ProfileRow
                     key={profile.id}
                     profile={profile}
-                    listId={listId}
-                    isExpanded={expandedProfileId === profile.id}
-                    onToggleExpanded={toggleExpanded}
+                    onViewProfile={setSelectedProfile}
                     onDelete={handleDeleteItem}
                     index={index}
                   />
@@ -318,6 +313,11 @@ export default function PeopleListDetailsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ProfileSheet
+        profile={selectedProfile}
+        onClose={() => setSelectedProfile(null)}
+      />
 
       <CsvUploadModal
         isOpen={showCsvUploadModal}
