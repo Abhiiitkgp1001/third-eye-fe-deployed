@@ -102,6 +102,8 @@ export const companyListsRouter = router({
         prompt: z.string().optional(),
         min: z.number().optional(),
         max: z.number().optional(),
+        cadence: z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]).optional(),
+        cadenceInterval: z.number().int().positive().max(365).optional(),
         companies: z.array(z.object({
           type: z.enum(["slug", "orgId", "liUrl"]),
           value: z.string(),
@@ -119,6 +121,8 @@ export const companyListsRouter = router({
           prompt: input.prompt,
           min: input.min,
           max: input.max,
+          cadence: input.cadence,
+          cadenceInterval: input.cadenceInterval,
           companies: input.companies,
         });
 

@@ -40,7 +40,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   const [selectedSignals, setSelectedSignals] = useState<Set<ProfileSignal>>(new Set());
   const [aiMovements, setAiMovements] = useState<MovementDefinition[]>([]);
   const [cadence, setCadence] = useState<"MANUAL" | "DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
-  const [cadenceInterval, setCadenceInterval] = useState(1);
+  const [cadenceInterval, setCadenceInterval] = useState(10);
   const [error, setError] = useState('');
 
   const processPrompt = trpc.prompts.processForPeopleList.useMutation({
@@ -85,7 +85,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       setSelectedSignals(new Set());
       setAiMovements([]);
       setCadence("DAILY");
-      setCadenceInterval(1);
+      setCadenceInterval(10);
       setError('');
     }, 200);
   }
