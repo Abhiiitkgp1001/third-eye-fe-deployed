@@ -67,7 +67,7 @@ export default function ProfileRow({
           </a>
         </div>
       </td>
-      <td className="px-6 py-4 text-gray-300">
+      <td className="px-6 py-4 text-foreground">
         <span className="line-clamp-2">{metadata?.headline ?? "-"}</span>
       </td>
       <td className="px-6 py-4">
@@ -75,7 +75,7 @@ export default function ProfileRow({
           {metadata ? 'Enriched' : 'Pending'}
         </Badge>
       </td>
-      <td className="px-6 py-4 text-gray-400 text-sm">
+      <td className="px-6 py-4 text-foreground/60 text-sm">
         {new Date(profile.createdAt).toLocaleDateString()}
       </td>
       <td className="px-6 py-4">

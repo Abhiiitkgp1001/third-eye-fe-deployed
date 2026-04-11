@@ -12,7 +12,7 @@ interface CompanySheetProps {
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-white font-semibold flex items-center gap-2">
+    <h3 className="text-foreground font-semibold flex items-center gap-2">
       <span className="w-1 h-4 bg-brand-500 rounded shrink-0" />
       {children}
     </h3>
@@ -68,7 +68,7 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
                   />
                 )}
                 <div className="min-w-0">
-                  <h2 className="text-xl font-bold text-white truncate">
+                  <h2 className="text-xl font-bold text-foreground truncate">
                     {displayName}
                   </h2>
                   <a
@@ -83,7 +83,7 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors p-1 shrink-0 mt-0.5"
+                className="text-foreground/60 hover:text-foreground transition-colors p-1 shrink-0 mt-0.5"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
@@ -93,14 +93,14 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
               {metadata?.tagline && (
-                <p className="text-gray-300 text-base leading-relaxed">{metadata.tagline}</p>
+                <p className="text-foreground/60 text-base leading-relaxed">{metadata.tagline}</p>
               )}
 
               <div className="flex items-center gap-3 flex-wrap">
                 <Badge variant={metadata ? "default" : "neutral"}>
                   {metadata ? "Enriched" : "Pending"}
                 </Badge>
-                <span className="text-gray-500 text-sm">
+                <span className="text-foreground/50 text-sm">
                   Added {new Date(company.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -108,10 +108,10 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
               {metadata?.followers_count && (
                 <div className="flex gap-6 text-sm">
                   <div>
-                    <span className="text-white font-semibold">
+                    <span className="text-foreground font-semibold">
                       {metadata.followers_count.toLocaleString()}
                     </span>
-                    <span className="text-gray-400"> followers on LinkedIn</span>
+                    <span className="text-foreground/60"> followers on LinkedIn</span>
                   </div>
                 </div>
               )}
@@ -119,7 +119,7 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
               {metadata?.description && (
                 <div>
                   <SectionHeader>About</SectionHeader>
-                  <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed mt-2">
+                  <p className="text-foreground/60 text-sm whitespace-pre-wrap leading-relaxed mt-2">
                     {metadata.description}
                   </p>
                 </div>
@@ -132,24 +132,24 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
                   <div className="space-y-2 mt-3 text-sm">
                     {metadata.industries && metadata.industries.length > 0 && (
                       <div className="flex gap-2">
-                        <span className="text-gray-400 w-24 shrink-0">Industries:</span>
-                        <span className="text-white">
+                        <span className="text-foreground/60 w-24 shrink-0">Industries:</span>
+                        <span className="text-foreground">
                           {metadata.industries.map((i: any) => i.name).filter(Boolean).join(", ")}
                         </span>
                       </div>
                     )}
                     {metadata.staff_info?.staff_count && (
                       <div className="flex gap-2">
-                        <span className="text-gray-400 w-24 shrink-0">Company Size:</span>
-                        <span className="text-white">
+                        <span className="text-foreground/60 w-24 shrink-0">Company Size:</span>
+                        <span className="text-foreground">
                           {metadata.staff_info.staff_count.toLocaleString()} employees
                         </span>
                       </div>
                     )}
                     {metadata.locations?.headquarter && (
                       <div className="flex gap-2">
-                        <span className="text-gray-400 w-24 shrink-0">Headquarters:</span>
-                        <span className="text-white">
+                        <span className="text-foreground/60 w-24 shrink-0">Headquarters:</span>
+                        <span className="text-foreground">
                           {[
                             metadata.locations.headquarter.city,
                             metadata.locations.headquarter.country
@@ -159,13 +159,13 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
                     )}
                     {metadata.founded_on?.year && (
                       <div className="flex gap-2">
-                        <span className="text-gray-400 w-24 shrink-0">Founded:</span>
-                        <span className="text-white">{metadata.founded_on.year}</span>
+                        <span className="text-foreground/60 w-24 shrink-0">Founded:</span>
+                        <span className="text-foreground">{metadata.founded_on.year}</span>
                       </div>
                     )}
                     {metadata.company_url && (
                       <div className="flex gap-2">
-                        <span className="text-gray-400 w-24 shrink-0">Website:</span>
+                        <span className="text-foreground/60 w-24 shrink-0">Website:</span>
                         <a
                           href={metadata.company_url}
                           target="_blank"
@@ -198,8 +198,8 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
                   <SectionHeader>Funding</SectionHeader>
                   <div className="mt-3 p-4 bg-dark-200/60 rounded-lg border border-gray-800 space-y-3">
                     <div>
-                      <div className="text-xs text-gray-400 mb-1">Last Funding Round</div>
-                      <div className="text-2xl font-bold text-white">
+                      <div className="text-xs text-foreground/60 mb-1">Last Funding Round</div>
+                      <div className="text-2xl font-bold text-foreground">
                         {(() => {
                           const currency = metadata.funding_data.last_funding_round.money_raised.currency?.toUpperCase() || 'USD';
                           const amount = metadata.funding_data.last_funding_round.money_raised.amount?.toLocaleString() || '0';
@@ -210,10 +210,10 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
                     {metadata.funding_data.num_of_funding_rounds && (
                       <div className="pt-3 border-t border-gray-700/50">
                         <div className="flex items-center gap-2">
-                          <span className="text-white font-semibold">
+                          <span className="text-foreground font-semibold">
                             {metadata.funding_data.num_of_funding_rounds}
                           </span>
-                          <span className="text-gray-400 text-sm">
+                          <span className="text-foreground/60 text-sm">
                             total funding round{metadata.funding_data.num_of_funding_rounds !== 1 ? 's' : ''}
                           </span>
                         </div>

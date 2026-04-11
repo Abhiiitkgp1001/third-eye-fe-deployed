@@ -8,6 +8,7 @@ import { LayoutDashboard, Users, Building2, Settings, Shield, Menu, X, Bug, Pane
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navigation = (peopleLists: number, companyLists: number) => [
   {
@@ -235,6 +236,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <PanelLeftOpen className="w-5 h-5" />
             </button>
           )}
+
+          <div className="flex-1" />
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           <div className="flex items-center gap-2 lg:hidden">
             <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center">

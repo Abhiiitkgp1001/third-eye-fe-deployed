@@ -69,8 +69,8 @@ export default function DashboardPage() {
         transition={{ duration: 0.4 }}
         className="mb-8"
       >
-        <h1 className="text-4xl font-bold text-white mb-2">Dashboard Overview</h1>
-        <p className="text-gray-400">
+        <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard Overview</h1>
+        <p className="text-foreground/60">
           Welcome to your tracking dashboard{organization?.name ? `, ${organization.name}` : ''}
         </p>
       </motion.div>
@@ -90,8 +90,8 @@ export default function DashboardPage() {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">{stat.label}</p>
-                      <p className="text-3xl font-bold text-white">{stat.value}</p>
+                      <p className="text-sm text-foreground/60 mb-1">{stat.label}</p>
+                      <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                     </div>
                     <div className="w-12 h-12 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center group-hover:bg-brand-500/20 transition-colors">
                       <Icon className="w-6 h-6 text-brand-400" />
@@ -130,8 +130,8 @@ export default function DashboardPage() {
                         <Icon className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-white mb-1">{action.title}</h3>
-                        <p className="text-sm text-gray-400 mb-3">{action.description}</p>
+                        <h3 className="text-lg font-semibold text-foreground mb-1">{action.title}</h3>
+                        <p className="text-sm text-foreground/60 mb-3">{action.description}</p>
                         <div className="flex items-center text-brand-400 group-hover:text-brand-300 transition-colors">
                           <span className="text-sm font-medium">Go to {action.title}</span>
                           <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
@@ -177,13 +177,13 @@ export default function DashboardPage() {
                         <Building2 className="w-5 h-5 text-blue-400" />
                       )}
                       <div className="text-left">
-                        <p className="text-white font-medium">{list.name}</p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-foreground font-medium">{list.name}</p>
+                        <p className="text-sm text-foreground/60">
                           Created {list.createdAt ? new Date(list.createdAt).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-brand-400 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="w-5 h-5 text-foreground/60 group-hover:text-brand-400 group-hover:translate-x-1 transition-all" />
                   </motion.button>
                 ))}
               </div>

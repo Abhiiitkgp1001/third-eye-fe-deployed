@@ -156,7 +156,7 @@ export default function CsvUploadModal({
                 className="cursor-pointer inline-block"
               >
                 <div className="text-primary-400 text-4xl mb-2">📄</div>
-                <div className="text-white font-medium mb-1">
+                <div className="text-foreground font-medium mb-1">
                   Choose a CSV file
                 </div>
                 <div className="text-secondary-50 text-sm">
@@ -177,7 +177,7 @@ export default function CsvUploadModal({
           <div className="space-y-6">
             {/* Column Selection */}
             <div>
-              <h3 className="text-white font-semibold mb-3">
+              <h3 className="text-foreground font-semibold mb-3">
                 Select the column containing LinkedIn URLs
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -191,7 +191,7 @@ export default function CsvUploadModal({
                         : "border-primary-700 bg-primary-800/20 hover:bg-primary-800/40"
                     }`}
                   >
-                    <div className="text-white font-medium mb-2">
+                    <div className="text-foreground font-medium mb-2">
                       {header || `Column ${idx + 1}`}
                     </div>
                     <div className="text-secondary-50 text-xs space-y-1">
@@ -210,7 +210,7 @@ export default function CsvUploadModal({
             {selectedColumn !== null && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-white font-semibold">
+                  <h3 className="text-foreground font-semibold">
                     Validation Results
                   </h3>
                   <div className="text-sm">

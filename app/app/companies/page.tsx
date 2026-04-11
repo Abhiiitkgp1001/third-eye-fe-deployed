@@ -75,8 +75,8 @@ export default function CompaniesPage() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Company Lists</h1>
-            <p className="text-gray-400">Manage and track your company lists</p>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Company Lists</h1>
+            <p className="text-foreground/60">Manage and track your company lists</p>
           </div>
           <Button onClick={() => setIsCreatingList(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -130,12 +130,12 @@ export default function CompaniesPage() {
                         <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
                           <Building2 className="w-5 h-5 text-blue-400" />
                         </div>
-                        <span className="text-white font-medium">{list.name}</span>
+                        <span className="text-foreground font-medium">{list.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-white font-semibold">{list.companyCount}</span>
-                      <span className="text-gray-400 text-sm ml-1">companies</span>
+                      <span className="text-foreground font-semibold">{list.companyCount}</span>
+                      <span className="text-foreground/60 text-sm ml-1">companies</span>
                     </TableCell>
                     <TableCell>
                       <Badge variant={list.enabled ? 'default' : 'neutral'}>
@@ -157,16 +157,16 @@ export default function CompaniesPage() {
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-xs">None</span>
+                        <span className="text-foreground/50 text-xs">None</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="text-gray-300 text-sm">
+                      <span className="text-foreground text-sm">
                         {formatCadence(list.cadence, list.cadenceInterval)}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-foreground/60 text-sm">
                         {list.createdAt ? new Date(list.createdAt).toLocaleDateString() : 'N/A'}
                       </span>
                     </TableCell>

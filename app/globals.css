@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Dark theme (default) */
   --background: #140F24;
   --secondary-background: #261A30;
   --foreground: oklch(93% 0 0);
@@ -19,9 +20,57 @@
   --chart-4: #05E17A;
   --chart-5: #7A83FF;
   --chart-active-dot: #fff;
+
+  /* Dark mode specific colors */
+  --dark-100: #2d2137;
+  --dark-200: #261A30;
+  --dark-300: #1f1629;
+  --brand-400: #5BB5A2;
+  --brand-500: #489381;
+  --brand-600: #3a7a69;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+}
+
+.light {
+  /* Light theme */
+  --background: #EEE0DF;
+  --secondary-background: #ffffff;
+  --foreground: #535551;
+  --main-foreground: #ffffff;
+  --main: #8478CC;
+  --border: #535551;
+  --ring: #8478CC;
+  --overlay: rgba(83, 85, 81, 0.8);
+  --shadow: 4px 4px 0px 0px var(--border);
+  --chart-1: #8478CC;
+  --chart-2: #FF4D50;
+  --chart-3: #FACC00;
+  --chart-4: #05E17A;
+  --chart-5: #535551;
+  --chart-active-dot: #535551;
+
+  /* Light mode specific colors */
+  --dark-100: #f3f4f6;
+  --dark-200: #e5e7eb;
+  --dark-300: #d1d5db;
+  --brand-400: #9d8ee0;
+  --brand-500: #8478CC;
+  --brand-600: #6b5fb2;
+  --gray-300: #535551;
+  --gray-400: #696b67;
+  --gray-500: #84877f;
+  --gray-600: #9fa29a;
+  --gray-700: #b9bcb5;
+  --gray-800: #d4d6d0;
 }
 
 .dark {
+  /* Dark theme */
   --background: #140F24;
   --secondary-background: #261A30;
   --foreground: oklch(93% 0 0);
@@ -36,6 +85,20 @@
   --chart-4: #04C86D;
   --chart-5: #7A83FF;
   --chart-active-dot: #fff;
+
+  /* Dark mode specific colors */
+  --dark-100: #2d2137;
+  --dark-200: #261A30;
+  --dark-300: #1f1629;
+  --brand-400: #5BB5A2;
+  --brand-500: #489381;
+  --brand-600: #3a7a69;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
 }
 
 @theme inline {

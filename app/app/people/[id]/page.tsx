@@ -78,7 +78,7 @@ export default function PeopleListDetailsPage() {
   if (!listData) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">People list not found</div>
+        <div className="text-foreground text-xl">People list not found</div>
       </div>
     );
   }
@@ -144,15 +144,15 @@ export default function PeopleListDetailsPage() {
             <div>
               <button
                 onClick={() => router.push("/app/people")}
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-3 group"
+                className="flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors mb-3 group"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span className="text-sm">Back to People Lists</span>
               </button>
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-white mb-2">{list.name}</h1>
-                  <p className="text-gray-400 text-sm">
+                  <h1 className="text-3xl font-bold text-foreground mb-2">{list.name}</h1>
+                  <p className="text-foreground/60 text-sm">
                     {total} profiles • Created {new Date(list.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -184,12 +184,12 @@ export default function PeopleListDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-800">
               {/* Cadence Info */}
               <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
-                <p className="text-xs text-gray-400 mb-1">Enrichment Cadence</p>
-                <p className="text-sm font-medium text-white">
+                <p className="text-xs text-foreground/60 mb-1">Enrichment Cadence</p>
+                <p className="text-sm font-medium text-foreground">
                   {formatCadence(list.cadence, list.cadenceInterval)}
                 </p>
                 {list.nextRunAt && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-foreground/50 mt-1">
                     Next: {new Date(list.nextRunAt).toLocaleString()}
                   </p>
                 )}
@@ -197,8 +197,8 @@ export default function PeopleListDetailsPage() {
 
               {/* Last Run */}
               <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
-                <p className="text-xs text-gray-400 mb-1">Last Enrichment</p>
-                <p className="text-sm font-medium text-white">
+                <p className="text-xs text-foreground/60 mb-1">Last Enrichment</p>
+                <p className="text-sm font-medium text-foreground">
                   {list.lastRunAt
                     ? new Date(list.lastRunAt).toLocaleString()
                     : 'Never'}
@@ -207,7 +207,7 @@ export default function PeopleListDetailsPage() {
 
               {/* Sync Status */}
               <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
-                <p className="text-xs text-gray-400 mb-1">Sync Status</p>
+                <p className="text-xs text-foreground/60 mb-1">Sync Status</p>
                 <Badge variant={list.syncStatus === 'NORMAL' ? 'default' : 'neutral'}>
                   {list.syncStatus}
                 </Badge>
@@ -217,7 +217,7 @@ export default function PeopleListDetailsPage() {
             {/* Movements/Signals */}
             {list.movementDefinitions && list.movementDefinitions.length > 0 && (
               <div className="pt-4 border-t border-gray-800">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                <h3 className="text-sm font-semibold text-foreground mb-3">
                   Tracking {list.movementDefinitions.length} Signal{list.movementDefinitions.length !== 1 ? 's' : ''}
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -235,7 +235,7 @@ export default function PeopleListDetailsPage() {
                       {/* Tooltip on hover */}
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-64 pointer-events-none">
                         <div className="bg-dark-200 border border-gray-700 rounded-lg p-3 shadow-xl">
-                          <p className="text-xs text-gray-300 leading-relaxed">
+                          <p className="text-xs text-foreground leading-relaxed">
                             {movement.description}
                           </p>
                         </div>
@@ -278,19 +278,19 @@ export default function PeopleListDetailsPage() {
           <table className="w-full">
             <thead className="border-b border-gray-800">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground/60">
                   Name / Profile
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground/60">
                   Headline
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground/60">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground/60">
                   Added
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground/60">
                   Actions
                 </th>
               </tr>
@@ -310,7 +310,7 @@ export default function PeopleListDetailsPage() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-6 py-12 text-center text-gray-400"
+                    className="px-6 py-12 text-center text-foreground/60"
                   >
                     <p className="text-lg mb-2">No profiles in this list yet</p>
                     <p className="text-sm">Add profiles to get started tracking</p>
@@ -348,17 +348,17 @@ export default function PeopleListDetailsPage() {
               className="glass p-8 rounded-2xl max-w-md w-full"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Add Profile</h2>
+                <h2 className="text-2xl font-bold text-foreground">Add Profile</h2>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-foreground/60 hover:text-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-6">
-                <label className="block text-gray-300 text-sm font-medium mb-2">
+                <label className="block text-foreground text-sm font-medium mb-2">
                   LinkedIn URL
                 </label>
                 <input
@@ -366,7 +366,7 @@ export default function PeopleListDetailsPage() {
                   value={newItemUrl}
                   onChange={(e) => setNewItemUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/username"
-                  className="w-full px-4 py-3 bg-dark-200 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-dark-200 border border-gray-700 rounded-lg text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleAddItem();

@@ -64,10 +64,10 @@ export default function ConfirmToggleModal({
           </div>
 
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               {isActivating ? "Activate List" : "Deactivate List"}
             </h2>
-            <p className="text-gray-300 text-sm">
+            <p className="text-foreground/60 text-sm">
               {isActivating
                 ? `Are you sure you want to activate "${listName}"?`
                 : `Are you sure you want to deactivate "${listName}"?`}
@@ -76,10 +76,10 @@ export default function ConfirmToggleModal({
         </div>
 
         <div className="bg-dark-200/60 rounded-lg p-4 mb-6 border border-gray-800">
-          <p className="text-white text-sm mb-3 font-semibold">
+          <p className="text-foreground text-sm mb-3 font-semibold">
             {isActivating ? "What will happen:" : "What will stop:"}
           </p>
-          <ul className="text-gray-300 text-sm space-y-2">
+          <ul className="text-foreground/60 text-sm space-y-2">
             {isActivating ? (
               <>
                 <li className="flex items-start gap-2">
@@ -154,7 +154,7 @@ export default function ConfirmToggleModal({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-dark-200 hover:bg-dark-100 hover:border-gray-600 hover:scale-[1.02] border border-gray-700 text-gray-300 hover:text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-dark-200 hover:bg-dark-100 hover:border-gray-600 hover:scale-[1.02] border border-gray-700 text-foreground/60 hover:text-foreground rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
           >
             Cancel
           </button>

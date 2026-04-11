@@ -61,7 +61,7 @@ export default function Pagination({
 
   return (
     <div className="flex items-center justify-between px-6 py-4 bg-primary-800/30 border-t border-primary-700/40">
-      <div className="text-secondary-50 text-sm">
+      <div className="text-foreground/60 text-sm">
         Showing {startItem} to {endItem} of {totalItems} companies
       </div>
 
@@ -70,7 +70,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-1 rounded-lg bg-primary-700/50 text-white hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1 rounded-lg bg-primary-700/50 text-foreground hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Previous
         </button>
@@ -96,8 +96,8 @@ export default function Pagination({
                 onClick={() => onPageChange(pageNum)}
                 className={`px-3 py-1 rounded-lg transition-colors ${
                   currentPage === pageNum
-                    ? "bg-primary-600 text-white font-semibold"
-                    : "bg-primary-700/50 text-white hover:bg-primary-700"
+                    ? "bg-primary-600 text-foreground font-semibold"
+                    : "bg-primary-700/50 text-foreground hover:bg-primary-700"
                 }`}
               >
                 {pageNum}
@@ -110,7 +110,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 rounded-lg bg-primary-700/50 text-white hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1 rounded-lg bg-primary-700/50 text-foreground hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
         </button>

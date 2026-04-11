@@ -18,7 +18,7 @@ interface ProfileSheetProps {
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-white font-semibold flex items-center gap-2">
+    <h3 className="text-foreground font-semibold flex items-center gap-2">
       <span className="w-1 h-4 bg-brand-500 rounded shrink-0" />
       {children}
     </h3>
@@ -78,7 +78,7 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <h2 className="text-xl font-bold text-white truncate">
+                  <h2 className="text-xl font-bold text-foreground truncate">
                     {displayName ?? "Unnamed Profile"}
                   </h2>
                   <a
@@ -93,7 +93,7 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors p-1 shrink-0 mt-0.5"
+                className="text-foreground/60 hover:text-foreground transition-colors p-1 shrink-0 mt-0.5"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
@@ -103,14 +103,14 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
               {metadata?.headline && (
-                <p className="text-gray-300 text-base leading-relaxed">{metadata.headline}</p>
+                <p className="text-foreground/60 text-base leading-relaxed">{metadata.headline}</p>
               )}
 
               <div className="flex items-center gap-3 flex-wrap">
                 <Badge variant={metadata ? "default" : "neutral"}>
                   {metadata ? "Enriched" : "Pending"}
                 </Badge>
-                <span className="text-gray-500 text-sm">
+                <span className="text-foreground/50 text-sm">
                   Added {new Date(profile.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -120,18 +120,18 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
                   <div className="flex gap-6 text-sm">
                     {metadata.network_info.connections_count && (
                       <div>
-                        <span className="text-white font-semibold">
+                        <span className="text-foreground font-semibold">
                           {metadata.network_info.connections_count.toLocaleString()}
                         </span>
-                        <span className="text-gray-400"> connections</span>
+                        <span className="text-foreground/60"> connections</span>
                       </div>
                     )}
                     {metadata.network_info.followers_count && (
                       <div>
-                        <span className="text-white font-semibold">
+                        <span className="text-foreground font-semibold">
                           {metadata.network_info.followers_count.toLocaleString()}
                         </span>
-                        <span className="text-gray-400"> followers</span>
+                        <span className="text-foreground/60"> followers</span>
                       </div>
                     )}
                   </div>
@@ -140,7 +140,7 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
               {metadata?.summary && (
                 <div>
                   <SectionHeader>About</SectionHeader>
-                  <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed mt-2">
+                  <p className="text-foreground/60 text-sm whitespace-pre-wrap leading-relaxed mt-2">
                     {metadata.summary}
                   </p>
                 </div>
@@ -160,14 +160,14 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
                           />
                         )}
                         <div className="min-w-0">
-                          <div className="text-white font-medium text-sm">
+                          <div className="text-foreground font-medium text-sm">
                             {exp.positions?.[0]?.title ?? "Position"}
                           </div>
-                          <div className="text-gray-300 text-sm">
+                          <div className="text-foreground/60 text-sm">
                             {exp.company_name}
                             {exp.positions?.[0]?.employment_type && ` · ${exp.positions[0].employment_type}`}
                           </div>
-                          <div className="text-gray-500 text-xs mt-0.5">
+                          <div className="text-foreground/50 text-xs mt-0.5">
                             {exp.date_range?.start && (
                               <>
                                 {new Date(exp.date_range.start.iso).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
@@ -179,7 +179,7 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
                             )}
                           </div>
                           {exp.positions?.[0]?.description && (
-                            <p className="text-gray-400 text-xs mt-1.5 leading-relaxed">
+                            <p className="text-foreground/60 text-xs mt-1.5 leading-relaxed">
                               {exp.positions[0].description}
                             </p>
                           )}
@@ -204,12 +204,12 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
                           />
                         )}
                         <div className="min-w-0">
-                          <div className="text-white font-medium text-sm">{edu.school_name}</div>
-                          <div className="text-gray-300 text-sm">
+                          <div className="text-foreground font-medium text-sm">{edu.school_name}</div>
+                          <div className="text-foreground/60 text-sm">
                             {edu.degree && edu.field_of_study && `${edu.degree}, ${edu.field_of_study}`}
                             {edu.grade && ` · GPA: ${edu.grade}`}
                           </div>
-                          <div className="text-gray-500 text-xs mt-0.5">
+                          <div className="text-foreground/50 text-xs mt-0.5">
                             {edu.date_range?.start && edu.date_range?.end &&
                               `${edu.date_range.start.year} – ${edu.date_range.end.year}`}
                           </div>

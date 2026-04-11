@@ -139,7 +139,7 @@ export default function CsvUploadModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white mb-4">Upload CSV</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-4">Upload CSV</h2>
 
         {!csvData ? (
           <div className="space-y-4">
@@ -156,7 +156,7 @@ export default function CsvUploadModal({
                 className="cursor-pointer inline-block"
               >
                 <div className="text-primary-400 text-4xl mb-2">📄</div>
-                <div className="text-white font-medium mb-1">
+                <div className="text-foreground font-medium mb-1">
                   Choose a CSV file
                 </div>
                 <div className="text-secondary-50 text-sm">
@@ -178,7 +178,7 @@ export default function CsvUploadModal({
           <div className="space-y-6">
             {/* Column Selection */}
             <div>
-              <h3 className="text-white font-semibold mb-3">
+              <h3 className="text-foreground font-semibold mb-3">
                 Select the column containing LinkedIn company URLs
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -192,7 +192,7 @@ export default function CsvUploadModal({
                         : "border-primary-700 bg-primary-800/20 hover:bg-primary-800/40"
                     }`}
                   >
-                    <div className="text-white font-medium mb-2">
+                    <div className="text-foreground font-medium mb-2">
                       {header || `Column ${idx + 1}`}
                     </div>
                     <div className="text-secondary-50 text-xs space-y-1">
@@ -211,7 +211,7 @@ export default function CsvUploadModal({
             {selectedColumn !== null && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-white font-semibold">
+                  <h3 className="text-foreground font-semibold">
                     Validation Results
                   </h3>
                   <div className="text-sm">
@@ -257,7 +257,7 @@ export default function CsvUploadModal({
             {/* Upload Progress */}
             {uploadProgress && (
               <div className="bg-primary-800/50 border border-primary-700 rounded-lg p-4">
-                <div className="text-white text-center">{uploadProgress}</div>
+                <div className="text-foreground text-center">{uploadProgress}</div>
               </div>
             )}
 
