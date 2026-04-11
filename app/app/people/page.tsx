@@ -7,6 +7,7 @@ import { Button, Badge, EmptyState, Table, TableHeader, TableBody, TableRow, Tab
 import { Plus, Users, Eye, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateListWizard } from "./CreateListWizard";
+import { formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 
 export default function PeoplePage() {
   const router = useRouter();
@@ -82,6 +83,7 @@ export default function PeoplePage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Total People</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Cadence</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -111,6 +113,11 @@ export default function PeoplePage() {
                       <Badge variant={list.enabled ? 'default' : 'neutral'}>
                         {list.enabled ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-300 text-sm">
+                        {formatCadence(list.cadence, list.cadenceInterval)}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-400 text-sm">

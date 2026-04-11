@@ -110,6 +110,8 @@ export const peopleListsRouter = router({
           name: z.string(),
           description: z.string(),
         })).optional(),
+        cadence: z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]).optional(),
+        cadenceInterval: z.number().int().positive().max(365).optional(),
         profiles: z.array(z.object({
           type: z.enum(["slug", "liUrl"]),
           value: z.string(),
@@ -128,6 +130,8 @@ export const peopleListsRouter = router({
           min: input.min,
           max: input.max,
           movementDefinitions: input.movementDefinitions,
+          cadence: input.cadence,
+          cadenceInterval: input.cadenceInterval,
           profiles: input.profiles,
         });
 

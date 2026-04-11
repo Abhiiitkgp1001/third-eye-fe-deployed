@@ -19,6 +19,7 @@ export const PeopleListSchema = z.object({
   allowedMovements: z.array(z.string()).nullable(),
   prompt: z.string().nullable(),
   cadence: CadenceSchema,
+  cadenceInterval: z.number().default(1),
   nextRunAt: z.coerce.date().nullable(),
   lastRunAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
@@ -134,3 +135,14 @@ export type CreatePeopleListResponse = z.infer<typeof CreatePeopleListResponseSc
 export type GetPeopleListResponse = z.infer<typeof GetPeopleListResponseSchema>;
 export type ProfileOpResponse = z.infer<typeof ProfileOpResponseSchema>;
 export type AddProfilesResponse = z.infer<typeof AddProfilesResponseSchema>;
+
+// ── Helpers ────────────────────────────────────────────────────────────
+
+export function formatCadence(cadence: z.infer<typeof CadenceSchema>, interval: number = 1): string {
+  if (cadence === "MANUAL") return "Manual";
+  if (interval === 1) {
+    return cadence.charAt(0) + cadence.slice(1).toLowerCase();
+  }
+  const unit = cadence === "DAILY" ? "day" : cadence === "WEEKLY" ? "week" : "month";
+  return `Every ${interval} ${unit}${interval > 1 ? "s" : ""}`;
+}
