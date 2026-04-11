@@ -60,12 +60,15 @@ function SidebarContent({
     <div className="flex flex-col h-full bg-secondary-background border-r-2 border-border w-64">
       {/* Header */}
       <div className="h-16 flex items-center justify-between px-5 border-b-2 border-border shrink-0">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-base bg-main border-2 border-border flex items-center justify-center shadow-shadow">
-            <Shield className="w-4 h-4 text-main-foreground" />
-          </div>
-          <span className="text-base font-heading text-foreground">Third Eye</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-base bg-main border-2 border-border flex items-center justify-center shadow-shadow">
+              <Shield className="w-4 h-4 text-main-foreground" />
+            </div>
+            <span className="text-base font-heading text-foreground">Third Eye</span>
+          </Link>
+          <div className="w-6 h-px bg-border" />
+        </div>
         {onClose && (
           <button
             onClick={onClose}

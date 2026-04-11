@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink } from "lucide-react";
+import { X, ExternalLink, Sparkles, TrendingUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback, Badge } from "@/components/ui";
 import {
   Profile,
+  Movement,
   ProfileMetadataExperience,
   ProfileMetadataEducation,
   getProfileMetadata,
@@ -13,6 +14,7 @@ import {
 
 interface ProfileSheetProps {
   profile: Profile | null;
+  movements: Movement[];
   onClose: () => void;
 }
 
@@ -25,7 +27,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
+export default function ProfileSheet({ profile, movements, onClose }: ProfileSheetProps) {
   const metadata = profile ? getProfileMetadata(profile) : null;
   const displayName = metadata
     ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim() || null
@@ -136,6 +138,53 @@ export default function ProfileSheet({ profile, onClose }: ProfileSheetProps) {
                     )}
                   </div>
                 )}
+
+              {movements.length > 0 && (
+                <div>
+                  <SectionHeader>
+                    <TrendingUp className="w-4 h-4" />
+                    Recent Signals ({movements.length})
+                  </SectionHeader>
+                  <div className="space-y-3 mt-3">
+                    {movements.map((movement) => (
+                      <div key={movement.id} className="p-4 bg-dark-200/60 rounded-lg border border-brand-500/30">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <Badge
+                            variant="default"
+                            className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 flex items-center gap-1"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            {movement.movement}
+                          </Badge>
+                          {movement.metadata?.confidence && (
+                            <span className="text-xs font-medium text-brand-400">
+                              {movement.metadata.confidence}% confidence
+                            </span>
+                          )}
+                        </div>
+                        {movement.metadata?.reasoning && (
+                          <p className="text-sm text-foreground/70 leading-relaxed mb-2">
+                            {movement.metadata.reasoning}
+                          </p>
+                        )}
+                        {movement.metadata?.relevantData && Object.keys(movement.metadata.relevantData).length > 0 && (
+                          <div className="bg-dark-300/50 rounded p-2 space-y-1">
+                            {Object.entries(movement.metadata.relevantData).map(([key, value]) => (
+                              <div key={key} className="text-xs">
+                                <span className="text-foreground/50">{key}:</span>{" "}
+                                <span className="text-foreground">{String(value)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-foreground/50 mt-2">
+                          Detected {new Date(movement.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {metadata?.summary && (
                 <div>

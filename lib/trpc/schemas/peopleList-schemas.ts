@@ -78,6 +78,25 @@ export interface ProfileMetadata {
   };
 }
 
+// ── Movement Schema ────────────────────────────────────────────────────
+
+export const MovementSchema = z.object({
+  id: z.string(),
+  profileId: z.string(),
+  linkedinUrl: z.string(),
+  movement: z.string(),
+  metadata: z.object({
+    confidence: z.number(),
+    reasoning: z.string(),
+    relevantData: z.record(z.any()),
+    validatedAt: z.string(),
+    validationModel: z.string(),
+  }).nullable(),
+  createdAt: z.coerce.date(),
+});
+
+export type Movement = z.infer<typeof MovementSchema>;
+
 // ── Profile Schema ─────────────────────────────────────────────────────
 
 export const ProfileSchema = z.object({
@@ -134,6 +153,15 @@ export const AddProfilesResponseSchema = z.object({
   skippedCount: z.number(),
 });
 
+export const ValidateSignalsResponseSchema = z.object({
+  totalProfiles: z.number(),
+  processedProfiles: z.number(),
+  enriched: z.number(),
+  unchanged: z.number(),
+  movementsDetected: z.number(),
+  failed: z.number(),
+});
+
 // ── Type exports ───────────────────────────────────────────────────────
 
 export type GetAllPeopleListsResponse = z.infer<typeof GetAllPeopleListsResponseSchema>;
@@ -141,6 +169,7 @@ export type CreatePeopleListResponse = z.infer<typeof CreatePeopleListResponseSc
 export type GetPeopleListResponse = z.infer<typeof GetPeopleListResponseSchema>;
 export type ProfileOpResponse = z.infer<typeof ProfileOpResponseSchema>;
 export type AddProfilesResponse = z.infer<typeof AddProfilesResponseSchema>;
+export type ValidateSignalsResponse = z.infer<typeof ValidateSignalsResponseSchema>;
 
 // ── Helpers ────────────────────────────────────────────────────────────
 

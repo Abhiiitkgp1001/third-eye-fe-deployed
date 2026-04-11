@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Badge, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
-import { Trash2, ExternalLink } from 'lucide-react';
+import { Trash2, ExternalLink, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Profile, getProfileMetadata } from "@/lib/trpc/schemas/peopleList-schemas";
+import { Profile, Movement, getProfileMetadata } from "@/lib/trpc/schemas/peopleList-schemas";
 
 interface ProfileRowProps {
   profile: Profile;
+  movements?: Movement[];
   onViewProfile: (profile: Profile) => void;
   onDelete: (profileId: string) => Promise<void>;
   index: number;
@@ -13,12 +14,14 @@ interface ProfileRowProps {
 
 export default function ProfileRow({
   profile,
+  movements = [],
   onViewProfile,
   onDelete,
   index,
 }: ProfileRowProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const metadata = getProfileMetadata(profile);
+  const recentMovements = movements.slice(0, 2); // Show only 2 most recent
 
   const displayName = metadata
     ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim() || null
@@ -67,8 +70,31 @@ export default function ProfileRow({
           </a>
         </div>
       </td>
-      <td className="px-6 py-4 text-foreground">
-        <span className="line-clamp-2">{metadata?.headline ?? "-"}</span>
+      <td className="px-6 py-4">
+        <div className="space-y-1">
+          <span className="text-foreground line-clamp-1 block">{metadata?.headline ?? "-"}</span>
+          {recentMovements.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {recentMovements.map((movement) => (
+                <Badge
+                  key={movement.id}
+                  variant="default"
+                  className="text-[10px] font-mono bg-brand-500/20 text-brand-400 border-brand-500/30 flex items-center gap-1"
+                  title={movement.metadata?.reasoning || undefined}
+                >
+                  <Sparkles className="w-2.5 h-2.5" />
+                  {movement.movement}
+                  {movement.metadata?.confidence && (
+                    <span className="opacity-70">{movement.metadata.confidence}%</span>
+                  )}
+                </Badge>
+              ))}
+              {movements.length > 2 && (
+                <span className="text-xs text-foreground/50">+{movements.length - 2} more</span>
+              )}
+            </div>
+          )}
+        </div>
       </td>
       <td className="px-6 py-4">
         <Badge variant={metadata ? 'default' : 'neutral'}>

@@ -8,7 +8,7 @@ import ProfileSheet from "./ProfileSheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
-import { Profile, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
+import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
 import { ArrowLeft, Plus, Upload, X, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +31,11 @@ export default function PeopleListDetailsPage() {
     limit: ITEMS_PER_PAGE,
     offset: (currentPage - 1) * ITEMS_PER_PAGE,
   });
+
+  const { data: movements = [] } = trpc.peopleLists.getListMovements.useQuery({
+    id: listId,
+  });
+
   const utils = trpc.useUtils();
 
   const addProfileMutation = trpc.peopleLists.addProfile.useMutation({
@@ -65,9 +70,16 @@ export default function PeopleListDetailsPage() {
     },
   });
 
-  const triggerRefreshMutation = trpc.peopleLists.triggerRefresh.useMutation({
-    onSuccess: () => {
+  const validateSignalsWithAIMutation = trpc.peopleLists.validateSignalsWithAI.useMutation({
+    onSuccess: (data) => {
       utils.peopleLists.getById.invalidate({ id: listId });
+      utils.peopleLists.getListMovements.invalidate({ id: listId });
+      // Show success message with results
+      const message = `AI Validation Complete!\n✅ ${data.processedProfiles} profiles processed\n🔄 ${data.enriched} enriched\n📊 ${data.movementsDetected} movements detected\n⏭️ ${data.unchanged} unchanged\n${data.failed > 0 ? `❌ ${data.failed} failed` : ''}`;
+      alert(message);
+    },
+    onError: (error) => {
+      alert(`AI Validation failed: ${error.message}`);
     },
   });
 
@@ -125,8 +137,12 @@ export default function PeopleListDetailsPage() {
     });
   };
 
-  const handleTriggerRefresh = () => {
-    triggerRefreshMutation.mutate({ id: listId });
+  const handleValidateSignals = () => {
+    if (!list.movementDefinitions || list.movementDefinitions.length === 0) {
+      alert('This list has no movement definitions. Please add movement definitions to enable AI validation.');
+      return;
+    }
+    validateSignalsWithAIMutation.mutate({ id: listId });
   };
 
   return (
@@ -163,11 +179,12 @@ export default function PeopleListDetailsPage() {
                   <Button
                     variant="neutral"
                     size="sm"
-                    onClick={handleTriggerRefresh}
-                    disabled={triggerRefreshMutation.isPending}
+                    onClick={handleValidateSignals}
+                    disabled={validateSignalsWithAIMutation.isPending}
+                    title="Validate signals with AI"
                   >
-                    <RefreshCw className={`h-4 w-4 ${triggerRefreshMutation.isPending ? 'animate-spin' : ''}`} />
-                    {triggerRefreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
+                    <RefreshCw className={`h-4 w-4 ${validateSignalsWithAIMutation.isPending ? 'animate-spin' : ''}`} />
+                    {validateSignalsWithAIMutation.isPending ? 'Validating...' : 'Validate Signals'}
                   </Button>
                   <Button
                     variant={list.enabled ? 'neutral' : 'default'}
@@ -297,15 +314,19 @@ export default function PeopleListDetailsPage() {
             </thead>
             <tbody className="divide-y divide-gray-800">
               {profiles && profiles.length > 0 ? (
-                profiles.map((profile: Profile, index: number) => (
-                  <ProfileRow
-                    key={profile.id}
-                    profile={profile}
-                    onViewProfile={setSelectedProfile}
-                    onDelete={handleDeleteItem}
-                    index={index}
-                  />
-                ))
+                profiles.map((profile: Profile, index: number) => {
+                  const profileMovements = movements.filter(m => m.profileId === profile.id);
+                  return (
+                    <ProfileRow
+                      key={profile.id}
+                      profile={profile}
+                      movements={profileMovements}
+                      onViewProfile={setSelectedProfile}
+                      onDelete={handleDeleteItem}
+                      index={index}
+                    />
+                  );
+                })
               ) : (
                 <tr>
                   <td
@@ -401,6 +422,7 @@ export default function PeopleListDetailsPage() {
 
       <ProfileSheet
         profile={selectedProfile}
+        movements={selectedProfile ? movements.filter(m => m.profileId === selectedProfile.id) : []}
         onClose={() => setSelectedProfile(null)}
       />
 
