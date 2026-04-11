@@ -13,8 +13,12 @@ import {
   DialogFooter,
   Input,
   Label,
+  Badge,
+  Checkbox,
 } from "@/components/ui";
 import { Loader2, ArrowLeft, Sparkles, X } from "lucide-react";
+import { SIGNAL_GROUPS, type ProfileSignal } from "@/lib/movements";
+import { cn } from "@/lib/utils";
 
 interface MovementDefinition {
   name: string;
@@ -26,13 +30,6 @@ interface CreateListWizardProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function toReadableLabel(name: string): string {
-  return name
-    .split('_')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ');
-}
-
 export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) {
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -40,17 +37,18 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   const [step, setStep] = useState<1 | 2>(1);
   const [listName, setListName] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [movements, setMovements] = useState<MovementDefinition[]>([]);
+  const [selectedSignals, setSelectedSignals] = useState<Set<ProfileSignal>>(new Set());
+  const [aiMovements, setAiMovements] = useState<MovementDefinition[]>([]);
   const [error, setError] = useState('');
 
   const processPrompt = trpc.prompts.processForPeopleList.useMutation({
     onSuccess: (data) => {
-      setMovements(data.movements);
+      setAiMovements(data.movements);
       setError('');
     },
     onError: (err) => {
       setError(err.message);
-      setMovements([]);
+      setAiMovements([]);
     },
   });
 
@@ -65,13 +63,25 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
     },
   });
 
+  // Merge selected signals + AI-generated movements, deduped by name
+  const allMovements: MovementDefinition[] = [
+    ...Array.from(selectedSignals).map((key) => {
+      const def = SIGNAL_GROUPS.flatMap((g) => g.signals).find((s) => s.key === key)!;
+      return { name: key, description: def.description };
+    }),
+    ...aiMovements.filter(
+      (m) => !Array.from(selectedSignals).some((k) => k === m.name),
+    ),
+  ];
+
   function handleClose() {
     onOpenChange(false);
     setTimeout(() => {
       setStep(1);
       setListName('');
       setPrompt('');
-      setMovements([]);
+      setSelectedSignals(new Set());
+      setAiMovements([]);
       setError('');
     }, 200);
   }
@@ -80,23 +90,39 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
     if (listName.trim()) setStep(2);
   }
 
+  function toggleSignal(key: ProfileSignal) {
+    setSelectedSignals((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
   function handleProcessPrompt() {
     if (!prompt.trim()) return;
     setError('');
-    setMovements([]);
+    setAiMovements([]);
     processPrompt.mutate({ prompt: prompt.trim() });
   }
 
   function removeMovement(name: string) {
-    setMovements((prev) => prev.filter((m) => m.name !== name));
+    // Remove from selected signals if it's one
+    setSelectedSignals((prev) => {
+      const next = new Set(prev);
+      next.delete(name as ProfileSignal);
+      return next;
+    });
+    // Remove from AI movements
+    setAiMovements((prev) => prev.filter((m) => m.name !== name));
   }
 
   function handleCreate() {
-    if (movements.length === 0) return;
+    if (allMovements.length === 0) return;
     createList.mutate({
       name: listName.trim(),
       prompt: prompt.trim(),
-      movementDefinitions: movements,
+      movementDefinitions: allMovements,
       profiles: [],
     });
   }
@@ -108,7 +134,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
       open={open}
       onOpenChange={(v) => { if (!isBusy) { if (!v) handleClose(); else onOpenChange(v); } }}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs text-gray-400 font-medium">Step {step} of 2</span>
@@ -149,17 +175,70 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
           </>
         )}
 
-        {/* ── Step 2: Prompt → movement definitions ── */}
+        {/* ── Step 2: Signals + Prompt ── */}
         {step === 2 && (
           <>
             <DialogHeader>
-              <DialogTitle>Describe Your List</DialogTitle>
+              <DialogTitle>Configure Signals</DialogTitle>
               <DialogDescription>
-                Describe who you want to track and what changes matter. We'll generate the signals automatically.
+                Select the signals you want to track, then optionally describe your list to let AI generate additional ones.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-6 py-4">
+              {/* Signal checkbox cards */}
+              {SIGNAL_GROUPS.map((group) => (
+                <div key={group.id} className="grid gap-2">
+                  <p className={cn("text-xs font-semibold uppercase tracking-wider", group.color)}>
+                    {group.label}
+                  </p>
+                  <div className="grid gap-2">
+                    {group.signals.map((signal) => {
+                      const checked = selectedSignals.has(signal.key);
+                      return (
+                        <label
+                          key={signal.key}
+                          className={cn(
+                            "flex items-start gap-3 rounded-lg border-2 px-3 py-3 cursor-pointer transition-colors",
+                            checked
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-transparent hover:bg-secondary/30",
+                          )}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleSignal(signal.key)}
+                            disabled={isBusy}
+                            className="mt-0.5 shrink-0"
+                          />
+                          <div className="grid gap-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-medium text-foreground">
+                                {signal.label}
+                              </span>
+                              <Badge variant="neutral" className="font-mono text-[10px]">
+                                {signal.key}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {signal.description}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">or describe your list for AI suggestions</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+
+              {/* Prompt */}
               <div className="grid gap-2">
                 <Label htmlFor="prompt">Prompt</Label>
                 <textarea
@@ -183,36 +262,48 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
                   ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   : <Sparkles className="mr-2 h-4 w-4" />
                 }
-                {movements.length > 0 ? 'Re-generate signals' : 'Generate signals'}
+                {aiMovements.length > 0 ? 'Re-generate signals' : 'Generate signals'}
               </Button>
 
               {error && <p className="text-sm text-red-400">{error}</p>}
 
-              {/* Generated movement definitions */}
-              {movements.length > 0 && (
+              {/* All movements (selected + AI-generated) */}
+              {allMovements.length > 0 && (
                 <div className="grid gap-2">
-                  <p className="text-xs text-gray-400">
-                    Generated signals — click × to remove any you don't need
+                  <p className="text-xs text-muted-foreground">
+                    {allMovements.length} signal{allMovements.length !== 1 ? 's' : ''} selected — click × to remove
                   </p>
                   <div className="grid gap-2">
-                    {movements.map((m) => (
-                      <div
-                        key={m.name}
-                        className="flex items-start justify-between gap-3 rounded-lg border border-gray-700 bg-dark-200/40 px-3 py-2"
-                      >
-                        <div className="grid gap-0.5 min-w-0">
-                          <span className="text-xs font-mono text-green-400">{m.name}</span>
-                          <span className="text-xs text-gray-400 leading-relaxed">{m.description}</span>
-                        </div>
-                        <button
-                          onClick={() => removeMovement(m.name)}
-                          disabled={isBusy}
-                          className="shrink-0 text-gray-600 hover:text-red-400 transition-colors disabled:opacity-40 mt-0.5"
+                    {allMovements.map((m) => {
+                      const isManual = selectedSignals.has(m.name as ProfileSignal);
+                      return (
+                        <div
+                          key={m.name}
+                          className="flex items-start justify-between gap-3 rounded-lg border border-border bg-secondary/20 px-3 py-2"
                         >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
+                          <div className="grid gap-0.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="neutral" className="font-mono text-[10px]">
+                                {m.name}
+                              </Badge>
+                              {isManual && (
+                                <span className="text-[10px] text-muted-foreground">manual</span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground leading-relaxed">
+                              {m.description}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => removeMovement(m.name)}
+                            disabled={isBusy}
+                            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40 mt-0.5"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -221,7 +312,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
             <DialogFooter className="flex gap-3 sm:gap-3">
               <Button
                 variant="neutral"
-                onClick={() => { setStep(1); setMovements([]); setError(''); }}
+                onClick={() => { setStep(1); setAiMovements([]); setError(''); }}
                 disabled={isBusy}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -229,7 +320,7 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
               </Button>
               <Button
                 onClick={handleCreate}
-                disabled={movements.length === 0 || isBusy}
+                disabled={allMovements.length === 0 || isBusy}
               >
                 {createList.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create List
