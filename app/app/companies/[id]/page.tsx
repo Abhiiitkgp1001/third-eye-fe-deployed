@@ -8,7 +8,6 @@ import CompanyRow from "./CompanyRow";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
-import { Company } from "@/lib/trpc/schemas/companyList-schemas";
 
 export default function CompanyListDetailsPage() {
   const params = useParams();
