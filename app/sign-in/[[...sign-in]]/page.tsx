@@ -39,7 +39,7 @@ export default function SignInPage() {
             },
           }}
           afterSignOutUrl={"/"}
-          signUpUrl="/sign-up"
+          // signUpUrl="/sign-up"
           forceRedirectUrl={'/app'}
         />
       </div>
