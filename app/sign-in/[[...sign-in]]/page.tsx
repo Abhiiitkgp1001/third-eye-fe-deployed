@@ -32,6 +32,7 @@ export default function SignInPage() {
               otpCodeFieldInput: "bg-primary-800/90 border border-primary-700/30 text-white",
               formResendCodeLink: "text-primary-400 hover:text-primary-300",
               footer: "hidden",
+              footerAction: "hidden", 
             },
             layout: {
               socialButtonsPlacement: "bottom",
