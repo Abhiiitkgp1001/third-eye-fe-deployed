@@ -10,7 +10,7 @@ import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PeopleListDetailsPage() {
@@ -175,6 +175,15 @@ export default function PeopleListDetailsPage() {
                   <Badge variant={list.enabled ? 'default' : 'neutral'}>
                     {list.enabled ? 'Active' : 'Inactive'}
                   </Badge>
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    onClick={() => router.push(`/app/people/${listId}/movements`)}
+                    title="View signal movements"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    View Movements
+                  </Button>
                   <Button
                     variant="neutral"
                     size="sm"

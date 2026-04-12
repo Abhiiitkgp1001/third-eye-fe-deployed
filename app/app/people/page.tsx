@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui";
-import { Plus, Users, Eye, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Users, Eye, Trash2, Loader2, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateListWizard } from "./CreateListWizard";
 import { formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
@@ -179,6 +179,15 @@ export default function PeoplePage() {
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View
+                        </Button>
+                        <Button
+                          variant="neutral"
+                          size="sm"
+                          onClick={() => router.push(`/app/people/${list.id}/movements`)}
+                          title="View signal movements"
+                        >
+                          <TrendingUp className="mr-2 h-4 w-4" />
+                          Movements
                         </Button>
                         <Button
                           variant="neutral"
