@@ -17,7 +17,7 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Push to personal repo (force overwrite)
+      - name: Nuke all branches & tags in personal repo, then sync
         env:
           PERSONAL_REPO: Abhiiitkgp1001/third-eye-fe-deployed
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -25,6 +25,19 @@ jobs:
           git remote add personal \
             "https://x-access-token:${PERSONAL_TOKEN}@github.com/${PERSONAL_REPO}.git"
 
-          # Force-push every branch from org → personal (nukes existing content)
+          # Fetch everything from personal repo
+          git fetch personal
+
+          # Delete all remote branches in personal repo (except HEAD/default)
+          for branch in $(git branch -r | grep 'personal/' | grep -v 'HEAD' | sed 's|personal/||'); do
+            git push personal --delete "$branch" || true
+          done
+
+          # Delete all remote tags in personal repo
+          for tag in $(git ls-remote --tags personal | awk '{print $2}' | grep -v '{}'); do
+            git push personal --delete "$tag" || true
+          done
+
+          # Force-push all branches and tags from org → personal (clean sync)
           git push personal --force --all
           git push personal --force --tags
