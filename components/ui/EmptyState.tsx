@@ -1,5 +1,5 @@
 import { LucideIcon } from 'lucide-react';
-import { Button } from './button';
+import { Button } from './button-sd';
 
 export interface EmptyStateProps {
   icon?: LucideIcon;

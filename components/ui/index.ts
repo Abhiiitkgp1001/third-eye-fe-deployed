@@ -1,4 +1,4 @@
-export { Button, buttonVariants } from './button';
+export { Button, buttonVariants } from './button-sd';
 
 export { Badge, badgeVariants } from './badge';
 
