@@ -74,9 +74,8 @@ export default function PeopleListDetailsPage() {
     onSuccess: (data) => {
       utils.peopleLists.getById.invalidate({ id: listId });
       utils.peopleLists.getListMovements.invalidate({ id: listId });
-      // Show success message with results
-      const message = `AI Validation Complete!\n✅ ${data.processedProfiles} profiles processed\n🔄 ${data.enriched} enriched\n📊 ${data.movementsDetected} movements detected\n⏭️ ${data.unchanged} unchanged\n${data.failed > 0 ? `❌ ${data.failed} failed` : ''}`;
-      alert(message);
+      // Navigate to movements page to see results
+      router.push(`/app/people/${listId}/movements`);
     },
     onError: (error) => {
       alert(`AI Validation failed: ${error.message}`);

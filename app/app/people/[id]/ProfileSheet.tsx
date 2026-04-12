@@ -36,6 +36,10 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
     ? displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "?";
 
+  // Separate actual movements from NO_CHANGE records
+  const actualMovements = movements.filter(m => m.movement !== "NO_CHANGE");
+  const hasBeenValidated = movements.length > 0;
+
   useEffect(() => {
     if (!profile) return;
     const handleKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -139,50 +143,77 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                   </div>
                 )}
 
-              {movements.length > 0 && (
+              {hasBeenValidated && (
                 <div>
                   <SectionHeader>
                     <TrendingUp className="w-4 h-4" />
-                    Recent Signals ({movements.length})
+                    Recent Signals ({actualMovements.length})
                   </SectionHeader>
-                  <div className="space-y-3 mt-3">
-                    {movements.map((movement) => (
-                      <div key={movement.id} className="p-4 bg-dark-200/60 rounded-lg border border-brand-500/30">
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <Badge
-                            variant="default"
-                            className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 flex items-center gap-1"
-                          >
-                            <Sparkles className="w-3 h-3" />
-                            {movement.movement}
-                          </Badge>
-                          {movement.metadata?.confidence && (
-                            <span className="text-xs font-medium text-brand-400">
-                              {movement.metadata.confidence}% confidence
-                            </span>
-                          )}
+                  {actualMovements.length === 0 ? (
+                    <div className="mt-3 p-4 bg-dark-200/40 rounded-lg border border-gray-800">
+                      <p className="text-sm text-foreground/60 text-center">
+                        Profile validated - no significant changes detected
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 mt-3">
+                      {actualMovements.map((movement) => (
+                      <div key={movement.id} className="rounded-lg border border-brand-500/30 overflow-hidden">
+                        {/* Movement Header */}
+                        <div className="p-3 bg-brand-500/10 border-b border-brand-500/30">
+                          <div className="flex items-start justify-between gap-3">
+                            <Badge
+                              variant="default"
+                              className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 flex items-center gap-1"
+                            >
+                              <Sparkles className="w-3 h-3" />
+                              {movement.movement}
+                            </Badge>
+                            {movement.metadata?.confidence && (
+                              <span className="text-xs font-medium text-brand-400">
+                                {movement.metadata.confidence}%
+                              </span>
+                            )}
+                          </div>
                         </div>
+
+                        {/* AI Reasoning */}
                         {movement.metadata?.reasoning && (
-                          <p className="text-sm text-foreground/70 leading-relaxed mb-2">
-                            {movement.metadata.reasoning}
-                          </p>
-                        )}
-                        {movement.metadata?.relevantData && Object.keys(movement.metadata.relevantData).length > 0 && (
-                          <div className="bg-dark-300/50 rounded p-2 space-y-1">
-                            {Object.entries(movement.metadata.relevantData).map(([key, value]) => (
-                              <div key={key} className="text-xs">
-                                <span className="text-foreground/50">{key}:</span>{" "}
-                                <span className="text-foreground">{String(value)}</span>
-                              </div>
-                            ))}
+                          <div className="p-3 bg-dark-200/60">
+                            <p className="text-xs font-semibold text-foreground/60 mb-1">AI Analysis</p>
+                            <p className="text-sm text-foreground/80 leading-relaxed">
+                              {movement.metadata.reasoning}
+                            </p>
                           </div>
                         )}
-                        <p className="text-xs text-foreground/50 mt-2">
-                          Detected {new Date(movement.createdAt).toLocaleString()}
-                        </p>
+
+                        {/* Key Changes */}
+                        {movement.metadata?.relevantData && Object.keys(movement.metadata.relevantData).length > 0 && (
+                          <div className="p-3 bg-dark-200/40 border-t border-brand-500/20">
+                            <p className="text-xs font-semibold text-foreground/60 mb-2">Key Changes</p>
+                            <div className="space-y-1">
+                              {Object.entries(movement.metadata.relevantData).map(([key, value]) => (
+                                <div key={key} className="flex items-start gap-2 text-xs">
+                                  <span className="text-foreground/50 font-medium min-w-[100px]">
+                                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
+                                  </span>
+                                  <span className="text-foreground flex-1">{String(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Timestamp */}
+                        <div className="px-3 py-2 bg-dark-200/20 border-t border-brand-500/20">
+                          <p className="text-xs text-foreground/50">
+                            Detected {new Date(movement.createdAt).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

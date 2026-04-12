@@ -21,7 +21,10 @@ export default function ProfileRow({
 }: ProfileRowProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const metadata = getProfileMetadata(profile);
-  const recentMovements = movements.slice(0, 2); // Show only 2 most recent
+  // Filter out NO_CHANGE and show only 2 most recent actual movements
+  const actualMovements = movements.filter(m => m.movement !== "NO_CHANGE");
+  const recentMovements = actualMovements.slice(0, 2);
+  const hasNoChangeOnly = movements.length > 0 && actualMovements.length === 0;
 
   const displayName = metadata
     ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim() || null
@@ -89,10 +92,13 @@ export default function ProfileRow({
                   )}
                 </Badge>
               ))}
-              {movements.length > 2 && (
-                <span className="text-xs text-foreground/50">+{movements.length - 2} more</span>
+              {actualMovements.length > 2 && (
+                <span className="text-xs text-foreground/50">+{actualMovements.length - 2} more</span>
               )}
             </div>
+          )}
+          {hasNoChangeOnly && (
+            <span className="text-xs text-foreground/50 italic">Validated - no changes</span>
           )}
         </div>
       </td>

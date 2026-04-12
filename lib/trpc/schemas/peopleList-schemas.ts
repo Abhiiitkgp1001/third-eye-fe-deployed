@@ -86,12 +86,16 @@ export const MovementSchema = z.object({
   linkedinUrl: z.string(),
   movement: z.string(),
   metadata: z.object({
-    confidence: z.number(),
-    reasoning: z.string(),
-    relevantData: z.record(z.any()),
-    validatedAt: z.string(),
-    validationModel: z.string(),
-  }).nullable(),
+    // AI validation fields (present on NO_CHANGE and custom movements)
+    confidence: z.number().optional(),
+    reasoning: z.string().optional(),
+    relevantData: z.record(z.any()).optional(),
+    validatedAt: z.string().optional(),
+    validationModel: z.string().optional(),
+    previousProfile: z.any().optional(),
+    currentProfile: z.any().optional(),
+    // Other fields for different movement types (PROFILE_SNAPSHOT, ENRICHMENT_FAILED, etc.)
+  }).passthrough().nullable(),
   createdAt: z.coerce.date(),
 });
 
