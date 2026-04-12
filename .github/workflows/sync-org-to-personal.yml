@@ -1,0 +1,30 @@
+name: Sync Org Repo to Personal Repo
+
+on:
+  schedule:
+    - cron: "0 */2 * * *" # Every 2 hours
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source (org repo)
+        uses: actions/checkout@v4
+        with:
+          repository: try-3rd-eye/third-eye-fe
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - name: Push to personal repo (force overwrite)
+        env:
+          PERSONAL_REPO: Abhiiitkgp1001/third-eye-fe-deployed
+          PERSONAL_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          git remote add personal \
+            "https://x-access-token:${PERSONAL_TOKEN}@github.com/${PERSONAL_REPO}.git"
+
+          # Force-push every branch from org → personal (nukes existing content)
+          git push personal --force --all
+          git push personal --force --tags
