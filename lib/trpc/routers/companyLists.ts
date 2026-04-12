@@ -8,11 +8,15 @@ import {
   GetCompanyListResponseSchema,
   CompanyOpResponseSchema,
   AddCompaniesResponseSchema,
+  ValidateSignalsResponseSchema,
+  MovementSchema,
   type GetAllCompanyListsResponse,
   type CreateCompanyListResponse,
   type GetCompanyListResponse,
   type CompanyOpResponse,
   type AddCompaniesResponse,
+  type ValidateSignalsResponse,
+  type Movement,
 } from "../schemas/companyList-schemas";
 
 export const companyListsRouter = router({
@@ -343,6 +347,78 @@ export const companyListsRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to trigger refresh",
+        });
+      }
+    }),
+
+  /**
+   * Validate signals with AI for a company list
+   */
+  validateSignalsWithAI: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .output(ValidateSignalsResponseSchema)
+    .mutation(async ({ ctx, input }): Promise<ValidateSignalsResponse> => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/companyList.validateSignalsWithAI", {
+          orgId: ctx.orgId,
+          listId: input.id,
+        });
+
+        const parsed = ValidateSignalsResponseSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse validate signals response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error: any) {
+        console.error("Error validating signals with AI:", error);
+        console.error("Error response data:", error.response?.data);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to validate signals: ${error.message}`,
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Get movements for a company list
+   */
+  getListMovements: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .output(z.array(MovementSchema))
+    .query(async ({ ctx, input }): Promise<Movement[]> => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/companyList.getListMovements", {
+          orgId: ctx.orgId,
+          listId: input.id,
+        });
+
+        const parsed = z.array(MovementSchema).safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse movements response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error: any) {
+        console.error("Error fetching movements:", error);
+        console.error("Error response data:", error.response?.data);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch movements: ${error.message}`,
+          cause: error,
         });
       }
     }),

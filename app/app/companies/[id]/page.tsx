@@ -10,7 +10,7 @@ import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CompanyListDetailsPage() {
@@ -31,6 +31,11 @@ export default function CompanyListDetailsPage() {
     limit: ITEMS_PER_PAGE,
     offset: (currentPage - 1) * ITEMS_PER_PAGE,
   });
+
+  const { data: movements = [] } = trpc.companyLists.getListMovements.useQuery({
+    id: listId,
+  });
+
   const utils = trpc.useUtils();
 
   const addCompanyMutation = trpc.companyLists.addCompany.useMutation({
@@ -68,6 +73,18 @@ export default function CompanyListDetailsPage() {
   const triggerRefreshMutation = trpc.companyLists.triggerRefresh.useMutation({
     onSuccess: () => {
       utils.companyLists.getById.invalidate({ id: listId });
+    },
+  });
+
+  const validateSignalsWithAIMutation = trpc.companyLists.validateSignalsWithAI.useMutation({
+    onSuccess: (data) => {
+      utils.companyLists.getById.invalidate({ id: listId });
+      utils.companyLists.getListMovements.invalidate({ id: listId });
+      // Navigate to movements page to see results
+      router.push(`/app/companies/${listId}/movements`);
+    },
+    onError: (error) => {
+      alert(`AI Validation failed: ${error.message}`);
     },
   });
 
@@ -130,6 +147,14 @@ export default function CompanyListDetailsPage() {
     triggerRefreshMutation.mutate({ id: listId });
   };
 
+  const handleValidateSignals = () => {
+    if (!list.movementDefinitions || list.movementDefinitions.length === 0) {
+      alert('This list has no movement definitions. Please add movement definitions to enable AI validation.');
+      return;
+    }
+    validateSignalsWithAIMutation.mutate({ id: listId });
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header Card */}
@@ -164,11 +189,21 @@ export default function CompanyListDetailsPage() {
                   <Button
                     variant="neutral"
                     size="sm"
-                    onClick={handleTriggerRefresh}
-                    disabled={triggerRefreshMutation.isPending}
+                    onClick={() => router.push(`/app/companies/${listId}/movements`)}
+                    title="View signal movements"
                   >
-                    <RefreshCw className={`h-4 w-4 ${triggerRefreshMutation.isPending ? 'animate-spin' : ''}`} />
-                    {triggerRefreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
+                    <TrendingUp className="h-4 w-4" />
+                    View Movements
+                  </Button>
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    onClick={handleValidateSignals}
+                    disabled={validateSignalsWithAIMutation.isPending}
+                    title="Validate signals with AI"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${validateSignalsWithAIMutation.isPending ? 'animate-spin' : ''}`} />
+                    {validateSignalsWithAIMutation.isPending ? 'Validating...' : 'Validate Signals'}
                   </Button>
                   <Button
                     variant={list.enabled ? 'neutral' : 'default'}
