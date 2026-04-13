@@ -4,13 +4,7 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, Sparkles, TrendingUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback, Badge } from "@/components/ui";
-import {
-  Profile,
-  Movement,
-  ProfileMetadataExperience,
-  ProfileMetadataEducation,
-  getProfileMetadata,
-} from "@/lib/trpc/schemas/peopleList-schemas";
+import { Profile, Movement } from "@/lib/trpc/schemas/peopleList-schemas";
 
 interface ProfileSheetProps {
   profile: Profile | null;
@@ -28,7 +22,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 }
 
 export default function ProfileSheet({ profile, movements, onClose }: ProfileSheetProps) {
-  const metadata = profile ? getProfileMetadata(profile) : null;
+  const metadata = profile?.latestMetadata ?? null;
   const displayName = metadata
     ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim() || null
     : null;
@@ -230,7 +224,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                 <div>
                   <SectionHeader>Experience</SectionHeader>
                   <div className="space-y-3 mt-3">
-                    {(metadata?.experience ?? []).map((exp: ProfileMetadataExperience, idx: number) => (
+                    {(metadata?.experience ?? []).map((exp, idx: number) => (
                       <div key={idx} className="flex gap-4 p-4 bg-dark-200/60 rounded-lg border border-gray-800">
                         {exp.company_logo_url && (
                           <img
@@ -274,7 +268,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                 <div>
                   <SectionHeader>Education</SectionHeader>
                   <div className="space-y-3 mt-3">
-                    {(metadata?.education ?? []).map((edu: ProfileMetadataEducation, idx: number) => (
+                    {(metadata?.education ?? []).map((edu, idx: number) => (
                       <div key={idx} className="flex gap-4 p-4 bg-dark-200/60 rounded-lg border border-gray-800">
                         {edu.school_logo_url && (
                           <img

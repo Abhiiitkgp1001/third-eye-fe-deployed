@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CompanyDataSchema } from "../../schemas/external";
 
 // ── Enums ──────────────────────────────────────────────────────────────
 
@@ -28,6 +29,9 @@ export const CompanyListSchema = z.object({
   cadenceInterval: z.number().default(10),
   nextRunAt: z.coerce.date().nullable(),
   lastRunAt: z.coerce.date().nullable(),
+  // Phase 1: Minimal enrichment tracking
+  enrichmentStartedAt: z.coerce.date().nullable(),
+  enrichmentError: z.string().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullable(),
   ordinal: z.number(),
@@ -42,7 +46,7 @@ export const CompanySchema = z.object({
   id: z.string(),
   companyListId: z.string(),
   linkedinUrl: z.string(),
-  latestMetadata: z.unknown().nullable(),
+  latestMetadata: CompanyDataSchema.nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullable(),
   ordinal: z.number(),

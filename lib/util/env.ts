@@ -18,9 +18,6 @@ console.warn = originalWarn;
 export const DeploymentTypeSchema = z.enum([
   "development",
   "production",
-  "test",
-  "staging",
-  "alpha",
 ]);
 
 export type DeploymentType = z.infer<typeof DeploymentTypeSchema>;

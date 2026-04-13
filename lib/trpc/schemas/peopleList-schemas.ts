@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProfileDataSchema } from "../../schemas/external";
 
 // ── Enums ──────────────────────────────────────────────────────────────
 
@@ -28,6 +29,9 @@ export const PeopleListSchema = z.object({
   cadenceInterval: z.number().default(1),
   nextRunAt: z.coerce.date().nullable(),
   lastRunAt: z.coerce.date().nullable(),
+  // Phase 1: Minimal enrichment tracking
+  enrichmentStartedAt: z.coerce.date().nullable(),
+  enrichmentError: z.string().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullable(),
   ordinal: z.number(),
@@ -36,47 +40,9 @@ export const PeopleListSchema = z.object({
 export type PeopleList = z.infer<typeof PeopleListSchema>;
 
 // ── Profile Metadata ───────────────────────────────────────────────────
-
-export interface ProfileMetadataExperience {
-  company_name?: string;
-  company_logo_url?: string;
-  date_range?: {
-    start?: { iso: string };
-    end?: { iso: string } | null;
-  };
-  positions?: {
-    title?: string;
-    employment_type?: string;
-    description?: string;
-  }[];
-}
-
-export interface ProfileMetadataEducation {
-  school_name?: string;
-  school_logo_url?: string;
-  degree?: string;
-  field_of_study?: string;
-  grade?: string;
-  date_range?: {
-    start?: { year: number };
-    end?: { year: number };
-  };
-}
-
-export interface ProfileMetadata {
-  first_name?: string;
-  last_name?: string;
-  headline?: string;
-  summary?: string;
-  profile_photo_url?: string;
-  skills?: string[];
-  experience?: ProfileMetadataExperience[];
-  education?: ProfileMetadataEducation[];
-  network_info?: {
-    connections_count?: number;
-    followers_count?: number;
-  };
-}
+// NOTE: ProfileData from schemas/external/profile.ts is the source of truth.
+// It's properly typed via Zod and contains all fields needed for display.
+// Use profile.latestMetadata directly (typed as ProfileData | null).
 
 // ── Movement Schema ────────────────────────────────────────────────────
 
@@ -107,18 +73,13 @@ export const ProfileSchema = z.object({
   id: z.string(),
   peopleListId: z.string(),
   linkedinUrl: z.string(),
-  latestMetadata: z.unknown().nullable(),
+  latestMetadata: ProfileDataSchema.nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullable(),
   ordinal: z.number(),
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;
-
-/** Type-safe accessor — latestMetadata is `unknown` from Zod; we trust the server shape. */
-export function getProfileMetadata(profile: Profile): ProfileMetadata | null {
-  return (profile.latestMetadata ?? null) as ProfileMetadata | null;
-}
 
 // ── Response Schemas ───────────────────────────────────────────────────
 

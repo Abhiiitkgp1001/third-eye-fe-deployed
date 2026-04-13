@@ -1,11 +1,13 @@
 import axios, { type AxiosInstance } from "axios";
 import { auth } from "@clerk/nextjs/server";
+import { getBackendBaseURL, getTRPCUrl } from "../config/backend";
 
 /**
  * Get the backend base URL
+ * @deprecated Use getBackendBaseURL from lib/config/backend instead
  */
 export function getBackendUrl() {
-  return process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  return getBackendBaseURL();
 }
 
 /**
@@ -16,7 +18,7 @@ export async function getBackendAxios(): Promise<AxiosInstance> {
   const token = await getToken();
 
   return axios.create({
-    baseURL: `${getBackendUrl()}/v1/trpc`,
+    baseURL: getTRPCUrl(),
     headers: {
       "Content-Type": "application/json",
       ...(token ? { authorization: `Bearer ${token}` } : {}),

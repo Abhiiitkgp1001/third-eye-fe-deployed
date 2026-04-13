@@ -19,6 +19,33 @@ import {
   type Movement,
 } from "../schemas/companyList-schemas";
 
+// Helper to safely extract error message from unknown error
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "Unknown error";
+}
+
+// Helper to check if error has axios response data
+function hasResponseData(error: unknown): error is { response?: { data?: unknown; status?: number } } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
+// Helper to safely log errors without exposing sensitive data (like auth tokens)
+function logErrorSafely(context: string, error: unknown): void {
+  console.error(`${context}:`, {
+    message: getErrorMessage(error),
+    ...(hasResponseData(error) && {
+      responseStatus: error.response?.status,
+      responseData: error.response?.data,
+    }),
+  });
+}
+
 export const companyListsRouter = router({
   /**
    * Get all company lists for the current user's organization
@@ -44,7 +71,7 @@ export const companyListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error fetching company lists from backend:", error);
+        logErrorSafely("Error fetching company lists from backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Failed to fetch company lists from backend: ${error instanceof Error ? error.message : String(error)}`,
@@ -87,7 +114,7 @@ export const companyListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error fetching company list from backend:", error);
+        logErrorSafely("Error fetching company list from backend", error);
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Company list not found: ${error instanceof Error ? error.message : String(error)}`,
@@ -146,7 +173,7 @@ export const companyListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error creating company list in backend:", error);
+        logErrorSafely("Error creating company list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create company list",
@@ -181,7 +208,7 @@ export const companyListsRouter = router({
 
         return response.data.result.data;
       } catch (error) {
-        console.error("Error updating company list in backend:", error);
+        logErrorSafely("Error updating company list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update company list",
@@ -205,7 +232,7 @@ export const companyListsRouter = router({
         });
         return { success: true };
       } catch (error) {
-        console.error("Error deleting company list from backend:", error);
+        logErrorSafely("Error deleting company list from backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete company list",
@@ -221,7 +248,6 @@ export const companyListsRouter = router({
       z.object({
         listId: z.string(),
         linkedinUrl: z.string().url(),
-        metadata: z.any().optional(),
       })
     )
     .output(CompanyOpResponseSchema)
@@ -250,7 +276,7 @@ export const companyListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error adding company to list in backend:", error);
+        logErrorSafely("Error adding company to list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to add company to list",
@@ -276,7 +302,7 @@ export const companyListsRouter = router({
         });
         return { success: true };
       } catch (error) {
-        console.error("Error removing company from backend:", error);
+        logErrorSafely("Error removing company from backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to remove company",
@@ -319,7 +345,7 @@ export const companyListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error adding companies to list in backend:", error);
+        logErrorSafely("Error adding companies to list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to add companies to list",
@@ -343,7 +369,7 @@ export const companyListsRouter = router({
         });
         return { success: true };
       } catch (error) {
-        console.error("Error triggering refresh for company list:", error);
+        logErrorSafely("Error triggering refresh for company list", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to trigger refresh",
@@ -376,12 +402,11 @@ export const companyListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error validating signals with AI:", error);
-        console.error("Error response data:", error.response?.data);
+      } catch (error: unknown) {
+        logErrorSafely("Error validating signals with AI", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to validate signals: ${error.message}`,
+          message: `Failed to validate signals: ${getErrorMessage(error)}`,
           cause: error,
         });
       }
@@ -412,12 +437,11 @@ export const companyListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error fetching movements:", error);
-        console.error("Error response data:", error.response?.data);
+      } catch (error) {
+        logErrorSafely("Error fetching movements", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch movements: ${error.message}`,
+          message: `Failed to fetch movements: ${error}`,
           cause: error,
         });
       }

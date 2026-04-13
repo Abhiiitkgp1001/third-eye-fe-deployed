@@ -8,10 +8,12 @@ import ProfileSheet from "./ProfileSheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
+import SignalsList from "./SignalsList";
 import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatDistanceToNow, format } from 'date-fns';
 
 export default function PeopleListDetailsPage() {
   const params = useParams();
@@ -136,25 +138,49 @@ export default function PeopleListDetailsPage() {
     });
   };
 
+  const isEnriching = list.syncStatus === 'ENRICHING';
+  const hasEnrichmentError = list.syncStatus === 'FAILED';
+
   const handleValidateSignals = () => {
     if (!list.movementDefinitions || list.movementDefinitions.length === 0) {
       alert('This list has no movement definitions. Please add movement definitions to enable AI validation.');
       return;
     }
+
+    // Warn for large lists
+    if (total > 50) {
+      const estimatedMinutes = Math.ceil(total * 3 / 60);
+      const confirmed = window.confirm(
+        `⚠️ This list has ${total} profiles.\n\n` +
+        `Estimated validation time: ${estimatedMinutes} minutes.\n\n` +
+        `During validation, you won't be able to add/remove profiles or modify signals.\n\n` +
+        `Continue?`
+      );
+      if (!confirmed) return;
+    }
+
     validateSignalsWithAIMutation.mutate({ id: listId });
   };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Header Card */}
+      {/* Main Info Card - Title, Stats, Signals, Buttons */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="mb-6"
       >
-        <Card>
-          <div className="p-6 space-y-4">
+        <Card className="relative overflow-hidden border-4 border-border bg-secondary-background shadow-[12px_12px_0_0_var(--border)]">
+          {/* Neobrutalism dot pattern background */}
+          <div
+            className="absolute inset-0 opacity-15 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(93,217,193,0.25) 1.5px, transparent 1.5px)',
+              backgroundSize: '24px 24px'
+            }}
+          />
+          <div className="p-6 space-y-4 relative">
             {/* Breadcrumb & Title */}
             <div>
               <button
@@ -188,12 +214,26 @@ export default function PeopleListDetailsPage() {
                     variant="neutral"
                     size="sm"
                     onClick={handleValidateSignals}
-                    disabled={validateSignalsWithAIMutation.isPending}
-                    title="Validate signals with AI"
+                    disabled={
+                      isEnriching ||
+                      validateSignalsWithAIMutation.isPending ||
+                      !list.movementDefinitions ||
+                      list.movementDefinitions.length === 0
+                    }
+                    title={
+                      isEnriching
+                        ? "Enrichment in progress..."
+                        : "Validate signals with AI"
+                    }
                   >
-                    <RefreshCw className={`h-4 w-4 ${validateSignalsWithAIMutation.isPending ? 'animate-spin' : ''}`} />
-                    {validateSignalsWithAIMutation.isPending ? 'Validating...' : 'Validate Signals'}
+                    <RefreshCw className={`h-4 w-4 ${isEnriching || validateSignalsWithAIMutation.isPending ? 'animate-spin' : ''}`} />
+                    {isEnriching ? 'Enriching...' : validateSignalsWithAIMutation.isPending ? 'Starting...' : 'Validate Signals'}
                   </Button>
+                  {hasEnrichmentError && (
+                    <Badge variant="destructive">
+                      Last enrichment failed
+                    </Badge>
+                  )}
                   <Button
                     variant={list.enabled ? 'neutral' : 'default'}
                     size="sm"
@@ -205,71 +245,82 @@ export default function PeopleListDetailsPage() {
               </div>
             </div>
 
-            {/* List Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-800">
+            {/* List Info Grid - Neobrutalism Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t-4 border-border">
               {/* Cadence Info */}
-              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
-                <p className="text-xs text-foreground/60 mb-1">Enrichment Cadence</p>
-                <p className="text-sm font-medium text-foreground">
-                  {formatCadence(list.cadence, list.cadenceInterval)}
-                </p>
-                {list.nextRunAt && (
-                  <p className="text-xs text-foreground/50 mt-1">
-                    Next: {new Date(list.nextRunAt).toLocaleString()}
+              <div className="relative overflow-hidden bg-dark-200 border-4 border-border p-4 shadow-[4px_4px_0_0_var(--border)]">
+                <div
+                  className="absolute inset-0 opacity-20 pointer-events-none"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.5) 1.5px, transparent 1.5px)',
+                    backgroundSize: '16px 16px'
+                  }}
+                />
+                <div className="relative">
+                  <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider mb-1">Enrichment Cadence</p>
+                  <p className="text-lg font-black text-foreground mb-2">
+                    {formatCadence(list.cadence, list.cadenceInterval)}
                   </p>
-                )}
+                  {list.nextRunAt && (
+                    <div className="inline-flex items-center gap-2 bg-main border-2 border-border px-3 py-1.5 shadow-[2px_2px_0_0_var(--border)]">
+                      <Clock className="w-3.5 h-3.5 text-main-foreground" />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-main-foreground uppercase tracking-wide">
+                          {formatDistanceToNow(new Date(list.nextRunAt), { addSuffix: true })}
+                        </span>
+                        <span className="text-[10px] font-medium opacity-70">
+                          {format(new Date(list.nextRunAt), 'MMM do \'at\' h:mm a')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Last Run */}
-              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
-                <p className="text-xs text-foreground/60 mb-1">Last Enrichment</p>
-                <p className="text-sm font-medium text-foreground">
-                  {list.lastRunAt
-                    ? new Date(list.lastRunAt).toLocaleString()
-                    : 'Never'}
-                </p>
+              <div className="relative overflow-hidden bg-dark-200 border-4 border-border p-4 shadow-[4px_4px_0_0_var(--border)]">
+                <div
+                  className="absolute inset-0 opacity-20 pointer-events-none"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.5) 1.5px, transparent 1.5px)',
+                    backgroundSize: '16px 16px'
+                  }}
+                />
+                <div className="relative">
+                  <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider mb-1">Last Enrichment</p>
+                  <p className="text-lg font-black text-foreground">
+                    {list.lastRunAt
+                      ? format(new Date(list.lastRunAt), 'MMM do, yyyy')
+                      : 'Never'}
+                  </p>
+                  {list.lastRunAt && (
+                    <p className="text-xs text-foreground/50 mt-1">
+                      {format(new Date(list.lastRunAt), 'h:mm a')}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Sync Status */}
-              <div className="bg-dark-200/30 rounded-lg p-4 border border-gray-800">
-                <p className="text-xs text-foreground/60 mb-1">Sync Status</p>
-                <Badge variant={list.syncStatus === 'NORMAL' ? 'default' : 'neutral'}>
-                  {list.syncStatus}
-                </Badge>
+              <div className="relative overflow-hidden bg-dark-200 border-4 border-border p-4 shadow-[4px_4px_0_0_var(--border)]">
+                <div
+                  className="absolute inset-0 opacity-20 pointer-events-none"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.5) 1.5px, transparent 1.5px)',
+                    backgroundSize: '16px 16px'
+                  }}
+                />
+                <div className="relative">
+                  <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider mb-1">Sync Status</p>
+                  <Badge variant={list.syncStatus === 'NORMAL' ? 'default' : 'neutral'}>
+                    {list.syncStatus}
+                  </Badge>
+                </div>
               </div>
             </div>
 
-            {/* Movements/Signals */}
-            {list.movementDefinitions && list.movementDefinitions.length > 0 && (
-              <div className="pt-4 border-t border-gray-800">
-                <h3 className="text-sm font-semibold text-foreground mb-3">
-                  Tracking {list.movementDefinitions.length} Signal{list.movementDefinitions.length !== 1 ? 's' : ''}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {list.movementDefinitions.map((movement) => (
-                    <div
-                      key={movement.name}
-                      className="group relative"
-                    >
-                      <Badge
-                        variant="neutral"
-                        className="font-mono text-[10px] cursor-help"
-                      >
-                        {movement.name}
-                      </Badge>
-                      {/* Tooltip on hover */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-64 pointer-events-none">
-                        <div className="bg-dark-200 border border-gray-700 rounded-lg p-3 shadow-xl">
-                          <p className="text-xs text-foreground leading-relaxed">
-                            {movement.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Signals List */}
+            <SignalsList movementDefinitions={list.movementDefinitions ?? []} />
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-gray-800">
@@ -277,6 +328,7 @@ export default function PeopleListDetailsPage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowAddModal(true)}
+                disabled={isEnriching}
               >
                 <Plus className="h-4 w-4" /> Add Profile
               </Button>
@@ -284,6 +336,7 @@ export default function PeopleListDetailsPage() {
                 variant="neutral"
                 size="sm"
                 onClick={() => setShowCsvUploadModal(true)}
+                disabled={isEnriching}
               >
                 <Upload className="h-4 w-4" /> Upload CSV
               </Button>
@@ -291,6 +344,51 @@ export default function PeopleListDetailsPage() {
           </div>
         </Card>
       </motion.div>
+
+      {/* Enrichment Progress Banner */}
+      {isEnriching && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-blue-500/10 border-2 border-blue-500 rounded-lg"
+        >
+          <div className="flex items-center gap-3">
+            <RefreshCw className="h-5 w-5 animate-spin text-blue-500" />
+            <div>
+              <p className="font-semibold text-blue-500">Enrichment in Progress</p>
+              <p className="text-sm text-blue-400">
+                Validating {total} profiles for signal changes. This may take several minutes.
+                {list.enrichmentStartedAt && ` Started ${new Date(list.enrichmentStartedAt).toLocaleTimeString()}`}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Enrichment Error Banner */}
+      {hasEnrichmentError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-red-500/10 border-2 border-red-500 rounded-lg"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-red-500">Enrichment Failed</p>
+              <p className="text-sm text-red-400">
+                {list.enrichmentError || 'An unexpected error occurred during enrichment'}
+              </p>
+            </div>
+            <Button
+              variant="neutral"
+              size="sm"
+              onClick={handleValidateSignals}
+            >
+              Retry
+            </Button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Profiles Table */}
       <motion.div
@@ -434,6 +532,7 @@ export default function PeopleListDetailsPage() {
         onClose={() => setSelectedProfile(null)}
       />
 
+      {/* Modals */}
       <CsvUploadModal
         isOpen={showCsvUploadModal}
         onClose={() => setShowCsvUploadModal(false)}

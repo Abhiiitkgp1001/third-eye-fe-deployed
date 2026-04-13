@@ -28,41 +28,21 @@ export default function MovementsPage() {
     id: listId,
   });
 
-  // Debug logging
-  console.log('[MovementsPage] List ID:', listId);
-  console.log('[MovementsPage] Movements data:', movements);
-  console.log('[MovementsPage] Movements count:', movements?.length ?? 0);
-  console.log('[MovementsPage] Is loading:', movementsLoading);
-
-  const isLoading = listLoading || movementsLoading;
-
-  if (isLoading) {
-    return <PageSpinner />;
-  }
-
-  if (!listData) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-foreground text-xl">People list not found</div>
-      </div>
-    );
-  }
-
-  const { list, profiles, total } = listData;
-
-  // Calculate statistics
-  const actualMovements = movements.filter(m => m.movement !== "NO_CHANGE");
-  const noChangeRecords = movements.filter(m => m.movement === "NO_CHANGE");
+  // Calculate statistics and memoized values - MUST BE CALLED BEFORE ANY RETURNS
+  const actualMovements = useMemo(() => movements.filter(m => m.movement !== "NO_CHANGE"), [movements]);
+  const noChangeRecords = useMemo(() => movements.filter(m => m.movement === "NO_CHANGE"), [movements]);
 
   const totalMovements = actualMovements.length;
   const totalValidations = movements.length;
   const uniqueProfilesWithMovements = new Set(actualMovements.map(m => m.profileId)).size;
   const uniqueProfilesValidated = new Set(movements.map(m => m.profileId)).size;
 
-  const movementsByType = actualMovements.reduce((acc, m) => {
-    acc[m.movement] = (acc[m.movement] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const movementsByType = useMemo(() => {
+    return actualMovements.reduce((acc, m) => {
+      acc[m.movement] = (acc[m.movement] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [actualMovements]);
 
   // Add NO_CHANGE to movement types if there are any
   const allMovementTypes = useMemo(() => {
@@ -70,12 +50,16 @@ export default function MovementsPage() {
     return Array.from(types).sort();
   }, [movements]);
 
-  const averageConfidence = actualMovements.length > 0
-    ? Math.round(actualMovements.reduce((sum, m) => sum + (m.metadata?.confidence || 0), 0) / actualMovements.length)
-    : 0;
+  const averageConfidence = useMemo(() => {
+    return actualMovements.length > 0
+      ? Math.round(actualMovements.reduce((sum, m) => sum + (m.metadata?.confidence || 0), 0) / actualMovements.length)
+      : 0;
+  }, [actualMovements]);
 
   // Get unique profiles with movements
   const profilesWithMovements = useMemo(() => {
+    if (!listData) return [];
+    const { profiles } = listData;
     const uniqueProfileIds = new Set(movements.map(m => m.profileId));
     return profiles
       .filter(p => uniqueProfileIds.has(p.id))
@@ -92,10 +76,12 @@ export default function MovementsPage() {
         };
       })
       .sort((a, b) => b.movementCount - a.movementCount);
-  }, [movements, profiles]);
+  }, [movements, listData]);
 
   // Apply filters
   const filteredMovements = useMemo(() => {
+    if (!listData) return [];
+    const { profiles } = listData;
     let filtered = [...movements];
 
     // Filter by selected profile
@@ -128,9 +114,31 @@ export default function MovementsPage() {
     }
 
     return filtered;
-  }, [movements, selectedProfileId, selectedMovementTypes, searchQuery, profiles]);
+  }, [movements, selectedProfileId, selectedMovementTypes, searchQuery, listData]);
 
-  const recentMovements = filteredMovements.slice(0, 50); // Show last 50 filtered
+  const recentMovements = useMemo(() => filteredMovements.slice(0, 50), [filteredMovements]);
+
+  const hasActiveFilters = useMemo(() =>
+    selectedMovementTypes.size > 0 || selectedProfileId.length > 0 || searchQuery.trim().length > 0,
+    [selectedMovementTypes, selectedProfileId, searchQuery]
+  );
+
+  // NOW we can do early returns - all hooks have been called
+  const isLoading = listLoading || movementsLoading;
+
+  if (isLoading) {
+    return <PageSpinner />;
+  }
+
+  if (!listData) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-foreground text-xl">People list not found</div>
+      </div>
+    );
+  }
+
+  const { list, profiles, total } = listData;
 
   // Toggle movement type filter
   const toggleMovementType = (type: string) => {
@@ -149,8 +157,6 @@ export default function MovementsPage() {
     setSelectedProfileId("");
     setSearchQuery("");
   };
-
-  const hasActiveFilters = selectedMovementTypes.size > 0 || selectedProfileId.length > 0 || searchQuery.trim().length > 0;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

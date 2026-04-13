@@ -19,6 +19,33 @@ import {
   type Movement,
 } from "../schemas/peopleList-schemas";
 
+// Helper to safely extract error message from unknown error
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "Unknown error";
+}
+
+// Helper to check if error has axios response data
+function hasResponseData(error: unknown): error is { response?: { data?: unknown; status?: number } } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
+// Helper to safely log errors without exposing sensitive data (like auth tokens)
+function logErrorSafely(context: string, error: unknown): void {
+  console.error(`${context}:`, {
+    message: getErrorMessage(error),
+    ...(hasResponseData(error) && {
+      responseStatus: error.response?.status,
+      responseData: error.response?.data,
+    }),
+  });
+}
+
 export const peopleListsRouter = router({
   /**
    * Get all people lists for the current user's organization
@@ -43,13 +70,11 @@ export const peopleListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error fetching people lists from backend:", error);
-        console.error("Error response data:", error.response?.data);
-        console.error("Error response status:", error.response?.status);
+      } catch (error: unknown) {
+        logErrorSafely("Error fetching people lists from backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch people lists from backend: ${error.message}`,
+          message: `Failed to fetch people lists from backend: ${getErrorMessage(error)}`,
           cause: error,
         });
       }
@@ -88,13 +113,11 @@ export const peopleListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error fetching people list from backend:", error);
-        console.error("Error response data:", error.response?.data);
-        console.error("Error response status:", error.response?.status);
+      } catch (error: unknown) {
+        logErrorSafely("Error fetching people list from backend", error);
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `People list not found: ${error.message}`,
+          message: `People list not found: ${getErrorMessage(error)}`,
           cause: error,
         });
       }
@@ -150,7 +173,7 @@ export const peopleListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error creating people list in backend:", error);
+        logErrorSafely("Error creating people list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create people list",
@@ -185,7 +208,7 @@ export const peopleListsRouter = router({
 
         return response.data.result.data;
       } catch (error) {
-        console.error("Error updating people list in backend:", error);
+        logErrorSafely("Error updating people list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update people list",
@@ -209,7 +232,7 @@ export const peopleListsRouter = router({
         });
         return { success: true };
       } catch (error) {
-        console.error("Error deleting people list from backend:", error);
+        logErrorSafely("Error deleting people list from backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete people list",
@@ -225,7 +248,6 @@ export const peopleListsRouter = router({
       z.object({
         listId: z.string(),
         linkedinUrl: z.string().url(),
-        metadata: z.any().optional(),
       })
     )
     .output(ProfileOpResponseSchema)
@@ -270,10 +292,10 @@ export const peopleListsRouter = router({
           },
         });
 
-        console.log(`[FE addProfile] Backend response:`, {
-          status: response.status,
-          data: response.data,
-        });
+        // console.log(`[FE addProfile] Backend response:`, {
+        //   status: response.status,
+        //   data: response.data,
+        // });
 
         const parsed = ProfileOpResponseSchema.safeParse(response.data.result.data);
         if (!parsed.success) {
@@ -287,12 +309,11 @@ export const peopleListsRouter = router({
 
         console.log(`[FE addProfile] Successfully parsed profile:`, parsed.data);
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error adding profile to list in backend:", error);
-        console.error("Error response:", error.response?.data);
+      } catch (error: unknown) {
+        logErrorSafely("Error adding profile to list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to add profile to list: ${error.message}`,
+          message: `Failed to add profile to list: ${getErrorMessage(error)}`,
           cause: error,
         });
       }
@@ -316,7 +337,7 @@ export const peopleListsRouter = router({
         });
         return { success: true };
       } catch (error) {
-        console.error("Error removing profile from backend:", error);
+        logErrorSafely("Error removing profile from backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to remove profile",
@@ -359,7 +380,7 @@ export const peopleListsRouter = router({
 
         return parsed.data;
       } catch (error) {
-        console.error("Error adding profiles to list in backend:", error);
+        logErrorSafely("Error adding profiles to list in backend", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to add profiles to list",
@@ -383,7 +404,7 @@ export const peopleListsRouter = router({
         });
         return { success: true };
       } catch (error) {
-        console.error("Error triggering refresh for people list:", error);
+        logErrorSafely("Error triggering refresh for people list", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to trigger refresh",
@@ -416,12 +437,11 @@ export const peopleListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error validating signals with AI:", error);
-        console.error("Error response data:", error.response?.data);
+      } catch (error: unknown) {
+        logErrorSafely("Error validating signals with AI", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to validate signals: ${error.message}`,
+          message: `Failed to validate signals: ${getErrorMessage(error)}`,
           cause: error,
         });
       }
@@ -452,12 +472,11 @@ export const peopleListsRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
-        console.error("Error fetching movements:", error);
-        console.error("Error response data:", error.response?.data);
+      } catch (error: unknown) {
+        logErrorSafely("Error fetching movements", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch movements: ${error.message}`,
+          message: `Failed to fetch movements: ${getErrorMessage(error)}`,
           cause: error,
         });
       }

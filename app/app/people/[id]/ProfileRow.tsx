@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Badge, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
 import { Trash2, ExternalLink, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Profile, Movement, getProfileMetadata } from "@/lib/trpc/schemas/peopleList-schemas";
+import { Profile, Movement } from "@/lib/trpc/schemas/peopleList-schemas";
 
 interface ProfileRowProps {
   profile: Profile;
@@ -20,7 +20,7 @@ export default function ProfileRow({
   index,
 }: ProfileRowProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const metadata = getProfileMetadata(profile);
+  const metadata = profile.latestMetadata;
   // Filter out NO_CHANGE and show only 2 most recent actual movements
   const actualMovements = movements.filter(m => m.movement !== "NO_CHANGE");
   const recentMovements = actualMovements.slice(0, 2);
@@ -56,7 +56,7 @@ export default function ProfileRow({
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <Avatar className="size-9">
-            <AvatarImage src={metadata?.profile_photo_url} alt={displayName ?? "Profile"} />
+            <AvatarImage src={metadata?.profile_photo_url ?? ""} alt={displayName ?? "Profile"} />
             <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30">
               {initials}
             </AvatarFallback>
