@@ -38,8 +38,8 @@ export default function SignUpPage() {
               socialButtonsPlacement: "bottom",
               socialButtonsVariant: "iconButton",
             },
-          }}
-        forceRedirectUrl={'/app'}
+          }} 
+          forceRedirectUrl={'/app'}
           afterSignOutUrl={'/'}
           signInUrl={"/sign-in"}
         />
