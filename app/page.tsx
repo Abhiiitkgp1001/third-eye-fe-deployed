@@ -1,9 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search, MessageSquare, Clock, Database, Webhook } from 'lucide-react';
+import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search, MessageSquare, Clock, Database, Webhook, Play } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
+
+const scrollToDemo = () => {
+  const demoSection = document.getElementById('demo-video');
+  if (demoSection) {
+    demoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+};
 
 const exampleSignals = [
   "Notify me when a Series A SaaS company posts a Head of Sales role.",
@@ -118,11 +125,48 @@ export default function Home() {
                   Book a Demo <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/sign-in">
-                <Button variant="neutral" size="lg">
-                  Sign In
-                </Button>
-              </Link>
+              <Button variant="neutral" size="lg" onClick={scrollToDemo}>
+                See Demo
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Demo Video Section */}
+      <section id="demo-video" className="py-20 px-6 border-t-2 border-border bg-secondary-background">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-8 text-center"
+          >
+            <h2 className="text-3xl md:text-4xl font-heading text-foreground mb-3">
+              See Third Eye in action
+            </h2>
+            <p className="text-foreground/60 font-base">Watch how easy it is to set up custom signals</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative rounded-base border-4 border-border bg-background shadow-[12px_12px_0_0_var(--border)] overflow-hidden"
+            style={{ aspectRatio: '16/9' }}
+          >
+            {/* TODO: Replace with Loom embed URL once demo is recorded */}
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-main/20 to-main/5">
+              <div className="text-center">
+                <div className="w-20 h-20 rounded-full bg-main border-4 border-border flex items-center justify-center mx-auto mb-4 shadow-shadow">
+                  <Play className="w-8 h-8 text-main-foreground ml-1" />
+                </div>
+                <p className="text-foreground/60 font-base text-sm">
+                  Demo video coming soon
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>
