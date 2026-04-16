@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search } from 'lucide-react';
+import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search, MessageSquare, Clock, Database, Webhook } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 
@@ -16,19 +16,24 @@ const exampleSignals = [
 
 const features = [
   {
-    icon: Building2,
-    title: 'Track Companies',
-    description: 'Monitor company growth, hiring patterns, and funding announcements in real-time.',
+    icon: MessageSquare,
+    title: 'Plain-English signal builder',
+    description: 'Describe what you want to track. No rigid filters, no boolean logic.',
   },
   {
-    icon: Users,
-    title: 'Monitor People',
-    description: 'Track career moves, job changes, and professional milestones of key individuals.',
+    icon: Clock,
+    title: 'Real-time, not batch',
+    description: 'Signals fire the moment they happen — not next week's data dump.',
   },
   {
-    icon: Bell,
-    title: 'Get Instant Alerts',
-    description: 'Receive notifications via Slack or webhooks the moment something important happens.',
+    icon: Database,
+    title: 'Multi-source aggregation',
+    description: 'LinkedIn, job boards, news, funding databases, social — unified.',
+  },
+  {
+    icon: Webhook,
+    title: 'Delivered where you work',
+    description: 'Slack, webhooks, or directly into your CRM.',
   },
 ];
 
@@ -181,7 +186,7 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
