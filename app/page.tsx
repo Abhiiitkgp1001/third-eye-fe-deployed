@@ -504,7 +504,7 @@ export default function Home() {
             </div>
             <span className="text-sm font-heading text-foreground">Third Eye</span>
           </div>
-          <p className="text-foreground/40 text-sm font-base">&copy; 2025 Third Eye. All rights reserved.</p>
+          <p className="text-foreground/40 text-sm font-base">&copy; 2026 Third Eye. All rights reserved.</p>
         </div>
       </footer>
     </main>
