@@ -83,27 +83,29 @@ export default function Home() {
             </motion.div>
 
             <h1 className="text-6xl md:text-8xl font-heading text-foreground mb-6 leading-none tracking-tight">
-              Monitor
+              Describe the signal.
               <br />
-              <span className="text-main">Growth</span>
+              <span className="text-main">In plain English.</span>
               <br />
-              Signals.
+              We'll monitor it.
             </h1>
 
             <p className="text-lg text-foreground/60 mb-10 max-w-xl font-base leading-relaxed">
-              Track companies, people, and events that matter to your business.
-              Get instant notifications when important changes happen.
+              Stop settling for generic firehoses. Get the exact buying signals that match your ICP — from job posts to funding rounds to any custom trigger.
             </p>
 
             <div className="flex flex-wrap gap-4 items-center">
-              <Link href="/sign-in">
+              {/* TODO: Replace with actual Calendly URL */}
+              <Link href="https://calendly.com/thirdeye/demo" target="_blank" rel="noopener noreferrer">
                 <Button size="lg">
-                  Get Started <ArrowRight className="ml-1 h-4 w-4" />
+                  Book a Demo <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
-              <Button variant="neutral" size="lg">
-                See Demo
-              </Button>
+              <Link href="/sign-in">
+                <Button variant="neutral" size="lg">
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
