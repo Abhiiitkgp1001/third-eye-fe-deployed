@@ -30,7 +30,7 @@ const features = [
   {
     icon: Clock,
     title: 'Real-time, not batch',
-    description: 'Signals fire the moment they happen — not next week's data dump.',
+    description: "Signals fire the moment they happen — not next week's data dump.",
   },
   {
     icon: Database,
