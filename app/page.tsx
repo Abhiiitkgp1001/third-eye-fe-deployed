@@ -465,7 +465,8 @@ export default function Home() {
               Ready to get started?
             </h2>
             <p className="text-main-foreground/70 font-base text-lg mb-8">
-              Join teams who never miss critical growth signals
+              {/* TODO: Confirm the real number before deploy */}
+              Join 25+ teams tracking custom signals in real-time.
             </p>
 
             <div className="flex flex-wrap gap-4 items-center mb-10">
