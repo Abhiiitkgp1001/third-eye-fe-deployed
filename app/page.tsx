@@ -40,18 +40,21 @@ const features = [
 const steps = [
   {
     number: '01',
-    title: 'Create Lists',
-    description: 'Build lists of companies or people you want to track.',
+    title: 'Describe your signal',
+    description: 'Track Series B fintechs hiring a VP Engineering.',
+    mockup: 'input', // Shows an input field mockup
   },
   {
     number: '02',
-    title: 'Define Signals',
-    description: 'Set up custom watchers for specific growth signals.',
+    title: 'Third Eye monitors in real-time',
+    description: 'We continuously scan across all sources.',
+    mockup: 'cards', // Shows preview cards of matched companies
   },
   {
     number: '03',
-    title: 'Get Notified',
-    description: 'Receive instant alerts when signals trigger.',
+    title: 'Get notified instantly',
+    description: 'Slack, webhook, or email the moment it happens.',
+    mockup: 'slack', // Shows a mock Slack notification
   },
 ];
 
@@ -236,8 +239,57 @@ export default function Home() {
                 <span className="text-5xl font-heading text-main leading-none block mb-4">
                   {step.number}
                 </span>
-                <h3 className="text-lg font-heading text-foreground mb-2">{step.title}</h3>
-                <p className="text-foreground/60 font-base text-sm">{step.description}</p>
+                <h3 className="text-lg font-heading text-foreground mb-3">{step.title}</h3>
+                <p className="text-foreground/60 font-base text-sm mb-4">{step.description}</p>
+
+                {/* Mockup visualizations */}
+                {step.mockup === 'input' && (
+                  <div className="mt-4 p-3 bg-background border-2 border-border rounded-base">
+                    <div className="flex items-center gap-2">
+                      <Search className="w-4 h-4 text-foreground/40" />
+                      <span className="text-sm text-foreground/70 font-base">
+                        Track Series B fintechs hiring a VP Engineering
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {step.mockup === 'cards' && (
+                  <div className="mt-4 space-y-2">
+                    {/* TODO: Replace with real product screenshots */}
+                    {['FintechCo', 'PaymentsPro'].map((company) => (
+                      <div
+                        key={company}
+                        className="p-3 bg-background border-2 border-border rounded-base flex items-center gap-3"
+                      >
+                        <div className="w-8 h-8 rounded bg-main/20 border border-border flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-main" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-heading text-foreground">{company}</p>
+                          <p className="text-[10px] text-foreground/50">Series B • Hiring VP Eng</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {step.mockup === 'slack' && (
+                  <div className="mt-4 p-3 bg-background border-2 border-border rounded-base">
+                    {/* TODO: Replace with real Slack notification screenshot */}
+                    <div className="flex items-start gap-2">
+                      <div className="w-6 h-6 rounded bg-main flex items-center justify-center shrink-0">
+                        <Bell className="w-3 h-3 text-main-foreground" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-heading text-foreground mb-1">Third Eye Alert</p>
+                        <p className="text-[10px] text-foreground/60 leading-relaxed">
+                          <strong>FintechCo</strong> just posted a VP Engineering role. Series B, 45 employees.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
