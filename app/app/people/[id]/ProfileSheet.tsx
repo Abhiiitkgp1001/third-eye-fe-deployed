@@ -72,7 +72,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
             <div className="shrink-0 border-b border-gray-800 px-6 py-4 flex items-start justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 <Avatar className="size-14">
-                  <AvatarImage src={metadata?.profile_photo_url} alt={displayName ?? "Profile"} />
+                  <AvatarImage src={metadata?.profile_photo_url ?? undefined} alt={displayName ?? "Profile"} />
                   <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30 text-2xl">
                     {initials}
                   </AvatarFallback>
@@ -229,7 +229,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                         {exp.company_logo_url && (
                           <img
                             src={exp.company_logo_url}
-                            alt={exp.company_name}
+                            alt={exp.company_name ?? "Company"}
                             className="w-10 h-10 rounded-lg object-contain bg-white p-1 shrink-0"
                           />
                         )}
@@ -242,11 +242,11 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                             {exp.positions?.[0]?.employment_type && ` · ${exp.positions[0].employment_type}`}
                           </div>
                           <div className="text-foreground/50 text-xs mt-0.5">
-                            {exp.date_range?.start && (
+                            {exp.date_range?.start?.iso && (
                               <>
                                 {new Date(exp.date_range.start.iso).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
                                 {" – "}
-                                {exp.date_range.end
+                                {exp.date_range.end?.iso
                                   ? new Date(exp.date_range.end.iso).toLocaleDateString("en-US", { month: "short", year: "numeric" })
                                   : "Present"}
                               </>
@@ -273,7 +273,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                         {edu.school_logo_url && (
                           <img
                             src={edu.school_logo_url}
-                            alt={edu.school_name}
+                            alt={edu.school_name ?? "School"}
                             className="w-10 h-10 rounded-lg object-contain bg-white p-1 shrink-0"
                           />
                         )}

@@ -14,6 +14,8 @@ export const MovementDefinitionSchema = z.object({
   description: z.string(),
 });
 
+export type MovementDefinition = z.infer<typeof MovementDefinitionSchema>;
+
 export const PeopleListSchema = z.object({
   id: z.string(),
   orgId: z.string(),

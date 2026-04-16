@@ -230,7 +230,7 @@ export default function PeopleListDetailsPage() {
                     {isEnriching ? 'Enriching...' : validateSignalsWithAIMutation.isPending ? 'Starting...' : 'Validate Signals'}
                   </Button>
                   {hasEnrichmentError && (
-                    <Badge variant="destructive">
+                    <Badge variant="neutral" className="bg-red-500/10 text-red-500 border-red-500">
                       Last enrichment failed
                     </Badge>
                   )}
