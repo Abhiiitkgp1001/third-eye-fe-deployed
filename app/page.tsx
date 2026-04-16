@@ -1,9 +1,18 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight } from 'lucide-react';
+import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
+
+const exampleSignals = [
+  "Notify me when a Series A SaaS company posts a Head of Sales role.",
+  "Alert me when any YC company hires their first designer.",
+  "Track when CTOs at fintechs under 50 people tweet about hiring.",
+  "Ping me when a healthcare startup raises a Series B and has no VP Marketing.",
+  "Track when developer-tool companies change their pricing page.",
+  "Alert me when a portfolio company of a16z posts an AI/ML role.",
+];
 
 const features = [
   {
@@ -108,6 +117,47 @@ export default function Home() {
               </Link>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Example Signals Section */}
+      <section className="py-20 px-6 border-t-2 border-border">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-14"
+          >
+            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
+              Signals you can't get
+              <br />
+              anywhere else.
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {exampleSignals.map((signal, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="bg-background border-2 border-border shadow-shadow rounded-base p-5 hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-base bg-main/10 border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
+                    <Search className="w-4 h-4 text-main" />
+                  </div>
+                  <p className="text-foreground/80 font-base text-sm leading-relaxed">
+                    "{signal}"
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
