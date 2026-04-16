@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Bell, Shield, Zap, Check, ArrowRight, Search, Calendar } from 'lucide-react';
+import { Building2, Bell, Zap, Check, ArrowRight, Search, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 
@@ -39,9 +39,7 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b-2 border-border">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-base bg-main border-2 border-border flex items-center justify-center shadow-shadow">
-              <Shield className="w-4 h-4 text-main-foreground" />
-            </div>
+            <img src="/logo.svg" alt="Third Eye Logo" className="w-10 h-10" />
             <span className="text-lg font-heading text-foreground">Third Eye</span>
           </Link>
           <Link href="/sign-in">
@@ -300,9 +298,7 @@ export default function Home() {
       <footer className="py-8 px-6 border-t-2 border-border bg-background">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center">
-              <Shield className="w-3 h-3 text-main-foreground" />
-            </div>
+            <img src="/logo.svg" alt="Third Eye Logo" className="w-8 h-8" />
             <span className="text-sm font-heading text-foreground">Third Eye</span>
           </div>
           <p className="text-foreground/40 text-sm font-base">&copy; 2026 Third Eye. All rights reserved.</p>

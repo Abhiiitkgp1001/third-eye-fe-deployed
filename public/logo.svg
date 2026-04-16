@@ -1,0 +1,26 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Eye Shape - Outer -->
+  <path d="M100 60C60 60 30 85 20 100C30 115 60 140 100 140C140 140 170 115 180 100C170 85 140 60 100 60Z" fill="#5DD9C1" stroke="#0F172A" stroke-width="4"/>
+
+  <!-- Iris - Main color -->
+  <circle cx="100" cy="100" r="28" fill="#0F172A" stroke="#0F172A" stroke-width="3"/>
+
+  <!-- Pupil -->
+  <circle cx="100" cy="100" r="15" fill="#5DD9C1"/>
+
+  <!-- Inner pupil/reflection -->
+  <circle cx="95" cy="95" r="6" fill="#0F172A"/>
+
+  <!-- Signal waves radiating from eye (representing monitoring) -->
+  <path d="M100 40C100 40 120 50 130 60" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M100 40C100 40 80 50 70 60" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+
+  <path d="M50 100C50 100 40 110 35 120" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M150 100C150 100 160 110 165 120" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+
+  <path d="M100 160C100 160 90 170 80 180" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M100 160C100 160 110 170 120 180" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Third eye dot above (mystical element) -->
+  <circle cx="100" cy="30" r="6" fill="#5DD9C1" stroke="#0F172A" stroke-width="3"/>
+</svg>

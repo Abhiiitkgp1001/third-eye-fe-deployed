@@ -18,6 +18,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Third Eye — Custom growth signals in plain English",
   description: "Stop settling for generic firehoses. Get the exact buying signals that match your ICP — from job posts to funding rounds to any custom trigger.",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/logo.svg',
+  },
   openGraph: {
     title: "Third Eye — Custom growth signals in plain English",
     description: "Stop settling for generic firehoses. Get the exact buying signals that match your ICP — from job posts to funding rounds to any custom trigger.",
@@ -32,8 +39,6 @@ export const metadata: Metadata = {
     // TODO: Create og-image.png at 1200x630 and place in /public
     images: ["/og-image.png"],
   },
-  // TODO: Generate favicon from /public/logo.png using favicon-generator and add files to /public
-  // TODO: Add favicon links here once generated (favicon.ico, apple-touch-icon.png, etc.)
 };
 
 export default function RootLayout({
