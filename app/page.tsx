@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search, MessageSquare, Clock, Database, Webhook, Play } from 'lucide-react';
+import { Building2, Users, Bell, TrendingUp, Shield, Zap, Check, ArrowRight, Search, MessageSquare, Clock, Database, Webhook, Play, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 
@@ -371,6 +371,84 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Book a Demo Section */}
+      <section className="py-20 px-6 border-t-2 border-border">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="grid md:grid-cols-2 gap-12 items-center"
+          >
+            {/* Left Column */}
+            <div>
+              <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-6">
+                See Third Eye on
+                <br />
+                <span className="text-main">your actual signals.</span>
+              </h2>
+
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-main-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-base font-semibold">15-minute call</p>
+                    <p className="text-foreground/60 text-sm">Quick, no-pressure walkthrough</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-main-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-base font-semibold">Live demo with your ICP</p>
+                    <p className="text-foreground/60 text-sm">See how Third Eye tracks your exact targets</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-main-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-base font-semibold">Custom signal built on the spot</p>
+                    <p className="text-foreground/60 text-sm">Walk away with a working signal</p>
+                  </div>
+                </li>
+              </ul>
+
+              {/* TODO: Replace with actual Calendly URL */}
+              <Link href="https://calendly.com/thirdeye/demo" target="_blank" rel="noopener noreferrer">
+                <Button size="lg">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Book Your Demo
+                </Button>
+              </Link>
+            </div>
+
+            {/* Right Column - Calendly Embed Placeholder */}
+            <div>
+              <div className="relative rounded-base border-4 border-border bg-secondary-background shadow-[8px_8px_0_0_var(--border)] overflow-hidden">
+                <div className="aspect-[3/4] flex items-center justify-center p-8">
+                  {/* TODO: Replace with Calendly inline embed */}
+                  <div className="text-center">
+                    <Calendar className="w-16 h-16 text-main mx-auto mb-4" />
+                    <p className="text-foreground/60 font-base">
+                      Calendly embed will appear here
+                    </p>
+                    <p className="text-foreground/40 font-base text-sm mt-2">
+                      Once you provide the inline embed code
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
