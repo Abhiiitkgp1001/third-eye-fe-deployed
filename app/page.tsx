@@ -129,6 +129,40 @@ export default function Home() {
                 See Demo
               </Button>
             </div>
+
+            {/* Customer Logo Strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="mt-16 pt-8 border-t-2 border-border/30"
+            >
+              <p className="text-foreground/40 text-xs font-heading uppercase tracking-widest mb-6 text-center">
+                Trusted by
+              </p>
+              <div className="flex items-center justify-center gap-8 flex-wrap">
+                {/* TODO: Add HireCaddie logo */}
+                <div className="grayscale hover:grayscale-0 opacity-50 hover:opacity-100 transition-all">
+                  <div className="h-8 px-6 flex items-center justify-center bg-foreground/5 border-2 border-border rounded-base">
+                    <span className="text-sm font-heading text-foreground/60">HireCaddie</span>
+                  </div>
+                </div>
+
+                {/* TODO: Add customer logo 2 */}
+                <div className="grayscale hover:grayscale-0 opacity-50 hover:opacity-100 transition-all">
+                  <div className="h-8 px-6 flex items-center justify-center bg-foreground/5 border-2 border-border rounded-base">
+                    <span className="text-sm font-heading text-foreground/60">Customer 2</span>
+                  </div>
+                </div>
+
+                {/* TODO: Add customer logo 3 */}
+                <div className="grayscale hover:grayscale-0 opacity-50 hover:opacity-100 transition-all">
+                  <div className="h-8 px-6 flex items-center justify-center bg-foreground/5 border-2 border-border rounded-base">
+                    <span className="text-sm font-heading text-foreground/60">Customer 3</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
