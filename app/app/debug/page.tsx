@@ -8,8 +8,20 @@ export default function DebugPage() {
   const router = useRouter();
   const [pingResult, setPingResult] = useState<any>(null);
   const [authCheckResult, setAuthCheckResult] = useState<any>(null);
+  const [peopleResult, setPeopleResult] = useState<any>(null);
+  const [companyResult, setCompanyResult] = useState<any>(null);
   const [isPinging, setIsPinging] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [isFetchingPeople, setIsFetchingPeople] = useState(false);
+  const [isFetchingCompany, setIsFetchingCompany] = useState(false);
+
+  // Activities input states
+  const [profileId, setProfileId] = useState("williamhgates");
+  const [maxPosts, setMaxPosts] = useState(5);
+  const [maxComments, setMaxComments] = useState(10);
+  const [maxReactions, setMaxReactions] = useState(10);
+  const [companyId, setCompanyId] = useState("google");
+  const [maxPostsPerType, setMaxPostsPerType] = useState(5);
 
   // Redirect to dashboard if in production
   useEffect(() => {
@@ -21,6 +33,14 @@ export default function DebugPage() {
   // Test mutations
   const pingMutation = trpc.test.ping.useQuery(undefined, { enabled: false });
   const authCheckMutation = trpc.test.authCheck.useMutation();
+  const peopleAggregatedQuery = trpc.activities.peopleAggregated.useQuery(
+    { profileId, maxPosts, maxComments, maxReactions },
+    { enabled: false }
+  );
+  const companyAggregatedQuery = trpc.activities.companyAggregated.useQuery(
+    { companyId, maxPostsPerType, maxComments, maxReactions },
+    { enabled: false }
+  );
 
   const handlePing = async () => {
     setIsPinging(true);
@@ -45,6 +65,32 @@ export default function DebugPage() {
       setAuthCheckResult({ success: false, error: error.message });
     } finally {
       setIsCheckingAuth(false);
+    }
+  };
+
+  const handleFetchPeopleAggregated = async () => {
+    setIsFetchingPeople(true);
+    setPeopleResult(null);
+    try {
+      const result = await peopleAggregatedQuery.refetch();
+      setPeopleResult({ success: true, data: result.data });
+    } catch (error: any) {
+      setPeopleResult({ success: false, error: error.message });
+    } finally {
+      setIsFetchingPeople(false);
+    }
+  };
+
+  const handleFetchCompanyAggregated = async () => {
+    setIsFetchingCompany(true);
+    setCompanyResult(null);
+    try {
+      const result = await companyAggregatedQuery.refetch();
+      setCompanyResult({ success: true, data: result.data });
+    } catch (error: any) {
+      setCompanyResult({ success: false, error: error.message });
+    } finally {
+      setIsFetchingCompany(false);
     }
   };
 
@@ -138,6 +184,198 @@ export default function DebugPage() {
                       </p>
                       <pre className="text-sm text-white bg-primary-950/50 p-3 rounded overflow-auto">
                         {JSON.stringify(authCheckResult.success ? authCheckResult.data : authCheckResult.error, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* People Aggregated Test */}
+            <div className="pt-6 border-t border-primary-700/40">
+              <h3 className="text-white font-semibold mb-3">People Aggregated Data (Activities API)</h3>
+              <p className="text-secondary-50 text-sm mb-4">
+                Fetches complete LinkedIn profile data including posts, comments, and reactions.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Profile ID
+                  </label>
+                  <input
+                    type="text"
+                    value={profileId}
+                    onChange={(e) => setProfileId(e.target.value)}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    placeholder="williamhgates"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Max Posts
+                  </label>
+                  <input
+                    type="number"
+                    value={maxPosts}
+                    onChange={(e) => setMaxPosts(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    min="1"
+                    max="50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Max Comments per Post
+                  </label>
+                  <input
+                    type="number"
+                    value={maxComments}
+                    onChange={(e) => setMaxComments(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Max Reactions per Post
+                  </label>
+                  <input
+                    type="number"
+                    value={maxReactions}
+                    onChange={(e) => setMaxReactions(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleFetchPeopleAggregated}
+                disabled={isFetchingPeople}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  isFetchingPeople
+                    ? 'bg-primary-800/90 text-secondary-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                }`}
+              >
+                {isFetchingPeople ? 'Fetching...' : 'Fetch People Data'}
+              </button>
+
+              {peopleResult && (
+                <div className={`mt-4 p-4 rounded-lg border ${
+                  peopleResult.success
+                    ? 'bg-green-950/30 border-green-500/40'
+                    : 'bg-red-950/30 border-red-500/40'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <span className="text-2xl">{peopleResult.success ? '✅' : '❌'}</span>
+                    <div className="flex-1">
+                      <p className={`font-semibold mb-2 ${
+                        peopleResult.success ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {peopleResult.success ? 'Success' : 'Failed'}
+                      </p>
+                      <pre className="text-sm text-white bg-primary-950/50 p-3 rounded overflow-auto max-h-96">
+                        {JSON.stringify(peopleResult.success ? peopleResult.data : peopleResult.error, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Company Aggregated Test */}
+            <div className="pt-6 border-t border-primary-700/40">
+              <h3 className="text-white font-semibold mb-3">Company Aggregated Data (Activities API)</h3>
+              <p className="text-secondary-50 text-sm mb-4">
+                Fetches complete company data including company posts, employee posts, comments, and reactions.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Company ID
+                  </label>
+                  <input
+                    type="text"
+                    value={companyId}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    placeholder="google"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Max Posts per Type
+                  </label>
+                  <input
+                    type="number"
+                    value={maxPostsPerType}
+                    onChange={(e) => setMaxPostsPerType(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    min="1"
+                    max="50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Max Comments per Post
+                  </label>
+                  <input
+                    type="number"
+                    value={maxComments}
+                    onChange={(e) => setMaxComments(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-xs font-medium mb-1">
+                    Max Reactions per Post
+                  </label>
+                  <input
+                    type="number"
+                    value={maxReactions}
+                    onChange={(e) => setMaxReactions(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-primary-800/50 border border-primary-700/30 rounded text-white text-sm"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleFetchCompanyAggregated}
+                disabled={isFetchingCompany}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  isFetchingCompany
+                    ? 'bg-primary-800/90 text-secondary-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
+                }`}
+              >
+                {isFetchingCompany ? 'Fetching...' : 'Fetch Company Data'}
+              </button>
+
+              {companyResult && (
+                <div className={`mt-4 p-4 rounded-lg border ${
+                  companyResult.success
+                    ? 'bg-green-950/30 border-green-500/40'
+                    : 'bg-red-950/30 border-red-500/40'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <span className="text-2xl">{companyResult.success ? '✅' : '❌'}</span>
+                    <div className="flex-1">
+                      <p className={`font-semibold mb-2 ${
+                        companyResult.success ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {companyResult.success ? 'Success' : 'Failed'}
+                      </p>
+                      <pre className="text-sm text-white bg-primary-950/50 p-3 rounded overflow-auto max-h-96">
+                        {JSON.stringify(companyResult.success ? companyResult.data : companyResult.error, null, 2)}
                       </pre>
                     </div>
                   </div>

@@ -7,6 +7,7 @@ import { censusRouter } from "./census";
 import { organizationRouter } from "./organization";
 import { testRouter } from "./test";
 import { promptsRouter } from "./prompts";
+import { activitiesRouter } from "./activities";
 
 // Conditionally include test router only in development mode
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -22,6 +23,7 @@ export const appRouter = router({
   organization: organizationRouter,
   peopleList: peopleListsRouter,
   companyList: companyListsRouter,
+  activities: activitiesRouter,
   ...(isDevelopment ? { test: testRouter } : {}),
   prompts: promptsRouter,
   // Legacy naming (deprecated, use peopleList and companyList instead)
