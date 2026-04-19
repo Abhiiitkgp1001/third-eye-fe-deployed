@@ -53,16 +53,34 @@ export const MovementSchema = z.object({
   profileId: z.string(),
   linkedinUrl: z.string(),
   movement: z.string(),
+  // Mirrors MovementMetadataSchema from shiv/src/lib/webhooks/schemas.ts
   metadata: z.object({
-    // AI validation fields (present on NO_CHANGE and custom movements)
-    confidence: z.number().optional(),
-    reasoning: z.string().optional(),
-    relevantData: z.record(z.any()).optional(),
-    validatedAt: z.string().optional(),
-    validationModel: z.string().optional(),
-    previousProfile: z.any().optional(),
-    currentProfile: z.any().optional(),
-    // Other fields for different movement types (PROFILE_SNAPSHOT, ENRICHMENT_FAILED, etc.)
+    // AI confidence score (0-100) for how certain the validator is about the movement
+    confidence: z.number().min(0).max(100).nullish(),
+    // AI explanation of why this movement was or wasn't detected
+    reasoning: z.string().nullish(),
+    // Structured evidence array — each item describes one field-level change
+    // (replaces the deprecated V1 "relevantData" flat record)
+    // Mirrors MovementEvidenceSchema from shiv/src/lib/webhooks/schemas.ts
+    evidence: z.array(z.object({
+      // The profile field that changed (e.g. "headline", "experience", "summary")
+      field: z.string(),
+      // Value before the change (null if field is new)
+      previousValue: z.any().nullish(),
+      // Value after the change (null if field was removed)
+      currentValue: z.any().nullish(),
+      // AI interpretation of what this change means in context of the movement
+      interpretation: z.string().nullish(),
+    })).nullable().nullish(),
+    validatedAt: z.string().nullish(),
+    validationModel: z.string().nullish(),
+    validatorVersion: z.string().nullish(),
+    previousProfile: z.any().nullish(),
+    currentProfile: z.any().nullish(),
+    // Which system produced this metadata: "ai_validation" or "enrichment"
+    source: z.enum(["ai_validation", "enrichment"]).nullish(),
+    // Error message if movement detection failed (e.g. ENRICHMENT_FAILED)
+    error: z.string().nullish(),
   }).passthrough().nullable(),
   createdAt: z.coerce.date(),
 });

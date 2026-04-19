@@ -549,17 +549,23 @@ export default function MovementsPage() {
                         </div>
                       )}
 
-                      {/* Relevant Data */}
-                      {movement.metadata?.relevantData && Object.keys(movement.metadata.relevantData).length > 0 && !isNoChange && (
+                      {/* Evidence */}
+                      {movement.metadata?.evidence && movement.metadata.evidence.length > 0 && !isNoChange && (
                         <div className="p-4 border-t border-gray-800">
                           <p className="text-xs font-semibold text-foreground/60 mb-2">Key Changes</p>
                           <div className="space-y-1">
-                            {Object.entries(movement.metadata.relevantData).map(([key, value]) => (
-                              <div key={key} className="flex items-start gap-2 text-xs">
+                            {movement.metadata.evidence.map((item, idx) => (
+                              <div key={idx} className="flex items-start gap-2 text-xs">
                                 <span className="text-foreground/50 font-medium min-w-[120px]">
-                                  {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
+                                  {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}:
                                 </span>
-                                <span className="text-foreground flex-1">{String(value)}</span>
+                                <span className="text-foreground flex-1">
+                                  {item.previousValue != null && item.currentValue != null
+                                    ? `${String(item.previousValue)} → ${String(item.currentValue)}`
+                                    : item.currentValue != null
+                                      ? String(item.currentValue)
+                                      : item.interpretation ?? String(item.previousValue ?? '')}
+                                </span>
                               </div>
                             ))}
                           </div>
