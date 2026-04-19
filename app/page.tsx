@@ -67,16 +67,16 @@ export default function Home() {
             >
               <Zap className="w-3.5 h-3.5 text-main-foreground" />
               <span className="text-xs font-heading text-main-foreground uppercase tracking-widest">
-                Growth Intelligence Platform
+                GTM Intelligence Platform
               </span>
             </motion.div>
 
             <h1 className="text-6xl md:text-8xl font-heading text-foreground mb-6 leading-none tracking-tight">
-              Monitor
+              Capture
               <br />
-              <span className="text-main">Growth</span>
+              <span className="text-main">Signal</span>
               <br />
-              Signals.
+              Events.
             </h1>
 
             <p className="text-lg text-foreground/60 mb-10 max-w-xl font-base leading-relaxed">
