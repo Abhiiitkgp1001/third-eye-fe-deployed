@@ -14,7 +14,7 @@ export default function SignInPage() {
           appearance={{
             elements: {
               rootBox: "mx-auto",
-              card: "backdrop-blur-xl bg-primary-900/90 border border-primary-700/30 shadow-2xl",
+              card: "bg-secondary-background opacity-100 border border-gray-800 shadow-2xl",
               headerTitle: "text-white",
               headerSubtitle: "text-white",
               socialButtonsBlockButton: "bg-primary-800/90 border border-primary-700/30 text-white hover:bg-primary-700/90",

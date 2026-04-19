@@ -36,8 +36,8 @@ export default function RenameListModal({
   const isDisabled = !newName.trim() || newName.trim() === currentName || isLoading;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="glass rounded-2xl border border-gray-800 p-8 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 p-8 w-full max-w-md">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-foreground mb-2">
