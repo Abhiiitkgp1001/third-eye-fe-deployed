@@ -22,8 +22,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  DropdownMenu,
+  DropdownMenuItem,
 } from "@/components/ui";
-import { Plus, Users, Eye, Trash2, Loader2, TrendingUp } from 'lucide-react';
+import { Plus, Users, Eye, Trash2, Loader2, TrendingUp, MoreVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateListWizard } from "./CreateListWizard";
 import { formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
@@ -65,13 +67,13 @@ export default function PeoplePage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto h-full flex flex-col">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mb-8"
+        className="mb-8 flex-shrink-0"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -90,7 +92,7 @@ export default function PeoplePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="glass rounded-xl overflow-hidden"
+        className="glass rounded-xl overflow-visible flex-1 flex flex-col min-h-0"
       >
         {peopleLists.length === 0 ? (
           <div className="p-12">
@@ -103,17 +105,17 @@ export default function PeoplePage() {
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="w-full flex-1 flex flex-col">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Total People</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Signals</TableHead>
-                  <TableHead>Cadence</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="w-[25%]">Name</TableHead>
+                  <TableHead className="w-[12%]">Total People</TableHead>
+                  <TableHead className="w-[10%]">Status</TableHead>
+                  <TableHead className="w-[18%]">Signals</TableHead>
+                  <TableHead className="w-[12%]">Cadence</TableHead>
+                  <TableHead className="w-[10%]">Created</TableHead>
+                  <TableHead className="text-right w-[13%]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -189,19 +191,35 @@ export default function PeoplePage() {
                           <TrendingUp className="mr-2 h-4 w-4" />
                           Movements
                         </Button>
-                        <Button
-                          variant="neutral"
-                          size="sm"
-                          onClick={() => handleDeleteList(list.id)}
-                          disabled={deleteListMutation.isPending}
+                        <DropdownMenu
+                          trigger={
+                            <Button
+                              variant="neutral"
+                              size="sm"
+                              title="More actions"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          }
                         >
-                          {deleteListMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="mr-2 h-4 w-4" />
-                          )}
-                          Delete
-                        </Button>
+                          <DropdownMenuItem
+                            destructive
+                            onClick={() => handleDeleteList(list.id)}
+                            disabled={deleteListMutation.isPending}
+                          >
+                            {deleteListMutation.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </motion.tr>

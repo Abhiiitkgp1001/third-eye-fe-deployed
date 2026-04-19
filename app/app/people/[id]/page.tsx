@@ -8,10 +8,11 @@ import ProfileSheet from "./ProfileSheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
+import RenameListModal from "./RenameListModal";
 import SignalsList from "./SignalsList";
 import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -23,6 +24,7 @@ export default function PeopleListDetailsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -131,6 +133,20 @@ export default function PeopleListDetailsPage() {
     setShowConfirmToggleModal(false);
   };
 
+  const handleConfirmRename = (newName: string) => {
+    updatePeopleListMutation.mutate(
+      {
+        id: listId,
+        name: newName,
+      },
+      {
+        onSuccess: () => {
+          setShowRenameModal(false);
+        },
+      }
+    );
+  };
+
   const handleCsvUpload = async (linkedinUrls: string[]) => {
     await addProfilesMutation.mutateAsync({
       listId,
@@ -191,11 +207,20 @@ export default function PeopleListDetailsPage() {
                 <span className="text-sm">Back to People Lists</span>
               </button>
               <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground mb-2">{list.name}</h1>
-                  <p className="text-foreground/60 text-sm">
-                    {total} profiles • Created {new Date(list.createdAt).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">{list.name}</h1>
+                    <p className="text-foreground/60 text-sm">
+                      {total} profiles • Created {new Date(list.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowRenameModal(true)}
+                    className="p-2 text-foreground/60 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
+                    title="Rename list"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge variant={list.enabled ? 'default' : 'neutral'}>
@@ -545,6 +570,14 @@ export default function PeopleListDetailsPage() {
         listName={list?.name ?? ""}
         onConfirm={handleConfirmToggle}
         onCancel={() => setShowConfirmToggleModal(false)}
+        isLoading={updatePeopleListMutation.isPending}
+      />
+
+      <RenameListModal
+        isOpen={showRenameModal}
+        currentName={list?.name ?? ""}
+        onConfirm={handleConfirmRename}
+        onCancel={() => setShowRenameModal(false)}
         isLoading={updatePeopleListMutation.isPending}
       />
     </div>

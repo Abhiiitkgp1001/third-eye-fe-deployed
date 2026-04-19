@@ -8,6 +8,7 @@ const OrganizationSchema = z.object({
   id: z.string(),
   name: z.string(),
   domain: z.string().nullable(),
+  webhookUrl: z.string().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -152,5 +153,56 @@ export const organizationRouter = router({
         code: "METHOD_NOT_SUPPORTED",
         message: "Organization deletion is not self-serve. Please contact team@tryhog.com to delete your organization.",
       });
+    }),
+
+  /**
+   * Update organization webhook URL
+   */
+  updateWebhook: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        webhookUrl: z.string().url().nullish(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/organization.updateWebhook", input);
+
+        const parsed = OrganizationSchema.safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse organization response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error: any) {
+        console.error("Error updating webhook URL in backend:", error);
+
+        if (error.response?.status === 404) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Organization not found",
+          });
+        }
+
+        if (error.response?.data?.error?.code === "BAD_REQUEST") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.response.data.error.message || "Invalid webhook URL",
+          });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to update webhook URL: ${error.message}`,
+          cause: error,
+        });
+      }
     }),
 });
