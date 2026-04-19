@@ -57,7 +57,7 @@ export default function DebugPage() {
         </div>
 
         {/* Backend Test Section */}
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden mb-6">
+        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden mb-6">
           <div className="p-6 border-b border-primary-700/40">
             <h2 className="text-2xl font-bold text-white">Backend Tests</h2>
           </div>
@@ -148,7 +148,7 @@ export default function DebugPage() {
         </div>
 
         {/* Backend Info */}
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden">
+        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden">
           <div className="p-6 border-b border-primary-700/40">
             <h2 className="text-2xl font-bold text-white">Backend Information</h2>
           </div>
@@ -186,7 +186,7 @@ export default function DebugPage() {
         </div>
 
         {/* Instructions */}
-        <div className="mt-6 backdrop-blur-xl bg-blue-950/30 rounded-2xl border border-blue-500/40 p-6">
+        <div className="mt-6 bg-secondary-background opacity-100 rounded-2xl border border-gray-800 p-6">
           <div className="flex items-start gap-3">
             <span className="text-2xl">💡</span>
             <div>

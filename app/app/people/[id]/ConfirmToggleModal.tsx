@@ -22,8 +22,8 @@ export default function ConfirmToggleModal({
   const isActivating = !currentStatus;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="glass rounded-2xl border border-gray-800 p-8 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 p-8 w-full max-w-md">
         <div className="flex items-start gap-4 mb-6">
           <div
             className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${

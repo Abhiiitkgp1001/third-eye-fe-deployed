@@ -14,8 +14,8 @@ const OrganizationSchema = z.object({
   name: z.string(),
   domain: z.string().nullable(),
   webhookUrl: z.string().nullable().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export const organizationRouter = router({

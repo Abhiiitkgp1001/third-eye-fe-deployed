@@ -12,6 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  Button,
 } from "@/components/ui";
 
 export default function SettingsPage() {
@@ -82,7 +83,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Organization Settings */}
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden mb-6">
+        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden mb-6">
           <div className="p-6 border-b border-primary-700/40">
             <h2 className="text-2xl font-bold text-white">Organization</h2>
           </div>
@@ -127,33 +128,30 @@ export default function SettingsPage() {
 
             {/* Action Button */}
             <div className="flex gap-3 pt-4">
-              <button
+              <Button
                 onClick={handleSave}
                 disabled={updateWebhookMutation.isPending}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  !updateWebhookMutation.isPending
-                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white'
-                    : 'bg-primary-800/90 text-secondary-400 cursor-not-allowed'
-                }`}
+                size="lg"
               >
                 {updateWebhookMutation.isPending ? 'Saving...' : 'Save Webhook URL'}
-              </button>
+              </Button>
 
               {webhookUrl && webhookUrl !== (backendOrg?.webhookUrl || '') && (
-                <button
+                <Button
                   onClick={() => setWebhookUrl(backendOrg?.webhookUrl || '')}
                   disabled={updateWebhookMutation.isPending}
-                  className="px-6 py-3 bg-primary-800/90 hover:bg-primary-700/90 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="neutral"
+                  size="lg"
                 >
                   Reset
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </div>
 
         {/* Webhook Info */}
-        <div className="backdrop-blur-xl bg-primary-900/95 rounded-2xl border border-primary-700/40 overflow-hidden">
+        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden">
           <div className="p-6 border-b border-primary-700/40">
             <h2 className="text-2xl font-bold text-white">Webhook Details</h2>
           </div>

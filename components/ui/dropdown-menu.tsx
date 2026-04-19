@@ -94,7 +94,7 @@ export function DropdownMenu({ trigger, children, align = "end" }: DropdownMenuP
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -10 }}
         transition={{ duration: 0.15 }}
-        className="fixed z-[9999] min-w-[10rem] overflow-hidden rounded-lg border border-gray-700 bg-dark-100 shadow-2xl"
+        className="fixed z-[9999] min-w-[10rem] overflow-hidden rounded-lg border border-gray-700 bg-secondary-background opacity-100 shadow-2xl"
         style={{
           top: `${position.top}px`,
           left: `${position.left}px`,

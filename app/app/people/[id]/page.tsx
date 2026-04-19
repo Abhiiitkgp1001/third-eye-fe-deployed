@@ -489,7 +489,7 @@ export default function PeopleListDetailsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
             onClick={() => setShowAddModal(false)}
           >
             <motion.div
@@ -497,7 +497,7 @@ export default function PeopleListDetailsPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass p-8 rounded-2xl max-w-md w-full"
+              className="bg-secondary-background opacity-100 p-8 rounded-2xl max-w-md w-full border border-gray-800"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-foreground">Add Profile</h2>

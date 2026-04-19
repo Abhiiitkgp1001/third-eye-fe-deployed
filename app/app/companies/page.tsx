@@ -24,8 +24,16 @@ import {
   AlertDialogTitle,
   DropdownMenu,
   DropdownMenuItem,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
 } from "@/components/ui";
-import { Plus, Building2, Eye, Trash2, Loader2, TrendingUp, MoreVertical } from 'lucide-react';
+import { Plus, Building2, Eye, Trash2, Loader2, TrendingUp, MoreVertical, Pencil, Power } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateListWizard } from "./CreateListWizard";
 import { formatCadence } from "@/lib/trpc/schemas/companyList-schemas";
@@ -35,12 +43,15 @@ export default function CompaniesPage() {
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [renameListId, setRenameListId] = useState<string | null>(null);
+  const [newListName, setNewListName] = useState<string>('');
 
   // Fetch company lists using tRPC
   const { data: companyLists = [], isLoading } = trpc.companyLists.getAll.useQuery();
 
-  // Delete list mutation
+  // Mutations
   const utils = trpc.useUtils();
+
   const deleteListMutation = trpc.companyLists.delete.useMutation({
     onSuccess: () => {
       utils.companyLists.getAll.invalidate();
@@ -52,6 +63,17 @@ export default function CompaniesPage() {
     },
   });
 
+  const updateListMutation = trpc.companyLists.update.useMutation({
+    onSuccess: () => {
+      utils.companyLists.getAll.invalidate();
+      setRenameListId(null);
+      setNewListName('');
+    },
+    onError: (error) => {
+      setErrorMessage(`Error updating list: ${error.message}`);
+    },
+  });
+
   const handleDeleteList = (listId: string) => {
     setDeleteConfirmId(listId);
   };
@@ -60,6 +82,21 @@ export default function CompaniesPage() {
     if (deleteConfirmId) {
       deleteListMutation.mutate({ id: deleteConfirmId });
     }
+  };
+
+  const handleRenameList = (listId: string, currentName: string) => {
+    setRenameListId(listId);
+    setNewListName(currentName);
+  };
+
+  const confirmRename = () => {
+    if (renameListId && newListName.trim()) {
+      updateListMutation.mutate({ id: renameListId, name: newListName.trim() });
+    }
+  };
+
+  const handleToggleStatus = (listId: string, currentEnabled: boolean) => {
+    updateListMutation.mutate({ id: listId, enabled: !currentEnabled });
   };
 
   if (isLoading) {
@@ -203,6 +240,20 @@ export default function CompaniesPage() {
                           }
                         >
                           <DropdownMenuItem
+                            onClick={() => handleRenameList(list.id, list.name)}
+                            disabled={updateListMutation.isPending}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleToggleStatus(list.id, list.enabled)}
+                            disabled={updateListMutation.isPending}
+                          >
+                            <Power className="mr-2 h-4 w-4" />
+                            {list.enabled ? 'Deactivate' : 'Activate'}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             destructive
                             onClick={() => handleDeleteList(list.id)}
                             disabled={deleteListMutation.isPending}
@@ -244,6 +295,46 @@ export default function CompaniesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rename Dialog */}
+      <Dialog open={!!renameListId} onOpenChange={(open) => !open && setRenameListId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Company List</DialogTitle>
+            <DialogDescription>
+              Enter a new name for your company list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="listName" className="text-sm font-medium">
+              List Name
+            </Label>
+            <Input
+              id="listName"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              placeholder="Enter list name"
+              className="mt-2"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  confirmRename();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="neutral" onClick={() => setRenameListId(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmRename}
+              disabled={!newListName.trim() || updateListMutation.isPending}
+            >
+              {updateListMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>

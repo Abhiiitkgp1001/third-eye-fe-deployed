@@ -57,7 +57,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/50 z-40"
           />
 
           <motion.div
@@ -66,7 +66,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="fixed right-0 top-0 h-full w-full max-w-xl bg-dark-300 border-l border-gray-800 z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-xl bg-secondary-background opacity-100 border-l border-gray-800 z-50 flex flex-col"
           >
             {/* Header */}
             <div className="shrink-0 border-b border-gray-800 px-6 py-4 flex items-start justify-between gap-4">
