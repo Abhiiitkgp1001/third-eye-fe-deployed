@@ -173,8 +173,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Book a Demo Section */}
-      <section className="py-20 px-6 border-t-2 border-border">
+      {/* Book a Demo Section - Hidden for now */}
+      {/* <section className="py-20 px-6 border-t-2 border-border">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -183,7 +183,6 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="grid md:grid-cols-2 gap-12 items-center"
           >
-            {/* Left Column */}
             <div>
               <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-6">
                 See Third Eye on
@@ -221,7 +220,6 @@ export default function Home() {
                 </li>
               </ul>
 
-              {/* TODO: Replace with actual Calendly URL */}
               <Link href="https://calendly.com/thirdeye/demo" target="_blank" rel="noopener noreferrer">
                 <Button size="lg">
                   <Calendar className="mr-2 h-4 w-4" />
@@ -230,11 +228,9 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Right Column - Calendly Embed Placeholder */}
             <div>
               <div className="relative rounded-base border-4 border-border bg-secondary-background shadow-[8px_8px_0_0_var(--border)] overflow-hidden">
                 <div className="aspect-[3/4] flex items-center justify-center p-8">
-                  {/* TODO: Replace with Calendly inline embed */}
                   <div className="text-center">
                     <Calendar className="w-16 h-16 text-main mx-auto mb-4" />
                     <p className="text-foreground/60 font-base">
@@ -249,7 +245,7 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <section className="py-20 px-6 border-t-2 border-border bg-main">
