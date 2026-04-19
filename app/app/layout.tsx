@@ -4,11 +4,12 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, redirect } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { LayoutDashboard, Users, Building2, Settings, Shield, Menu, X, Bug, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Settings, Menu, X, Bug, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Image from "next/image";
 
 const navigation = (peopleLists: number, companyLists: number) => {
   const items = [
@@ -70,8 +71,8 @@ function SidebarContent({
       <div className="h-16 flex items-center justify-between px-5 border-b-2 border-border shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-base bg-main border-2 border-border flex items-center justify-center shadow-shadow">
-              <Shield className="w-4 h-4 text-main-foreground" />
+            <div className="w-8 h-8 flex items-center justify-center">
+              <Image src="/logo.svg" alt="Third Eye Logo" width={32} height={32} className="w-8 h-8" />
             </div>
             <span className="text-base font-heading text-foreground">Third Eye</span>
           </Link>
@@ -254,8 +255,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
 
           <div className="flex items-center gap-2 lg:hidden">
-            <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center">
-              <Shield className="w-3 h-3 text-main-foreground" />
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Image src="/logo.svg" alt="Third Eye Logo" width={24} height={24} className="w-6 h-6" />
             </div>
             <span className="font-heading text-foreground text-sm">Third Eye</span>
           </div>
