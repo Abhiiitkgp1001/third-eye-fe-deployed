@@ -19,13 +19,40 @@ export function DropdownMenu({ trigger, children, align = "end" }: DropdownMenuP
   const updatePosition = React.useCallback(() => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
+      const menuWidth = 160; // min-w-[10rem] = 160px
+      const menuHeight = 100; // approximate height
+      const padding = 8;
+
+      let top = rect.bottom + padding;
+      let left = rect.left;
+
+      // Adjust horizontal position if menu would go off-screen
+      if (align === "end") {
+        left = rect.right - menuWidth;
+      }
+
+      // Keep menu within right edge
+      if (left + menuWidth > window.innerWidth) {
+        left = window.innerWidth - menuWidth - padding;
+      }
+
+      // Keep menu within left edge
+      if (left < padding) {
+        left = padding;
+      }
+
+      // Keep menu within bottom edge
+      if (top + menuHeight > window.innerHeight) {
+        top = rect.top - menuHeight - padding;
+      }
+
       setPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
+        top,
+        left,
         width: rect.width,
       });
     }
-  }, []);
+  }, [align]);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -69,9 +96,8 @@ export function DropdownMenu({ trigger, children, align = "end" }: DropdownMenuP
         transition={{ duration: 0.15 }}
         className="fixed z-[9999] min-w-[10rem] overflow-hidden rounded-lg border border-gray-700 bg-dark-100 shadow-2xl"
         style={{
-          top: `${position.top + 8}px`,
-          left: align === "end" ? `${position.left + position.width}px` : `${position.left}px`,
-          transform: align === "end" ? "translateX(-100%)" : "translateX(0)",
+          top: `${position.top}px`,
+          left: `${position.left}px`,
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)'
         }}
       >

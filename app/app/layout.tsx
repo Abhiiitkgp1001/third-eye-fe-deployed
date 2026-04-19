@@ -10,36 +10,44 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const navigation = (peopleLists: number, companyLists: number) => [
-  {
-    name: 'Dashboard',
-    href: '/app',
-    icon: LayoutDashboard,
-    exact: true,
-  },
-  {
-    name: 'People Lists',
-    href: '/app/people',
-    icon: Users,
-    count: peopleLists,
-  },
-  {
-    name: 'Company Lists',
-    href: '/app/companies',
-    icon: Building2,
-    count: companyLists,
-  },
-  {
-    name: 'Settings',
-    href: '/app/settings',
-    icon: Settings,
-  },
-  {
-    name: 'Debug',
-    href: '/app/debug',
-    icon: Bug,
-  },
-];
+const navigation = (peopleLists: number, companyLists: number) => {
+  const items = [
+    {
+      name: 'Dashboard',
+      href: '/app',
+      icon: LayoutDashboard,
+      exact: true,
+    },
+    {
+      name: 'People Lists',
+      href: '/app/people',
+      icon: Users,
+      count: peopleLists,
+    },
+    {
+      name: 'Company Lists',
+      href: '/app/companies',
+      icon: Building2,
+      count: companyLists,
+    },
+    {
+      name: 'Settings',
+      href: '/app/settings',
+      icon: Settings,
+    },
+  ];
+
+  // Only show debug in development
+  if (process.env.NODE_ENV !== 'production') {
+    items.push({
+      name: 'Debug',
+      href: '/app/debug',
+      icon: Bug,
+    });
+  }
+
+  return items;
+};
 
 function SidebarContent({
   pathname,

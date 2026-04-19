@@ -1,13 +1,22 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 
 export default function DebugPage() {
+  const router = useRouter();
   const [pingResult, setPingResult] = useState<any>(null);
   const [authCheckResult, setAuthCheckResult] = useState<any>(null);
   const [isPinging, setIsPinging] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+
+  // Redirect to dashboard if in production
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      router.push('/app');
+    }
+  }, [router]);
 
   // Test mutations
   const pingMutation = trpc.test.ping.useQuery(undefined, { enabled: false });
