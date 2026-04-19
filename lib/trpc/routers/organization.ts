@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 import { getBackendAxios } from "../backend-client";
+import {
+  backendErrorFromAxios,
+  isAxiosError,
+  messageFromUnknown,
+} from "../backend-axios-errors";
 import { TRPCError } from "@trpc/server";
 
 // Organization schema (should match backend schema)
@@ -40,20 +45,21 @@ export const organizationRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error creating organization in backend:", error);
 
-        if (error.response?.data?.error?.code === "CONFLICT") {
+        const backend = backendErrorFromAxios(error);
+        if (backend?.error?.code === "CONFLICT") {
           throw new TRPCError({
             code: "CONFLICT",
-            message: error.response.data.error.message || "Organization already exists",
+            message: backend.error.message ?? "Organization already exists",
           });
         }
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to create organization: ${error.message}`,
-          cause: error,
+          message: `Failed to create organization: ${messageFromUnknown(error)}`,
+          cause: error instanceof Error ? error : undefined,
         });
       }
     }),
@@ -68,7 +74,7 @@ export const organizationRouter = router({
 
       try {
         const response = await axios.get("/organization.get", {
-          params: input,
+          params: { input: JSON.stringify(input) },
         });
 
         const parsed = OrganizationSchema.safeParse(response.data.result.data);
@@ -81,10 +87,10 @@ export const organizationRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error fetching organization from backend:", error);
 
-        if (error.response?.status === 404) {
+        if (isAxiosError(error) && error.response?.status === 404) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Organization not found",
@@ -93,8 +99,8 @@ export const organizationRouter = router({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch organization: ${error.message}`,
-          cause: error,
+          message: `Failed to fetch organization: ${messageFromUnknown(error)}`,
+          cause: error instanceof Error ? error : undefined,
         });
       }
     }),
@@ -125,10 +131,10 @@ export const organizationRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error updating organization in backend:", error);
 
-        if (error.response?.status === 404) {
+        if (isAxiosError(error) && error.response?.status === 404) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Organization not found",
@@ -137,8 +143,8 @@ export const organizationRouter = router({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to update organization: ${error.message}`,
-          cause: error,
+          message: `Failed to update organization: ${messageFromUnknown(error)}`,
+          cause: error instanceof Error ? error : undefined,
         });
       }
     }),
@@ -181,27 +187,28 @@ export const organizationRouter = router({
         }
 
         return parsed.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error updating webhook URL in backend:", error);
 
-        if (error.response?.status === 404) {
+        if (isAxiosError(error) && error.response?.status === 404) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Organization not found",
           });
         }
 
-        if (error.response?.data?.error?.code === "BAD_REQUEST") {
+        const backend = backendErrorFromAxios(error);
+        if (backend?.error?.code === "BAD_REQUEST") {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: error.response.data.error.message || "Invalid webhook URL",
+            message: backend.error.message ?? "Invalid webhook URL",
           });
         }
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to update webhook URL: ${error.message}`,
-          cause: error,
+          message: `Failed to update webhook URL: ${messageFromUnknown(error)}`,
+          cause: error instanceof Error ? error : undefined,
         });
       }
     }),

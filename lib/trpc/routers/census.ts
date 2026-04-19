@@ -47,7 +47,7 @@ export const censusRouter = router({
 
       try {
         const response = await axios.get("/census.check", {
-          params: input,
+          params: { input: JSON.stringify(input) },
         });
 
         const parsed = CheckOutputSchema.safeParse(response.data.result.data);
