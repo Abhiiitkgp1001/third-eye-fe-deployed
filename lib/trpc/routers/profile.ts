@@ -27,7 +27,7 @@ export const profileRouter = router({
 
       try {
         const response = await axios.get("/profile.get", {
-          params: input,
+          params: { input: JSON.stringify(input) },
         });
 
         const parsed = ProfileSignalOutput.safeParse(response.data.result.data);
