@@ -9,6 +9,7 @@ import {
 import { TRPCError } from "@trpc/server";
 
 // Organization schema (should match backend schema)
+// JSON over HTTP always serializes dates as strings — coerce to Date.
 const OrganizationSchema = z.object({
   id: z.string(),
   name: z.string(),
