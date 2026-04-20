@@ -180,6 +180,74 @@ export default function PeopleListDetailsPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Signal Validation Progress Banner */}
+      {validateSignalsWithAIMutation.isPending && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-purple-500/10 border-4 border-purple-500 rounded-lg shadow-[4px_4px_0_0_var(--border)]"
+        >
+          <div className="flex items-center gap-3">
+            <RefreshCw className="h-5 w-5 animate-spin text-purple-500" />
+            <div>
+              <p className="font-bold text-purple-500 text-lg">Validating Signals with AI</p>
+              <p className="text-sm text-purple-400">
+                Processing {total} profiles to detect movements. This may take several minutes (est. ~3 seconds per profile).
+              </p>
+              <p className="text-xs text-purple-300 mt-1">
+                Please wait... The page will automatically refresh when validation is complete.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Enrichment Progress Banner */}
+      {isEnriching && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-blue-500/10 border-4 border-blue-500 rounded-lg shadow-[4px_4px_0_0_var(--border)]"
+        >
+          <div className="flex items-center gap-3">
+            <RefreshCw className="h-5 w-5 animate-spin text-blue-500" />
+            <div>
+              <p className="font-bold text-blue-500 text-lg">Enrichment in Progress</p>
+              <p className="text-sm text-blue-400">
+                Enriching {total} profiles with latest LinkedIn data. This may take several minutes.
+                {list.enrichmentStartedAt && ` Started ${new Date(list.enrichmentStartedAt).toLocaleTimeString()}`}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Enrichment Error Banner */}
+      {hasEnrichmentError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-red-500/10 border-4 border-red-500 rounded-lg shadow-[4px_4px_0_0_var(--border)]"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold text-red-500 text-lg">Enrichment Failed</p>
+              <p className="text-sm text-red-400">
+                {list.enrichmentError || 'An unexpected error occurred during enrichment'}
+              </p>
+            </div>
+            <Button
+              variant="neutral"
+              size="sm"
+              onClick={handleValidateSignals}
+              disabled={validateSignalsWithAIMutation.isPending}
+            >
+              Retry
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Main Info Card - Title, Stats, Signals, Buttons */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -216,7 +284,8 @@ export default function PeopleListDetailsPage() {
                   </div>
                   <button
                     onClick={() => setShowRenameModal(true)}
-                    className="p-2 text-foreground/60 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
+                    disabled={isEnriching || validateSignalsWithAIMutation.isPending}
+                    className="p-2 text-foreground/60 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Rename list"
                   >
                     <Pencil className="h-4 w-4" />
@@ -230,6 +299,7 @@ export default function PeopleListDetailsPage() {
                     variant="neutral"
                     size="sm"
                     onClick={() => router.push(`/app/people/${listId}/movements`)}
+                    disabled={isEnriching || validateSignalsWithAIMutation.isPending}
                     title="View signal movements"
                   >
                     <TrendingUp className="h-4 w-4" />
@@ -263,6 +333,7 @@ export default function PeopleListDetailsPage() {
                     variant={list.enabled ? 'neutral' : 'default'}
                     size="sm"
                     onClick={handleToggleEnabled}
+                    disabled={isEnriching || validateSignalsWithAIMutation.isPending}
                   >
                     {list.enabled ? 'Deactivate' : 'Activate'}
                   </Button>
@@ -353,7 +424,7 @@ export default function PeopleListDetailsPage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowAddModal(true)}
-                disabled={isEnriching}
+                disabled={isEnriching || validateSignalsWithAIMutation.isPending}
               >
                 <Plus className="h-4 w-4" /> Add Profile
               </Button>
@@ -361,7 +432,7 @@ export default function PeopleListDetailsPage() {
                 variant="neutral"
                 size="sm"
                 onClick={() => setShowCsvUploadModal(true)}
-                disabled={isEnriching}
+                disabled={isEnriching || validateSignalsWithAIMutation.isPending}
               >
                 <Upload className="h-4 w-4" /> Upload CSV
               </Button>
@@ -369,51 +440,6 @@ export default function PeopleListDetailsPage() {
           </div>
         </Card>
       </motion.div>
-
-      {/* Enrichment Progress Banner */}
-      {isEnriching && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-4 bg-blue-500/10 border-2 border-blue-500 rounded-lg"
-        >
-          <div className="flex items-center gap-3">
-            <RefreshCw className="h-5 w-5 animate-spin text-blue-500" />
-            <div>
-              <p className="font-semibold text-blue-500">Enrichment in Progress</p>
-              <p className="text-sm text-blue-400">
-                Validating {total} profiles for signal changes. This may take several minutes.
-                {list.enrichmentStartedAt && ` Started ${new Date(list.enrichmentStartedAt).toLocaleTimeString()}`}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Enrichment Error Banner */}
-      {hasEnrichmentError && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-4 bg-red-500/10 border-2 border-red-500 rounded-lg"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-red-500">Enrichment Failed</p>
-              <p className="text-sm text-red-400">
-                {list.enrichmentError || 'An unexpected error occurred during enrichment'}
-              </p>
-            </div>
-            <Button
-              variant="neutral"
-              size="sm"
-              onClick={handleValidateSignals}
-            >
-              Retry
-            </Button>
-          </div>
-        </motion.div>
-      )}
 
       {/* Profiles Table */}
       <motion.div
