@@ -153,3 +153,34 @@ export const ProfileDataSchema = z
   .passthrough();
 
 export type ProfileData = z.infer<typeof ProfileDataSchema>;
+
+// Post with engagement data (from Activities API)
+export const PostWithEngagementSchema = z
+  .object({
+    activity: z.any().nullish(), // Post activity data (content, author, metadata)
+    comments: z.any().nullish(), // Comments on the post
+    reactions: z.any().nullish(), // Reactions on the post
+  })
+  .passthrough();
+
+export type PostWithEngagement = z.infer<typeof PostWithEngagementSchema>;
+
+// Aggregated data schema (profile + posts)
+// This is the new format stored in latestMetadata after backend changes
+export const PeopleAggregatedDataSchema = z
+  .object({
+    profile: ProfileDataSchema.nullish(),
+    posts: z.array(PostWithEngagementSchema).nullish(),
+  })
+  .passthrough();
+
+export type PeopleAggregatedData = z.infer<typeof PeopleAggregatedDataSchema>;
+
+// Union schema for backward compatibility
+// Handles both old format (just ProfileData) and new format (PeopleAggregatedData)
+export const ProfileMetadataSchema = z.union([
+  ProfileDataSchema,          // Old format: direct profile data
+  PeopleAggregatedDataSchema, // New format: { profile, posts }
+]);
+
+export type ProfileMetadata = z.infer<typeof ProfileMetadataSchema>;

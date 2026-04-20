@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProfileDataSchema } from "../../schemas/external";
+import { ProfileMetadataSchema } from "../../schemas/external";
 
 // ── Enums ──────────────────────────────────────────────────────────────
 
@@ -42,9 +42,11 @@ export const PeopleListSchema = z.object({
 export type PeopleList = z.infer<typeof PeopleListSchema>;
 
 // ── Profile Metadata ───────────────────────────────────────────────────
-// NOTE: ProfileData from schemas/external/profile.ts is the source of truth.
-// It's properly typed via Zod and contains all fields needed for display.
-// Use profile.latestMetadata directly (typed as ProfileData | null).
+// NOTE: ProfileMetadata from schemas/external/profile.ts is the source of truth.
+// It's a union type that handles both old format (just ProfileData) and new format (PeopleAggregatedData).
+// New format: { profile: ProfileData, posts: PostWithEngagement[] }
+// Old format: ProfileData (for backward compatibility)
+// Use profile.latestMetadata directly (typed as ProfileMetadata | null).
 
 // ── Movement Schema ────────────────────────────────────────────────────
 
@@ -93,7 +95,7 @@ export const ProfileSchema = z.object({
   id: z.string(),
   peopleListId: z.string(),
   linkedinUrl: z.string(),
-  latestMetadata: ProfileDataSchema.nullable(),
+  latestMetadata: ProfileMetadataSchema.nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullable(),
   ordinal: z.number(),
