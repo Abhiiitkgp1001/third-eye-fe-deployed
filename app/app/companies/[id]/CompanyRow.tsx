@@ -17,7 +17,11 @@ export default function CompanyRow({
   index,
 }: CompanyRowProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const metadata = company.latestMetadata;
+
+  // Handle both old format (direct CompanyData) and new format (CompanyAggregatedData)
+  const rawMetadata = company.latestMetadata;
+  const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'company' in rawMetadata;
+  const metadata = isAggregatedFormat ? (rawMetadata as any).company : rawMetadata;
 
   const displayName = metadata?.company_name || null;
 

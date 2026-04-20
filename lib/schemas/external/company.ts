@@ -115,3 +115,34 @@ export const CompanyDataSchema = z
   .passthrough();
 
 export type CompanyData = z.infer<typeof CompanyDataSchema>;
+
+// Post with engagement data (from Activities API)
+export const PostWithEngagementSchema = z
+  .object({
+    activity: z.any().nullish(), // Post activity data (content, author, metadata)
+    comments: z.any().nullish(), // Comments on the post
+    reactions: z.any().nullish(), // Reactions on the post
+  })
+  .passthrough();
+
+export type PostWithEngagement = z.infer<typeof PostWithEngagementSchema>;
+
+// Aggregated data schema (company + posts)
+// This is the new format stored in latestMetadata after backend changes
+export const CompanyAggregatedDataSchema = z
+  .object({
+    company: CompanyDataSchema.nullish(),
+    company_posts: z.array(PostWithEngagementSchema).nullish(),
+  })
+  .passthrough();
+
+export type CompanyAggregatedData = z.infer<typeof CompanyAggregatedDataSchema>;
+
+// Union schema for backward compatibility
+// Handles both old format (just CompanyData) and new format (CompanyAggregatedData)
+export const CompanyMetadataSchema = z.union([
+  CompanyDataSchema,             // Old format: direct company data
+  CompanyAggregatedDataSchema,   // New format: { company, company_posts }
+]);
+
+export type CompanyMetadata = z.infer<typeof CompanyMetadataSchema>;

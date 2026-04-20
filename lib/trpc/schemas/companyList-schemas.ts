@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CompanyDataSchema } from "../../schemas/external";
+import { CompanyMetadataSchema } from "../../schemas/external";
 
 // ── Enums ──────────────────────────────────────────────────────────────
 
@@ -54,12 +54,17 @@ export type CompanyList = z.infer<typeof CompanyListSchema>;
 export type MovementDefinition = z.infer<typeof MovementDefinitionSchema>;
 
 // ── Company Schema ─────────────────────────────────────────────────────
+// NOTE: CompanyMetadata from schemas/external/company.ts is the source of truth.
+// It's a union type that handles both old format (just CompanyData) and new format (CompanyAggregatedData).
+// New format: { company: CompanyData, company_posts: PostWithEngagement[] }
+// Old format: CompanyData (for backward compatibility)
+// Use company.latestMetadata directly (typed as CompanyMetadata | null).
 
 export const CompanySchema = z.object({
   id: z.string(),
   companyListId: z.string(),
   linkedinUrl: z.string(),
-  latestMetadata: CompanyDataSchema.nullable(),
+  latestMetadata: CompanyMetadataSchema.nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullable(),
   ordinal: z.number(),
