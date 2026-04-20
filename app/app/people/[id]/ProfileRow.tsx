@@ -20,7 +20,12 @@ export default function ProfileRow({
   index,
 }: ProfileRowProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const metadata = profile.latestMetadata;
+
+  // Handle both old format (direct ProfileData) and new format (PeopleAggregatedData)
+  const rawMetadata = profile.latestMetadata;
+  const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'profile' in rawMetadata;
+  const metadata = isAggregatedFormat ? (rawMetadata as any).profile : rawMetadata;
+
   // Filter out NO_CHANGE and show only 2 most recent actual movements
   const actualMovements = movements.filter(m => m.movement !== "NO_CHANGE");
   const recentMovements = actualMovements.slice(0, 2);

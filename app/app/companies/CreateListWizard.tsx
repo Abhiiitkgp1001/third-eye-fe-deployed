@@ -19,11 +19,7 @@ import {
 import { Loader2, ArrowLeft, Sparkles, X } from "lucide-react";
 import { COMPANY_SIGNAL_GROUPS, type CompanySignal } from "@/lib/companyMovements";
 import { cn } from "@/lib/utils";
-
-interface MovementDefinition {
-  name: string;
-  description: string;
-}
+import type { MovementDefinition } from "@/lib/trpc/schemas/companyList-schemas";
 
 interface CreateListWizardProps {
   open: boolean;
@@ -69,7 +65,13 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   const allMovements: MovementDefinition[] = [
     ...Array.from(selectedSignals).map((key) => {
       const def = COMPANY_SIGNAL_GROUPS.flatMap((g) => g.signals).find((s) => s.key === key)!;
-      return { name: key, description: def.description };
+      return {
+        name: key,
+        description: def.description,
+        dataSources: { company: true, posts: false },
+        companyKeys: null, // Examine all company fields
+        postKeys: null,
+      };
     }),
     ...aiMovements.filter(
       (m) => !Array.from(selectedSignals).some((k) => k === m.name),

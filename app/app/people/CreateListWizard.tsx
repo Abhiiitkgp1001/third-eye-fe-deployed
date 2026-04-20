@@ -19,11 +19,7 @@ import {
 import { Loader2, ArrowLeft, Sparkles, X } from "lucide-react";
 import { SIGNAL_GROUPS, type ProfileSignal } from "@/lib/movements";
 import { cn } from "@/lib/utils";
-
-interface MovementDefinition {
-  name: string;
-  description: string;
-}
+import type { MovementDefinition } from "@/lib/trpc/schemas/peopleList-schemas";
 
 interface CreateListWizardProps {
   open: boolean;
@@ -69,7 +65,13 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   const allMovements: MovementDefinition[] = [
     ...Array.from(selectedSignals).map((key) => {
       const def = SIGNAL_GROUPS.flatMap((g) => g.signals).find((s) => s.key === key)!;
-      return { name: key, description: def.description };
+      return {
+        name: key,
+        description: def.description,
+        dataSources: { profile: true, posts: false },
+        profileKeys: null, // Examine all profile fields
+        postKeys: null,
+      };
     }),
     ...aiMovements.filter(
       (m) => !Array.from(selectedSignals).some((k) => k === m.name),

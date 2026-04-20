@@ -12,6 +12,19 @@ export const CompanyMovementSchema = z.enum(["COMPANY_SNAPSHOT", "COMPANY_NOT_FO
 export const MovementDefinitionSchema = z.object({
   name: z.string(),
   description: z.string(),
+  // Data filtering configuration (required, defaults to company-only if null)
+  dataSources: z.object({
+    company: z.boolean(),  // Include company data
+    posts: z.boolean(),    // Include posts data
+  }).nullable(),
+  // Specific company keys to extract (required, can be null)
+  companyKeys: z.array(z.string()).nullable(),
+  // Which post data to include (required, can be null)
+  postKeys: z.object({
+    activity: z.boolean(),   // Post content/metadata
+    comments: z.boolean(),   // Comments on posts
+    reactions: z.boolean(),  // Reactions on posts
+  }).nullable(),
 });
 
 export const CompanyListSchema = z.object({

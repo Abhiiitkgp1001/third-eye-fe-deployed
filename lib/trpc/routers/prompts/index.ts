@@ -2,14 +2,15 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../../trpc";
 import { getBackendAxios } from "../../backend-client";
+import { MovementDefinitionSchema as PeopleMovementDefinitionSchema } from "../../schemas/peopleList-schemas";
+import { MovementDefinitionSchema as CompanyMovementDefinitionSchema } from "../../schemas/companyList-schemas";
 
-const MovementDefinitionSchema = z.object({
-  name:        z.string(),
-  description: z.string(),
+const ProcessPromptForPeopleResponseSchema = z.object({
+  movements: z.array(PeopleMovementDefinitionSchema),
 });
 
-const ProcessPromptResponseSchema = z.object({
-  movements: z.array(MovementDefinitionSchema),
+const ProcessPromptForCompanyResponseSchema = z.object({
+  movements: z.array(CompanyMovementDefinitionSchema),
 });
 
 /**
@@ -19,7 +20,7 @@ const ProcessPromptResponseSchema = z.object({
 export const promptsRouter = router({
   processForPeopleList: protectedProcedure
     .input(z.object({ prompt: z.string().min(1).max(2000) }))
-    .output(ProcessPromptResponseSchema)
+    .output(ProcessPromptForPeopleResponseSchema)
     .mutation(async ({ input }) => {
       const axios = await getBackendAxios();
 
@@ -28,7 +29,7 @@ export const promptsRouter = router({
           prompt: input.prompt,
         });
 
-        const parsed = ProcessPromptResponseSchema.safeParse(response.data.result.data);
+        const parsed = ProcessPromptForPeopleResponseSchema.safeParse(response.data.result.data);
         if (!parsed.success) {
           console.error("[prompts.processForPeopleList] Bad response from shiv:", parsed.error);
           throw new TRPCError({
@@ -50,7 +51,7 @@ export const promptsRouter = router({
 
   processForCompanyList: protectedProcedure
     .input(z.object({ prompt: z.string().min(1).max(2000) }))
-    .output(ProcessPromptResponseSchema)
+    .output(ProcessPromptForCompanyResponseSchema)
     .mutation(async ({ input }) => {
       const axios = await getBackendAxios();
 
@@ -59,7 +60,7 @@ export const promptsRouter = router({
           prompt: input.prompt,
         });
 
-        const parsed = ProcessPromptResponseSchema.safeParse(response.data.result.data);
+        const parsed = ProcessPromptForCompanyResponseSchema.safeParse(response.data.result.data);
         if (!parsed.success) {
           console.error("[prompts.processForCompanyList] Bad response from backend:", parsed.error);
           throw new TRPCError({

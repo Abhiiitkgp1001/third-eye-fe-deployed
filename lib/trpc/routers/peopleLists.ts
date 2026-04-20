@@ -10,6 +10,7 @@ import {
   AddProfilesResponseSchema,
   ValidateSignalsResponseSchema,
   MovementSchema,
+  MovementDefinitionSchema,
   type GetAllPeopleListsResponse,
   type CreatePeopleListResponse,
   type GetPeopleListResponse,
@@ -133,10 +134,7 @@ export const peopleListsRouter = router({
         prompt: z.string().optional(),
         min: z.number().optional(),
         max: z.number().optional(),
-        movementDefinitions: z.array(z.object({
-          name: z.string(),
-          description: z.string(),
-        })).optional(),
+        movementDefinitions: z.array(MovementDefinitionSchema).optional(),
         cadence: z.enum(["MANUAL", "DAILY", "WEEKLY", "MONTHLY"]).optional(),
         cadenceInterval: z.number().int().positive().max(365).optional(),
         profiles: z.array(z.object({

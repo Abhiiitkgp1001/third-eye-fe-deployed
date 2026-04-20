@@ -22,7 +22,13 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 }
 
 export default function ProfileSheet({ profile, movements, onClose }: ProfileSheetProps) {
-  const metadata = profile?.latestMetadata ?? null;
+  const rawMetadata = profile?.latestMetadata ?? null;
+
+  // Handle both old format (direct ProfileData) and new format (PeopleAggregatedData)
+  const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'profile' in rawMetadata;
+  const metadata = isAggregatedFormat ? (rawMetadata as any).profile : rawMetadata;
+  const posts = isAggregatedFormat ? (rawMetadata as any).posts ?? [] : [];
+
   const displayName = metadata
     ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim() || null
     : null;
@@ -307,6 +313,59 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                     {(metadata?.skills ?? []).slice(0, 20).map((skill: string, idx: number) => (
                       <Badge key={idx} variant="neutral">{skill}</Badge>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {posts.length > 0 && (
+                <div>
+                  <SectionHeader>Recent Posts ({posts.length})</SectionHeader>
+                  <div className="space-y-4 mt-3">
+                    {posts.map((post: any, idx: number) => {
+                      const activity = post.activity;
+                      const comments = post.comments;
+                      const reactions = post.reactions;
+
+                      // Extract post content and metadata
+                      const text = activity?.commentary || "";
+                      const createdAt = activity?.created_at;
+                      const numComments = comments?.pagination?.total || 0;
+                      const numReactions = reactions?.pagination?.total || 0;
+
+                      return (
+                        <div key={idx} className="p-4 bg-dark-200/60 rounded-lg border border-gray-800 space-y-3">
+                          {/* Post content */}
+                          {text && (
+                            <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap line-clamp-6">
+                              {text}
+                            </p>
+                          )}
+
+                          {/* Engagement stats */}
+                          <div className="flex items-center gap-4 text-xs text-foreground/50">
+                            {createdAt && (
+                              <span>
+                                {new Date(createdAt * 1000).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric"
+                                })}
+                              </span>
+                            )}
+                            {numReactions > 0 && (
+                              <span className="flex items-center gap-1">
+                                👍 {numReactions.toLocaleString()} reaction{numReactions !== 1 ? 's' : ''}
+                              </span>
+                            )}
+                            {numComments > 0 && (
+                              <span className="flex items-center gap-1">
+                                💬 {numComments.toLocaleString()} comment{numComments !== 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

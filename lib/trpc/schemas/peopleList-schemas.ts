@@ -12,6 +12,19 @@ export const ProfileMovementSchema = z.enum(["PROFILE_ENRICHED", "PROFILE_NOT_FO
 export const MovementDefinitionSchema = z.object({
   name: z.string(),
   description: z.string(),
+  // Data filtering configuration (required, defaults to profile-only if null)
+  dataSources: z.object({
+    profile: z.boolean(),  // Include profile data
+    posts: z.boolean(),    // Include posts data
+  }).nullable(),
+  // Specific profile keys to extract (required, can be null)
+  profileKeys: z.array(z.string()).nullable(),
+  // Which post data to include (required, can be null)
+  postKeys: z.object({
+    activity: z.boolean(),   // Post content/metadata
+    comments: z.boolean(),   // Comments on posts
+    reactions: z.boolean(),  // Reactions on posts
+  }).nullable(),
 });
 
 export type MovementDefinition = z.infer<typeof MovementDefinitionSchema>;
