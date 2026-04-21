@@ -10,3 +10,14 @@ export const DateDataSchema = z.object({
 });
 
 export type DateData = z.infer<typeof DateDataSchema>;
+
+// Shared post engagement schema used across profile and company data
+export const PostWithEngagementSchema = z
+  .object({
+    activity: z.any().nullish(), // Post activity data (content, author, metadata)
+    comments: z.any().nullish(), // Comments on the post
+    reactions: z.any().nullish(), // Reactions on the post
+  })
+  .passthrough();
+
+export type PostWithEngagement = z.infer<typeof PostWithEngagementSchema>;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DateDataSchema } from "./shared";
+import { DateDataSchema, PostWithEngagementSchema } from "./shared";
 
 // Profile data schema with passthrough enabled to preserve unknown fields
 // Zod coercion applied on numeric/date fields to handle type inconsistencies
@@ -155,15 +155,7 @@ export const ProfileDataSchema = z
 export type ProfileData = z.infer<typeof ProfileDataSchema>;
 
 // Post with engagement data (from Activities API)
-export const PostWithEngagementSchema = z
-  .object({
-    activity: z.any().nullish(), // Post activity data (content, author, metadata)
-    comments: z.any().nullish(), // Comments on the post
-    reactions: z.any().nullish(), // Reactions on the post
-  })
-  .passthrough();
-
-export type PostWithEngagement = z.infer<typeof PostWithEngagementSchema>;
+// PostWithEngagement is now exported from shared.ts to avoid duplication
 
 // Aggregated data schema (profile + posts)
 // This is the new format stored in latestMetadata after backend changes

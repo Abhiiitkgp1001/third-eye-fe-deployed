@@ -236,7 +236,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                 <div>
                   <SectionHeader>Experience</SectionHeader>
                   <div className="space-y-3 mt-3">
-                    {(metadata?.experience ?? []).map((exp, idx: number) => (
+                    {(metadata?.experience ?? []).map((exp: any, idx: number) => (
                       <div key={idx} className="flex gap-4 p-4 bg-dark-200/60 rounded-lg border border-gray-800">
                         {exp.company_logo_url && (
                           <img
@@ -280,7 +280,7 @@ export default function ProfileSheet({ profile, movements, onClose }: ProfileShe
                 <div>
                   <SectionHeader>Education</SectionHeader>
                   <div className="space-y-3 mt-3">
-                    {(metadata?.education ?? []).map((edu, idx: number) => (
+                    {(metadata?.education ?? []).map((edu: any, idx: number) => (
                       <div key={idx} className="flex gap-4 p-4 bg-dark-200/60 rounded-lg border border-gray-800">
                         {edu.school_logo_url && (
                           <img

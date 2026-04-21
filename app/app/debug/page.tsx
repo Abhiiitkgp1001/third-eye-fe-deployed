@@ -31,8 +31,8 @@ export default function DebugPage() {
   }, [router]);
 
   // Test mutations
-  const pingMutation = trpc.test.ping.useQuery(undefined, { enabled: false });
-  const authCheckMutation = trpc.test.authCheck.useMutation();
+  const pingMutation = trpc.test?.ping.useQuery(undefined, { enabled: false });
+  const authCheckMutation = trpc.test?.authCheck.useMutation();
   const peopleAggregatedQuery = trpc.activities.peopleAggregated.useQuery(
     { profileId, maxPosts, maxComments, maxReactions },
     { enabled: false }
@@ -43,6 +43,10 @@ export default function DebugPage() {
   );
 
   const handlePing = async () => {
+    if (!pingMutation) {
+      setPingResult({ success: false, error: 'Test router not available' });
+      return;
+    }
     setIsPinging(true);
     setPingResult(null);
     try {
@@ -56,6 +60,10 @@ export default function DebugPage() {
   };
 
   const handleAuthCheck = async () => {
+    if (!authCheckMutation) {
+      setAuthCheckResult({ success: false, error: 'Test router not available' });
+      return;
+    }
     setIsCheckingAuth(true);
     setAuthCheckResult(null);
     try {
