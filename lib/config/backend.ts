@@ -16,14 +16,14 @@ export const BACKEND_URLS = {
 function getBackendBaseUrl(): string {
   // For now, always use Railway production backend
   // TODO: Add environment-based logic when we deploy frontend to production
-  return BACKEND_URLS.LOCAL;
+  // return BACKEND_URLS.LOCAL;
 
   // Commented out: environment-based logic
-  // const backendBase: string = match(CURRENT_ENVIRONMENT)
-  //   .with("production", () => BACKEND_URLS.PRODUCTION)
-  //   .with("development", () => BACKEND_URLS.LOCAL)
-  //   .exhaustive();
-  // return backendBase;
+  const backendBase: string = match(CURRENT_ENVIRONMENT)
+    .with("production", () => BACKEND_URLS.PRODUCTION)
+    .with("development", () => BACKEND_URLS.LOCAL)
+    .exhaustive();
+  return backendBase;
 }
 
 /**
