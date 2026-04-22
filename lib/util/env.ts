@@ -49,8 +49,6 @@ export const environment = parseEnv(process.env, {
   NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: EnvStringSchema,
   NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: EnvStringSchema,
   API_SKELETON_KEY: EnvStringSchema.optional().default(""),
-  OPENAI_API_KEY: EnvStringSchema,
-
   // Parvat — Supabase Postgres (project: naojfvqtiurghlsicrvt)
   // DIRECT: port 5432, used by drizzle-kit (migrations/introspection) only.
   // POOLER: port 6543 PgBouncer transaction mode, used by the runtime server.
