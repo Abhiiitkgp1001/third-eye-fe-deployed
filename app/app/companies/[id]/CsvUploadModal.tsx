@@ -15,8 +15,15 @@ interface CsvUploadModalProps {
   onUpload: (linkedinUrls: string[]) => Promise<void>;
 }
 
-// LinkedIn Company URL regex - supports /company/, /showcase/, /school/
-const LINKEDIN_COMPANY_URL_REGEX = /^https?:\/\/(www\.)?linkedin\.com\/(company|showcase|school)\/[a-zA-Z0-9-]+\/?$/;
+// Extraction regex matching backend (enrich.ts) — handles query params, fragments, trailing paths, international domains
+const COMPANY_LI_SLUG_REGEX =
+  /^(https?:\/\/)?(\w+\.)?linkedin\.\w+(\.\w+)?\/(company|company-beta|showcase|organization|school|companies)\/(?<slug>[^/?#]+)(\/[^?#]*)?(\?.*)?(#.*)?$/i;
+
+function cleanLinkedInCompanyUrl(raw: string): string | null {
+  const slug = COMPANY_LI_SLUG_REGEX.exec(raw.trim())?.groups?.["slug"];
+  if (!slug) return null;
+  return `https://www.linkedin.com/company/${slug}`;
+}
 
 interface CsvData {
   headers: string[];
@@ -73,7 +80,7 @@ export default function CsvUploadModal({
     const columnValues = csvData.rows.map((row) => row[columnIndex]).filter(Boolean);
 
     columnValues.forEach((value, idx) => {
-      if (!LINKEDIN_COMPANY_URL_REGEX.test(value)) {
+      if (!cleanLinkedInCompanyUrl(value)) {
         errors.push(`Row ${idx + 2}: "${value}" is not a valid LinkedIn company URL`);
       }
     });
@@ -92,7 +99,9 @@ export default function CsvUploadModal({
 
     const linkedinUrls = csvData.rows
       .map((row) => row[selectedColumn])
-      .filter((url) => url && LINKEDIN_COMPANY_URL_REGEX.test(url));
+      .filter(Boolean)
+      .map((url) => cleanLinkedInCompanyUrl(url))
+      .filter((url): url is string => url !== null);
 
     if (linkedinUrls.length === 0) {
       setErrorMessage("No valid LinkedIn company URLs found in the selected column");
@@ -132,7 +141,7 @@ export default function CsvUploadModal({
 
   const validLinkedinUrlsCount = csvData && selectedColumn !== null
     ? csvData.rows.filter((row) =>
-        row[selectedColumn] && LINKEDIN_COMPANY_URL_REGEX.test(row[selectedColumn])
+        row[selectedColumn] && cleanLinkedInCompanyUrl(row[selectedColumn])
       ).length
     : 0;
 

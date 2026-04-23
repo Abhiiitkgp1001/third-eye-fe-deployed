@@ -15,8 +15,15 @@ interface CsvUploadModalProps {
   onUpload: (linkedinUrls: string[]) => Promise<void>;
 }
 
-// LinkedIn URL regex from backend schema
-const LINKEDIN_URL_REGEX = /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/;
+// Extraction regex matching backend (people-list/schemas.ts) — handles query params, fragments, trailing paths, international domains
+const PROFILE_LI_SLUG_REGEX =
+  /^(https?:\/\/)?(\w+\.)?linkedin\.\w+(\.\w+)?\/in\/(?<slug>[^/?#]+)(\/[^?#]*)?(\?.*)?(#.*)?$/i;
+
+function cleanLinkedInProfileUrl(raw: string): string | null {
+  const slug = PROFILE_LI_SLUG_REGEX.exec(raw.trim())?.groups?.["slug"];
+  if (!slug) return null;
+  return `https://www.linkedin.com/in/${slug}`;
+}
 
 interface CsvData {
   headers: string[];
@@ -73,7 +80,7 @@ export default function CsvUploadModal({
     const columnValues = csvData.rows.map((row) => row[columnIndex]).filter(Boolean);
 
     columnValues.forEach((value, idx) => {
-      if (!LINKEDIN_URL_REGEX.test(value)) {
+      if (!cleanLinkedInProfileUrl(value)) {
         errors.push(`Row ${idx + 2}: "${value}" is not a valid LinkedIn URL`);
       }
     });
@@ -92,7 +99,9 @@ export default function CsvUploadModal({
 
     const linkedinUrls = csvData.rows
       .map((row) => row[selectedColumn])
-      .filter((url) => url && LINKEDIN_URL_REGEX.test(url));
+      .filter(Boolean)
+      .map((url) => cleanLinkedInProfileUrl(url))
+      .filter((url): url is string => url !== null);
 
     if (linkedinUrls.length === 0) {
       setErrorMessage("No valid LinkedIn URLs found in the selected column");
@@ -132,7 +141,7 @@ export default function CsvUploadModal({
 
   const validLinkedinUrlsCount = csvData && selectedColumn !== null
     ? csvData.rows.filter((row) =>
-        row[selectedColumn] && LINKEDIN_URL_REGEX.test(row[selectedColumn])
+        row[selectedColumn] && cleanLinkedInProfileUrl(row[selectedColumn])
       ).length
     : 0;
 
