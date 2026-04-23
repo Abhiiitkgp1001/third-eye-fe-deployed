@@ -1,6 +1,6 @@
 'use client';
 
-import { UserButton, useUser } from "@clerk/nextjs";
+import { UserButton, useUser, OrganizationSwitcher, useOrganizationList } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, redirect } from "next/navigation";
 import { trpc } from "@/lib/trpc";
@@ -64,6 +64,14 @@ function SidebarContent({
   const { data: companyLists = [] } = trpc.companyLists.getAll.useQuery();
   const { data: peopleLists = [] } = trpc.peopleLists.getAll.useQuery();
   const navItems = navigation(peopleLists.length, companyLists.length);
+
+  // Check if user has multiple organizations
+  const { userMemberships, isLoaded: orgsLoaded } = useOrganizationList({
+    userMemberships: {
+      infinite: true,
+    },
+  });
+  const hasMultipleOrgs = orgsLoaded && (userMemberships?.data?.length ?? 0) > 1;
 
   return (
     <div className="flex flex-col h-full bg-secondary-background border-r-2 border-border w-64">
@@ -133,6 +141,26 @@ function SidebarContent({
           );
         })}
       </nav>
+
+      {/* Organization Switcher (only if multiple orgs) */}
+      {hasMultipleOrgs && (
+        <div className="px-3 pb-3 shrink-0">
+          <div className="px-3 py-2.5 rounded-base border-2 border-border bg-background">
+            <OrganizationSwitcher
+              hidePersonal={false}
+              appearance={{
+                elements: {
+                  rootBox: 'w-full',
+                  organizationSwitcherTrigger: 'w-full justify-start px-0 py-0 border-0 shadow-none',
+                  organizationSwitcherTriggerIcon: 'text-foreground/60',
+                  organizationPreviewTextContainer: 'text-sm',
+                  organizationPreviewMainIdentifier: 'text-foreground font-heading',
+                },
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* User Profile */}
       <div className="p-3 border-t-2 border-border shrink-0">
