@@ -44,7 +44,7 @@ export const promptsRouter = router({
         console.error("[prompts.processForPeopleList] Error:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to process prompt",
+          message: "Something went wrong. Please contact support.",
         });
       }
     }),
@@ -75,7 +75,7 @@ export const promptsRouter = router({
         console.error("[prompts.processForCompanyList] Error:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to process prompt",
+          message: "Something went wrong. Please contact support.",
         });
       }
     }),

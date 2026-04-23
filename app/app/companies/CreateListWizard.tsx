@@ -41,12 +41,18 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
 
   const processPrompt = trpc.prompts.processForCompanyList.useMutation({
     onSuccess: (data) => {
-      setAiMovements(data.movements);
+      // Merge new AI movements with existing ones (dedupe by name)
+      setAiMovements((prev) => {
+        const existingNames = new Set(prev.map(m => m.name));
+        const newMovements = data.movements.filter(m => !existingNames.has(m.name));
+        return [...prev, ...newMovements];
+      });
       setError('');
     },
     onError: (err) => {
       setError(err.message);
-      setAiMovements([]);
+      // Don't clear aiMovements on error - keep old movements so user can retry
+      // setAiMovements([]);
     },
   });
 
@@ -108,7 +114,8 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
   function handleProcessPrompt() {
     if (!prompt.trim()) return;
     setError('');
-    setAiMovements([]);
+    // Don't clear aiMovements here - keep old movements visible until new ones arrive
+    // setAiMovements([]);
     processPrompt.mutate({ prompt: prompt.trim() });
   }
 
@@ -248,18 +255,31 @@ export function CreateListWizard({ open, onOpenChange }: CreateListWizardProps) 
                     className="flex w-full rounded-base border-2 border-border bg-main px-3 py-2 text-sm text-main-foreground placeholder:text-main-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                     disabled={isBusy}
                   />
-                  <Button
-                    variant="noShadow"
-                    onClick={handleProcessPrompt}
-                    disabled={!prompt.trim() || isBusy}
-                    className="w-fit"
-                  >
-                    {processPrompt.isPending
-                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      : <Sparkles className="mr-2 h-4 w-4" />
-                    }
-                    {aiMovements.length > 0 ? 'Re-generate signals' : 'Generate signals'}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="noShadow"
+                      onClick={handleProcessPrompt}
+                      disabled={!prompt.trim() || isBusy}
+                      className="w-fit"
+                    >
+                      {processPrompt.isPending
+                        ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        : <Sparkles className="mr-2 h-4 w-4" />
+                      }
+                      {aiMovements.length > 0 ? 'Add more signals' : 'Generate signals'}
+                    </Button>
+                    {aiMovements.length > 0 && (
+                      <Button
+                        variant="neutral"
+                        onClick={() => setAiMovements([])}
+                        disabled={isBusy}
+                        className="w-fit"
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Clear AI signals
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
