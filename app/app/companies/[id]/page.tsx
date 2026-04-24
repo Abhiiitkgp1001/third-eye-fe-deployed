@@ -9,9 +9,10 @@ import CompanySheet from "./CompanySheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import RenameListModal from "./RenameListModal";
 import SignalsList from "./SignalsList";
-import { Button, Badge, Card, PageSpinner } from "@/components/ui";
+import { Button, Badge, Card, PageSpinner, useToast } from "@/components/ui";
 import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -20,11 +21,13 @@ export default function CompanyListDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const listId = params.id as string;
+  const { addToast } = useToast();
   const [isAddingLoading, setIsAddingLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
   const [newItemUrl, setNewItemUrl] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +61,21 @@ export default function CompanyListDetailsPage() {
   const removeCompanyMutation = trpc.companyLists.removeCompany.useMutation({
     onSuccess: () => {
       utils.companyLists.getById.invalidate({ id: listId });
+      addToast({
+        title: "Company deleted",
+        description: "The company has been removed from the list.",
+        variant: "success",
+        duration: 3000,
+      });
+      setCompanyToDelete(null);
+    },
+    onError: (error) => {
+      addToast({
+        title: "Failed to delete company",
+        description: error.message || "An error occurred while deleting the company.",
+        variant: "error",
+        duration: 5000,
+      });
     },
   });
 
@@ -116,15 +134,15 @@ export default function CompanyListDetailsPage() {
     });
   };
 
-  const handleDeleteItem = async (companyId: string) => {
-    return new Promise<void>((resolve, reject) => {
-      removeCompanyMutation.mutate(
-        { companyId: companyId, listId },
-        {
-          onSuccess: () => resolve(),
-          onError: (error) => reject(error),
-        }
-      );
+  const handleRequestDelete = (company: Company) => {
+    setCompanyToDelete(company);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!companyToDelete) return;
+    removeCompanyMutation.mutate({
+      companyId: companyToDelete.id,
+      listId,
     });
   };
 
@@ -488,7 +506,7 @@ export default function CompanyListDetailsPage() {
                     key={company.id}
                     company={company}
                     onViewCompany={setSelectedCompany}
-                    onDelete={handleDeleteItem}
+                    onRequestDelete={handleRequestDelete}
                     index={index}
                   />
                 ))
@@ -606,6 +624,19 @@ export default function CompanyListDetailsPage() {
         onConfirm={handleConfirmRename}
         onCancel={() => setShowRenameModal(false)}
         isLoading={updateCompanyListMutation.isPending}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={!!companyToDelete}
+        companyName={
+          (companyToDelete?.latestMetadata as any)?.company?.company_name ||
+          (companyToDelete?.latestMetadata as any)?.company_name ||
+          companyToDelete?.linkedinUrl ||
+          "this company"
+        }
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setCompanyToDelete(null)}
+        isLoading={removeCompanyMutation.isPending}
       />
 
       <CompanySheet
