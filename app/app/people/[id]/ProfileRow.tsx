@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Badge, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
 import { Trash2, ExternalLink, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,7 +8,7 @@ interface ProfileRowProps {
   profile: Profile;
   movements?: Movement[];
   onViewProfile: (profile: Profile) => void;
-  onDelete: (profileId: string) => Promise<void>;
+  onRequestDelete: (profile: Profile) => void;
   index: number;
 }
 
@@ -16,11 +16,9 @@ export default function ProfileRow({
   profile,
   movements = [],
   onViewProfile,
-  onDelete,
+  onRequestDelete,
   index,
 }: ProfileRowProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
   // Handle both old format (direct ProfileData) and new format (PeopleAggregatedData)
   const rawMetadata = profile.latestMetadata;
   const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'profile' in rawMetadata;
@@ -39,15 +37,9 @@ export default function ProfileRow({
     ? displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "?";
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to remove this profile?")) return;
-    setIsDeleting(true);
-    try {
-      await onDelete(profile.id);
-    } finally {
-      setIsDeleting(false);
-    }
+    onRequestDelete(profile);
   };
 
   return (
@@ -121,7 +113,6 @@ export default function ProfileRow({
             variant="neutral"
             size="sm"
             onClick={handleDelete}
-            disabled={isDeleting}
           >
             <Trash2 className="h-4 w-4" /> Delete
           </Button>
