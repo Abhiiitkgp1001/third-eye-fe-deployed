@@ -151,10 +151,11 @@ function SidebarContent({
               appearance={{
                 elements: {
                   rootBox: 'w-full',
-                  organizationSwitcherTrigger: 'w-full justify-start px-0 py-0 border-0 shadow-none',
-                  organizationSwitcherTriggerIcon: 'text-foreground/60',
-                  organizationPreviewTextContainer: 'text-sm',
-                  organizationPreviewMainIdentifier: 'text-foreground font-heading',
+                  organizationSwitcherTrigger: 'w-full justify-start px-0 py-0 border-0 shadow-none bg-transparent hover:bg-transparent',
+                  organizationSwitcherTriggerIcon: 'text-foreground',
+                  organizationPreviewTextContainer: 'text-sm text-foreground',
+                  organizationPreviewMainIdentifier: 'text-foreground font-heading font-medium',
+                  organizationPreviewSecondaryIdentifier: 'text-foreground/60',
                 },
               }}
             />
