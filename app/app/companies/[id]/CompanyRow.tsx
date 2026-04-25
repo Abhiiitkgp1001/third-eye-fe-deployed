@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Badge, Button } from "@/components/ui";
 import { Trash2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
@@ -6,18 +6,16 @@ import { motion } from "framer-motion";
 interface CompanyRowProps {
   company: any;
   onViewCompany: (company: any) => void;
-  onDelete: (companyId: string) => Promise<void>;
+  onRequestDelete: (company: any) => void;
   index: number;
 }
 
 export default function CompanyRow({
   company,
   onViewCompany,
-  onDelete,
+  onRequestDelete,
   index,
 }: CompanyRowProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
   // Handle both old format (direct CompanyData) and new format (CompanyAggregatedData)
   const rawMetadata = company.latestMetadata;
   const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'company' in rawMetadata;
@@ -25,15 +23,9 @@ export default function CompanyRow({
 
   const displayName = metadata?.company_name || null;
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to remove this company?")) return;
-    setIsDeleting(true);
-    try {
-      await onDelete(company.id);
-    } finally {
-      setIsDeleting(false);
-    }
+    onRequestDelete(company);
   };
 
   return (
@@ -82,7 +74,6 @@ export default function CompanyRow({
             variant="neutral"
             size="sm"
             onClick={handleDelete}
-            disabled={isDeleting}
           >
             <Trash2 className="h-4 w-4" /> Delete
           </Button>

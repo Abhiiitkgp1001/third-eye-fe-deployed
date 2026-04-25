@@ -8,10 +8,11 @@ import ProfileSheet from "./ProfileSheet";
 import CsvUploadModal from "./CsvUploadModal";
 import Pagination from "./Pagination";
 import ConfirmToggleModal from "./ConfirmToggleModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import RenameListModal from "./RenameListModal";
 import SignalsList from "./SignalsList";
 import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
-import { Button, Badge, Card, PageSpinner } from "@/components/ui";
+import { Button, Badge, Card, PageSpinner, useToast } from "@/components/ui";
 import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -20,11 +21,13 @@ export default function PeopleListDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const listId = params.id as string;
+  const { addToast } = useToast();
   const [isAddingLoading, setIsAddingLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCsvUploadModal, setShowCsvUploadModal] = useState(false);
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<Profile | null>(null);
   const [newItemUrl, setNewItemUrl] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +61,21 @@ export default function PeopleListDetailsPage() {
   const removeProfileMutation = trpc.peopleLists.removeProfile.useMutation({
     onSuccess: () => {
       utils.peopleLists.getById.invalidate({ id: listId });
+      addToast({
+        title: "Profile deleted",
+        description: "The profile has been removed from the list.",
+        variant: "success",
+        duration: 3000,
+      });
+      setProfileToDelete(null);
+    },
+    onError: (error) => {
+      addToast({
+        title: "Failed to delete profile",
+        description: error.message || "An error occurred while deleting the profile.",
+        variant: "error",
+        duration: 5000,
+      });
     },
   });
 
@@ -109,15 +127,15 @@ export default function PeopleListDetailsPage() {
     });
   };
 
-  const handleDeleteItem = async (profileId: string) => {
-    return new Promise<void>((resolve, reject) => {
-      removeProfileMutation.mutate(
-        { profileId: profileId, listId },
-        {
-          onSuccess: () => resolve(),
-          onError: (error) => reject(error),
-        }
-      );
+  const handleRequestDelete = (profile: Profile) => {
+    setProfileToDelete(profile);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!profileToDelete) return;
+    removeProfileMutation.mutate({
+      profileId: profileToDelete.id,
+      listId,
     });
   };
 
@@ -479,7 +497,7 @@ export default function PeopleListDetailsPage() {
                       profile={profile}
                       movements={profileMovements}
                       onViewProfile={setSelectedProfile}
-                      onDelete={handleDeleteItem}
+                      onRequestDelete={handleRequestDelete}
                       index={index}
                     />
                   );
@@ -605,6 +623,20 @@ export default function PeopleListDetailsPage() {
         onConfirm={handleConfirmRename}
         onCancel={() => setShowRenameModal(false)}
         isLoading={updatePeopleListMutation.isPending}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={!!profileToDelete}
+        profileName={
+          profileToDelete?.latestMetadata
+            ? `${(profileToDelete.latestMetadata as any)?.profile?.first_name ?? (profileToDelete.latestMetadata as any)?.first_name ?? ""} ${(profileToDelete.latestMetadata as any)?.profile?.last_name ?? (profileToDelete.latestMetadata as any)?.last_name ?? ""}`.trim() ||
+              profileToDelete?.linkedinUrl ||
+              "this profile"
+            : profileToDelete?.linkedinUrl || "this profile"
+        }
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setProfileToDelete(null)}
+        isLoading={removeProfileMutation.isPending}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCProvider } from "@/lib/trpc/Provider";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { ToastProvider } from "@/components/ui";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,7 +55,9 @@ export default function RootLayout({
       >
         <body className="min-h-full flex flex-col">
           <ThemeProvider>
-            <TRPCProvider>{children}</TRPCProvider>
+            <ToastProvider>
+              <TRPCProvider>{children}</TRPCProvider>
+            </ToastProvider>
           </ThemeProvider>
         </body>
       </html>
