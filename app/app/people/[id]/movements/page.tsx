@@ -3,9 +3,14 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { Badge, Card, PageSpinner, Button } from "@/components/ui";
+import { Badge, Card, PageSpinner, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
 import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search, ChevronDown, ChevronRight, MessageSquareText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const isPositiveMovement = (movement: string) =>
+  movement !== "NO_CHANGE" &&
+  !movement.endsWith("_NOT_CHANGED") &&
+  !movement.endsWith("_NOT_DETECTED");
 
 export default function MovementsPage() {
   const params = useParams();
@@ -62,9 +67,11 @@ export default function MovementsPage() {
     return profiles
       .filter(p => uniqueProfileIds.has(p.id))
       .map(p => {
-        const metadata = p.latestMetadata as any;
-        const displayName = metadata
-          ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim()
+        const rawMeta = p.latestMetadata as any;
+        const isAgg = rawMeta && typeof rawMeta === 'object' && 'profile' in rawMeta;
+        const profileData = isAgg ? rawMeta.profile : rawMeta;
+        const displayName = profileData
+          ? `${profileData.first_name ?? ""} ${profileData.last_name ?? ""}`.trim()
           : null;
         return {
           id: p.id,
@@ -93,9 +100,11 @@ export default function MovementsPage() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(m => {
         const profile = profiles.find(p => p.id === m.profileId);
-        const metadata = profile?.latestMetadata as any;
-        const displayName = metadata
-          ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim()
+        const rawMeta = profile?.latestMetadata as any;
+        const isAgg = rawMeta && typeof rawMeta === 'object' && 'profile' in rawMeta;
+        const profileData = isAgg ? rawMeta.profile : rawMeta;
+        const displayName = profileData
+          ? `${profileData.first_name ?? ""} ${profileData.last_name ?? ""}`.trim()
           : "";
         const linkedinUrl = m.linkedinUrl.toLowerCase();
 
@@ -124,9 +133,11 @@ export default function MovementsPage() {
 
     return Array.from(groups.entries()).map(([profileId, mvs]) => {
       const profile = allProfiles.find(p => p.id === profileId);
-      const metadata = profile?.latestMetadata as any;
-      const displayName = metadata
-        ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim()
+      const rawMetadata = profile?.latestMetadata as any;
+      const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'profile' in rawMetadata;
+      const profileData = isAggregatedFormat ? rawMetadata.profile : rawMetadata;
+      const displayName = profileData
+        ? `${profileData.first_name ?? ""} ${profileData.last_name ?? ""}`.trim()
         : null;
       const signals = mvs.filter(m => m.movement !== "NO_CHANGE");
       const noChange = mvs.filter(m => m.movement === "NO_CHANGE");
@@ -135,6 +146,11 @@ export default function MovementsPage() {
         profileId,
         displayName: displayName || profile?.linkedinUrl || profileId,
         linkedinUrl: profile?.linkedinUrl ?? "",
+        photoUrl: profileData?.profile_photo_url ?? null,
+        headline: profileData?.headline ?? null,
+        initials: displayName
+          ? displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+          : "?",
         signals,
         noChangeCount: noChange.length,
         allMovements: mvs,
@@ -558,26 +574,51 @@ export default function MovementsPage() {
                           : <ChevronRight className="w-4 h-4 text-foreground/50 shrink-0" />
                         }
 
+                        <Avatar className="size-9 shrink-0">
+                          <AvatarImage src={group.photoUrl ?? ""} alt={group.displayName} />
+                          <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30 text-xs">
+                            {group.initials}
+                          </AvatarFallback>
+                        </Avatar>
+
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-foreground truncate">
                               {group.displayName}
                             </span>
+                            {!hasSignals && (
+                              <span className="text-xs text-foreground/40">
+                                No changes detected
+                              </span>
+                            )}
+                          </div>
 
-                            {/* Signal badges on the header */}
-                            {group.signals.map((sig, i) => (
+                          {/* Headline + signal badges row */}
+                          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                            {group.headline && (
+                              <span className="text-xs text-foreground/40 line-clamp-1 max-w-[300px]">
+                                {group.headline}
+                              </span>
+                            )}
+                            {hasSignals && group.headline && (
+                              <span className="text-foreground/20">·</span>
+                            )}
+                            {group.signals.slice(0, 3).map((sig, i) => (
                               <Badge
                                 key={i}
                                 variant="default"
-                                className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 shrink-0"
+                                className={`font-mono text-[10px] shrink-0 ${
+                                  isPositiveMovement(sig.movement)
+                                    ? 'bg-brand-500/20 text-brand-400 border-brand-500/30'
+                                    : 'bg-foreground/5 text-foreground/50 border-foreground/10'
+                                }`}
                               >
                                 {sig.movement}
                               </Badge>
                             ))}
-
-                            {!hasSignals && (
-                              <span className="text-xs text-foreground/40">
-                                No changes detected
+                            {group.signals.length > 3 && (
+                              <span className="text-xs text-foreground/50">
+                                +{group.signals.length - 3} more
                               </span>
                             )}
                           </div>
@@ -645,12 +686,16 @@ export default function MovementsPage() {
                                               <div className="flex items-center gap-2 mb-1">
                                                 <Badge
                                                   variant="default"
-                                                  className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 flex items-center gap-1"
+                                                  className={`font-mono text-[10px] flex items-center gap-1 ${
+                                                    isPositiveMovement(movement.movement)
+                                                      ? 'bg-brand-500/20 text-brand-400 border-brand-500/30'
+                                                      : 'bg-foreground/5 text-foreground/50 border-foreground/10'
+                                                  }`}
                                                 >
                                                   <Sparkles className="w-2.5 h-2.5" />
                                                   {movement.movement}
                                                 </Badge>
-                                                <span className="text-xs font-medium text-brand-400">
+                                                <span className={`text-xs font-medium ${isPositiveMovement(movement.movement) ? 'text-brand-400' : 'text-foreground/40'}`}>
                                                   {movement.metadata?.confidence}%
                                                 </span>
                                                 <span className="text-xs text-foreground/40">
