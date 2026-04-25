@@ -4,23 +4,24 @@ import React, { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import { Badge, Card, PageSpinner, Button } from "@/components/ui";
-import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search, ChevronDown, ChevronRight, MessageSquareText } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MovementsPage() {
   const params = useParams();
   const router = useRouter();
   const listId = params.id as string;
 
-  // Filter states
   const [selectedMovementTypes, setSelectedMovementTypes] = useState<Set<string>>(new Set());
   const [selectedProfileId, setSelectedProfileId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedProfiles, setExpandedProfiles] = useState<Set<string>>(new Set());
+  const [expandedMovements, setExpandedMovements] = useState<Set<string>>(new Set());
 
   const { data: listData, isLoading: listLoading } = trpc.peopleLists.getById.useQuery({
     id: listId,
-    limit: 1000, // Get all profiles for stats
+    limit: 1000,
     offset: 0,
   });
 
@@ -28,7 +29,6 @@ export default function MovementsPage() {
     id: listId,
   });
 
-  // Calculate statistics and memoized values - MUST BE CALLED BEFORE ANY RETURNS
   const actualMovements = useMemo(() => movements.filter(m => m.movement !== "NO_CHANGE"), [movements]);
   const noChangeRecords = useMemo(() => movements.filter(m => m.movement === "NO_CHANGE"), [movements]);
 
@@ -44,7 +44,6 @@ export default function MovementsPage() {
     }, {} as Record<string, number>);
   }, [actualMovements]);
 
-  // Add NO_CHANGE to movement types if there are any
   const allMovementTypes = useMemo(() => {
     const types = new Set(movements.map(m => m.movement));
     return Array.from(types).sort();
@@ -56,7 +55,6 @@ export default function MovementsPage() {
       : 0;
   }, [actualMovements]);
 
-  // Get unique profiles with movements
   const profilesWithMovements = useMemo(() => {
     if (!listData) return [];
     const { profiles } = listData;
@@ -78,23 +76,19 @@ export default function MovementsPage() {
       .sort((a, b) => b.movementCount - a.movementCount);
   }, [movements, listData]);
 
-  // Apply filters
   const filteredMovements = useMemo(() => {
     if (!listData) return [];
     const { profiles } = listData;
     let filtered = [...movements];
 
-    // Filter by selected profile
     if (selectedProfileId) {
       filtered = filtered.filter(m => m.profileId === selectedProfileId);
     }
 
-    // Filter by movement type
     if (selectedMovementTypes.size > 0) {
       filtered = filtered.filter(m => selectedMovementTypes.has(m.movement));
     }
 
-    // Filter by profile search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(m => {
@@ -116,14 +110,44 @@ export default function MovementsPage() {
     return filtered;
   }, [movements, selectedProfileId, selectedMovementTypes, searchQuery, listData]);
 
-  const recentMovements = useMemo(() => filteredMovements.slice(0, 50), [filteredMovements]);
+  // Group filtered movements by profile, sorted by most signals first
+  const groupedByProfile = useMemo(() => {
+    if (!listData) return [];
+    const { profiles: allProfiles } = listData;
+    const groups = new Map<string, typeof filteredMovements>();
+
+    for (const m of filteredMovements) {
+      const existing = groups.get(m.profileId) ?? [];
+      existing.push(m);
+      groups.set(m.profileId, existing);
+    }
+
+    return Array.from(groups.entries()).map(([profileId, mvs]) => {
+      const profile = allProfiles.find(p => p.id === profileId);
+      const metadata = profile?.latestMetadata as any;
+      const displayName = metadata
+        ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim()
+        : null;
+      const signals = mvs.filter(m => m.movement !== "NO_CHANGE");
+      const noChange = mvs.filter(m => m.movement === "NO_CHANGE");
+
+      return {
+        profileId,
+        displayName: displayName || profile?.linkedinUrl || profileId,
+        linkedinUrl: profile?.linkedinUrl ?? "",
+        signals,
+        noChangeCount: noChange.length,
+        allMovements: mvs,
+        latestDate: mvs.length > 0 ? new Date(Math.max(...mvs.map(m => new Date(m.createdAt).getTime()))) : null,
+      };
+    }).sort((a, b) => b.signals.length - a.signals.length);
+  }, [filteredMovements, listData]);
 
   const hasActiveFilters = useMemo(() =>
     selectedMovementTypes.size > 0 || selectedProfileId.length > 0 || searchQuery.trim().length > 0,
     [selectedMovementTypes, selectedProfileId, searchQuery]
   );
 
-  // NOW we can do early returns - all hooks have been called
   const isLoading = listLoading || movementsLoading;
 
   if (isLoading) {
@@ -138,9 +162,8 @@ export default function MovementsPage() {
     );
   }
 
-  const { list, profiles, total } = listData;
+  const { list } = listData;
 
-  // Toggle movement type filter
   const toggleMovementType = (type: string) => {
     const newSelected = new Set(selectedMovementTypes);
     if (newSelected.has(type)) {
@@ -151,11 +174,39 @@ export default function MovementsPage() {
     setSelectedMovementTypes(newSelected);
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setSelectedMovementTypes(new Set());
     setSelectedProfileId("");
     setSearchQuery("");
+  };
+
+  const toggleProfile = (profileId: string) => {
+    const next = new Set(expandedProfiles);
+    if (next.has(profileId)) {
+      next.delete(profileId);
+    } else {
+      next.add(profileId);
+    }
+    setExpandedProfiles(next);
+  };
+
+  const toggleMovement = (movementId: string) => {
+    const next = new Set(expandedMovements);
+    if (next.has(movementId)) {
+      next.delete(movementId);
+    } else {
+      next.add(movementId);
+    }
+    setExpandedMovements(next);
+  };
+
+  const expandAll = () => {
+    setExpandedProfiles(new Set(groupedByProfile.map(g => g.profileId)));
+  };
+
+  const collapseAll = () => {
+    setExpandedProfiles(new Set());
+    setExpandedMovements(new Set());
   };
 
   return (
@@ -210,7 +261,6 @@ export default function MovementsPage() {
           >
             <Card>
               <div className="p-4 space-y-4">
-                {/* Select Profile */}
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
                     Select Profile
@@ -229,7 +279,6 @@ export default function MovementsPage() {
                   </select>
                 </div>
 
-                {/* Search by Profile */}
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
                     Search Profiles
@@ -254,7 +303,6 @@ export default function MovementsPage() {
                   </div>
                 </div>
 
-                {/* Filter by Movement Type */}
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
                     Movement Types
@@ -287,7 +335,6 @@ export default function MovementsPage() {
                   </div>
                 </div>
 
-                {/* Clear Filters */}
                 {hasActiveFilters && (
                   <div className="pt-2 border-t border-gray-800">
                     <Button
@@ -408,9 +455,7 @@ export default function MovementsPage() {
                     </div>
                   ))}
                 {noChangeRecords.length > 0 && (
-                  <div
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-200/60 border border-gray-800"
-                  >
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-200/60 border border-gray-800">
                     <Badge variant="neutral" className="font-mono text-xs">
                       NO_CHANGE
                     </Badge>
@@ -426,7 +471,7 @@ export default function MovementsPage() {
         </Card>
       </motion.div>
 
-      {/* Recent Movements List */}
+      {/* Profile Accordions */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -438,22 +483,35 @@ export default function MovementsPage() {
               <h2 className="text-lg font-bold text-foreground">
                 {hasActiveFilters ? (
                   <>
-                    Filtered Movements
+                    Filtered Profiles
                     <span className="ml-2 text-sm font-normal text-foreground/60">
-                      ({filteredMovements.length} of {movements.length})
+                      ({groupedByProfile.length} of {uniqueProfilesValidated})
                     </span>
                   </>
                 ) : (
                   <>
-                    Recent Movements
-                    {recentMovements.length < movements.length && (
-                      <span className="ml-2 text-sm font-normal text-foreground/60">
-                        (Last {recentMovements.length})
-                      </span>
-                    )}
+                    Profiles
+                    <span className="ml-2 text-sm font-normal text-foreground/60">
+                      ({groupedByProfile.length})
+                    </span>
                   </>
                 )}
               </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={expandAll}
+                  className="text-xs text-foreground/50 hover:text-foreground transition-colors"
+                >
+                  Expand all
+                </button>
+                <span className="text-foreground/30">|</span>
+                <button
+                  onClick={collapseAll}
+                  className="text-xs text-foreground/50 hover:text-foreground transition-colors"
+                >
+                  Collapse all
+                </button>
+              </div>
             </div>
 
             {totalValidations === 0 ? (
@@ -461,10 +519,10 @@ export default function MovementsPage() {
                 <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p className="text-lg mb-2">No validations yet</p>
                 <p className="text-sm">
-                  Run "Validate Signals" to detect profile changes with AI
+                  Run &quot;Validate Signals&quot; to detect profile changes with AI
                 </p>
               </div>
-            ) : filteredMovements.length === 0 ? (
+            ) : groupedByProfile.length === 0 ? (
               <div className="text-center py-12 text-foreground/60">
                 <Filter className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p className="text-lg mb-2">No movements match your filters</p>
@@ -476,108 +534,227 @@ export default function MovementsPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
-                {recentMovements.map((movement) => {
-                  const profile = profiles.find(p => p.id === movement.profileId);
-                  const metadata = profile?.latestMetadata as any;
-                  const displayName = metadata
-                    ? `${metadata.first_name ?? ""} ${metadata.last_name ?? ""}`.trim() || profile?.linkedinUrl
-                    : profile?.linkedinUrl;
-
-                  const isNoChange = movement.movement === "NO_CHANGE";
+              <div className="space-y-2">
+                {groupedByProfile.map((group) => {
+                  const isExpanded = expandedProfiles.has(group.profileId);
+                  const hasSignals = group.signals.length > 0;
 
                   return (
                     <div
-                      key={movement.id}
-                      className={`rounded-lg border ${
-                        isNoChange
-                          ? 'bg-dark-200/30 border-gray-800'
-                          : 'bg-dark-200/60 border-gray-800'
+                      key={group.profileId}
+                      className={`rounded-lg border transition-colors ${
+                        hasSignals
+                          ? 'border-gray-800 bg-dark-200/40'
+                          : 'border-gray-800/60 bg-dark-200/20'
                       }`}
                     >
-                      {/* Profile Header */}
-                      <div className="p-4 border-b border-gray-800">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <p className="text-sm font-medium text-foreground">
-                                {displayName}
-                              </p>
+                      {/* Profile Accordion Header */}
+                      <button
+                        onClick={() => toggleProfile(group.profileId)}
+                        className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-dark-200/60 transition-colors rounded-lg"
+                      >
+                        {isExpanded
+                          ? <ChevronDown className="w-4 h-4 text-foreground/50 shrink-0" />
+                          : <ChevronRight className="w-4 h-4 text-foreground/50 shrink-0" />
+                        }
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-medium text-foreground truncate">
+                              {group.displayName}
+                            </span>
+
+                            {/* Signal badges on the header */}
+                            {group.signals.map((sig, i) => (
                               <Badge
-                                variant={isNoChange ? "neutral" : "default"}
-                                className={`font-mono text-[10px] flex items-center gap-1 ${
-                                  isNoChange
-                                    ? 'bg-foreground/5 text-foreground/60 border-foreground/20'
-                                    : 'bg-brand-500/20 text-brand-400 border-brand-500/30'
-                                }`}
+                                key={i}
+                                variant="default"
+                                className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 shrink-0"
                               >
-                                <Sparkles className="w-2.5 h-2.5" />
-                                {movement.movement}
+                                {sig.movement}
                               </Badge>
-                              {movement.metadata?.confidence && (
-                                <span className={`text-xs font-medium ${
-                                  isNoChange ? 'text-foreground/50' : 'text-brand-400'
-                                }`}>
-                                  {movement.metadata.confidence}%
-                                </span>
-                              )}
-                            </div>
-                            {profile && (
+                            ))}
+
+                            {!hasSignals && (
+                              <span className="text-xs text-foreground/40">
+                                No changes detected
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          {group.noChangeCount > 0 && (
+                            <span className="text-xs text-foreground/40">
+                              {group.noChangeCount} scan{group.noChangeCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                          {group.latestDate && (
+                            <span className="text-xs text-foreground/40">
+                              {group.latestDate.toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Expanded Content */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 pt-1 border-t border-gray-800/60">
+                              {/* LinkedIn link */}
                               <a
-                                href={profile.linkedinUrl}
+                                href={group.linkedinUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 w-fit"
-                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 w-fit mb-3"
                               >
                                 View LinkedIn Profile
                                 <ExternalLink className="w-3 h-3" />
                               </a>
-                            )}
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs text-foreground/50">
-                              {new Date(movement.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-foreground/50">
-                              {new Date(movement.createdAt).toLocaleTimeString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
 
-                      {/* AI Reasoning */}
-                      {movement.metadata?.reasoning && (
-                        <div className="p-4 bg-dark-200/40">
-                          <p className="text-xs font-semibold text-foreground/60 mb-1">AI Analysis</p>
-                          <p className="text-sm text-foreground leading-relaxed">
-                            {movement.metadata.reasoning}
-                          </p>
-                        </div>
-                      )}
+                              {group.signals.length === 0 ? (
+                                <p className="text-sm text-foreground/50">
+                                  Validated {group.noChangeCount} time{group.noChangeCount !== 1 ? 's' : ''} with no meaningful changes detected.
+                                </p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {group.signals
+                                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                                    .map((movement) => {
+                                      const isMovementExpanded = expandedMovements.has(movement.id);
+                                      const hasEvidence = movement.metadata?.evidence && movement.metadata.evidence.length > 0;
 
-                      {/* Evidence */}
-                      {movement.metadata?.evidence && movement.metadata.evidence.length > 0 && !isNoChange && (
-                        <div className="p-4 border-t border-gray-800">
-                          <p className="text-xs font-semibold text-foreground/60 mb-2">Key Changes</p>
-                          <div className="space-y-1">
-                            {movement.metadata.evidence.map((item, idx) => (
-                              <div key={idx} className="flex items-start gap-2 text-xs">
-                                <span className="text-foreground/50 font-medium min-w-[120px]">
-                                  {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}:
-                                </span>
-                                <span className="text-foreground flex-1">
-                                  {item.previousValue != null && item.currentValue != null
-                                    ? `${String(item.previousValue)} → ${String(item.currentValue)}`
-                                    : item.currentValue != null
-                                      ? String(item.currentValue)
-                                      : item.interpretation ?? String(item.previousValue ?? '')}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                                      return (
+                                        <div
+                                          key={movement.id}
+                                          className="rounded-md border border-gray-800/60 bg-dark-200/30"
+                                        >
+                                          {/* Movement Card Header — always visible */}
+                                          <button
+                                            onClick={() => toggleMovement(movement.id)}
+                                            className="w-full px-3 py-2.5 flex items-start gap-3 text-left hover:bg-dark-200/40 transition-colors rounded-md"
+                                          >
+                                            <div className="flex-1 min-w-0">
+                                              <div className="flex items-center gap-2 mb-1">
+                                                <Badge
+                                                  variant="default"
+                                                  className="font-mono text-[10px] bg-brand-500/20 text-brand-400 border-brand-500/30 flex items-center gap-1"
+                                                >
+                                                  <Sparkles className="w-2.5 h-2.5" />
+                                                  {movement.movement}
+                                                </Badge>
+                                                <span className="text-xs font-medium text-brand-400">
+                                                  {movement.metadata?.confidence}%
+                                                </span>
+                                                <span className="text-xs text-foreground/40">
+                                                  {new Date(movement.createdAt).toLocaleDateString()}
+                                                </span>
+                                              </div>
+
+                                              {/* Key changes preview — always visible */}
+                                              {hasEvidence && (
+                                                <div className="space-y-0.5">
+                                                  {movement.metadata!.evidence!.map((item: any, idx: number) => (
+                                                    <div key={idx} className="text-xs text-foreground/70">
+                                                      <span className="text-foreground/50 font-medium">
+                                                        {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}:
+                                                      </span>{' '}
+                                                      {item.previousValue != null && item.currentValue != null
+                                                        ? <span>{String(item.previousValue).substring(0, 60)}{String(item.previousValue).length > 60 ? '...' : ''} <span className="text-brand-400">→</span> {String(item.currentValue).substring(0, 60)}{String(item.currentValue).length > 60 ? '...' : ''}</span>
+                                                        : item.currentValue != null
+                                                          ? String(item.currentValue).substring(0, 120) + (String(item.currentValue).length > 120 ? '...' : '')
+                                                          : item.interpretation ?? String(item.previousValue ?? '')}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              )}
+
+                                              {!hasEvidence && movement.metadata?.reasoning && (
+                                                <p className="text-xs text-foreground/50 line-clamp-1">
+                                                  {movement.metadata.reasoning}
+                                                </p>
+                                              )}
+                                            </div>
+
+                                            {(hasEvidence || movement.metadata?.reasoning) && (
+                                              <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 shrink-0 mt-0.5 transition-transform ${isMovementExpanded ? '' : '-rotate-90'}`} />
+                                            )}
+                                          </button>
+
+                                          {/* Expanded: full evidence + AI analysis */}
+                                          <AnimatePresence>
+                                            {isMovementExpanded && (
+                                              <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="overflow-hidden"
+                                              >
+                                                <div className="px-3 pb-3 border-t border-gray-800/40 pt-2 space-y-3">
+                                                  {/* Full evidence */}
+                                                  {hasEvidence && (
+                                                    <div>
+                                                      <p className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wider mb-1.5">Key Changes</p>
+                                                      <div className="space-y-2">
+                                                        {movement.metadata!.evidence!.map((item: any, idx: number) => (
+                                                          <div key={idx} className="rounded bg-dark-200/50 px-2.5 py-2 text-xs space-y-1">
+                                                            <div className="font-medium text-foreground/70">
+                                                              {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}
+                                                            </div>
+                                                            {item.previousValue != null && item.currentValue != null ? (
+                                                              <div className="space-y-1">
+                                                                <div className="text-foreground/40">
+                                                                  <span className="text-red-400/70 line-through">{String(item.previousValue)}</span>
+                                                                </div>
+                                                                <div className="text-foreground/80">
+                                                                  <span className="text-green-400/80">{String(item.currentValue)}</span>
+                                                                </div>
+                                                              </div>
+                                                            ) : item.currentValue != null ? (
+                                                              <div className="text-foreground/80">{String(item.currentValue)}</div>
+                                                            ) : null}
+                                                            {item.interpretation && (
+                                                              <div className="text-foreground/50 italic">{item.interpretation}</div>
+                                                            )}
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                    </div>
+                                                  )}
+
+                                                  {/* AI Analysis */}
+                                                  {movement.metadata?.reasoning && (
+                                                    <div>
+                                                      <p className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                        <MessageSquareText className="w-3 h-3" />
+                                                        AI Analysis
+                                                      </p>
+                                                      <p className="text-xs text-foreground/60 leading-relaxed">
+                                                        {movement.metadata.reasoning}
+                                                      </p>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </motion.div>
+                                            )}
+                                          </AnimatePresence>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}

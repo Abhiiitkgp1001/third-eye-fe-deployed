@@ -15,7 +15,17 @@ export type ProfileFieldSignal =
   | "SKILLS_CHANGED"
   | "SUMMARY_CHANGED";
 
-export type ProfileSignal = ProfileCoreSignal | ProfileFieldSignal;
+export type ProfileActivitySignal =
+  | "PORTFOLIO_COMPANY_ENDORSED"
+  | "FUNDING_ANNOUNCEMENT_ENGAGED"
+  | "BATCH_COMPANY_CONGRATULATED"
+  | "PRODUCT_LAUNCH_AMPLIFIED"
+  | "SELF_PROMOTION_ACTIVE"
+  | "MILESTONE_ACKNOWLEDGED"
+  | "STARTUP_ADVICE_GIVEN"
+  | "ACQUISITION_INTEREST";
+
+export type ProfileSignal = ProfileCoreSignal | ProfileFieldSignal | ProfileActivitySignal;
 
 // ── Rich metadata for UI display ──────────────────────────────────────────────
 
@@ -94,6 +104,53 @@ export const SIGNAL_GROUPS: SignalGroup[] = [
         key: "SUMMARY_CHANGED",
         label: "Summary Changed",
         description: "About / bio section changed.",
+      },
+    ],
+  },
+  {
+    id: "activity",
+    label: "Activity Signals",
+    color: "text-blue-400",
+    signals: [
+      {
+        key: "PORTFOLIO_COMPANY_ENDORSED",
+        label: "Portfolio Company Endorsed",
+        description: "Liked a YC batch company's post.",
+      },
+      {
+        key: "FUNDING_ANNOUNCEMENT_ENGAGED",
+        label: "Funding Announcement Engaged",
+        description: "Engaged with a funding round post.",
+      },
+      {
+        key: "BATCH_COMPANY_CONGRATULATED",
+        label: "Batch Company Congratulated",
+        description: "Commented congrats on a portfolio company milestone.",
+      },
+      {
+        key: "PRODUCT_LAUNCH_AMPLIFIED",
+        label: "Product Launch Amplified",
+        description: "Liked or shared a product launch post.",
+      },
+      {
+        key: "SELF_PROMOTION_ACTIVE",
+        label: "Self Promotion Active",
+        description: "Commented with own fund or company links.",
+      },
+      {
+        key: "MILESTONE_ACKNOWLEDGED",
+        label: "Milestone Acknowledged",
+        description: "Liked a revenue or growth milestone post.",
+      },
+      {
+        key: "STARTUP_ADVICE_GIVEN",
+        label: "Startup Advice Given",
+        description: "Gave substantive founder advice in comments.",
+      },
+      {
+        key: "ACQUISITION_INTEREST",
+        label: "Acquisition Interest",
+        description: "Engaged with M&A news.",
       },
     ],
   },
