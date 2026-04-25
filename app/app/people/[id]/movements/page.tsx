@@ -516,14 +516,14 @@ export default function MovementsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={expandAll}
-                  className="text-xs text-foreground/50 hover:text-foreground transition-colors"
+                  className="text-xs font-base text-foreground/60 hover:text-main transition-colors"
                 >
                   Expand all
                 </button>
                 <span className="text-foreground/30">|</span>
                 <button
                   onClick={collapseAll}
-                  className="text-xs text-foreground/50 hover:text-foreground transition-colors"
+                  className="text-xs font-base text-foreground/60 hover:text-main transition-colors"
                 >
                   Collapse all
                 </button>
@@ -558,16 +558,16 @@ export default function MovementsPage() {
                   return (
                     <div
                       key={group.profileId}
-                      className={`rounded-lg border transition-colors ${
+                      className={`rounded-base border-2 border-border transition-colors ${
                         hasSignals
-                          ? 'border-gray-800 bg-dark-200/40'
-                          : 'border-gray-800/60 bg-dark-200/20'
+                          ? 'bg-secondary-background shadow-shadow'
+                          : 'bg-secondary-background/50'
                       }`}
                     >
                       {/* Profile Accordion Header */}
                       <button
                         onClick={() => toggleProfile(group.profileId)}
-                        className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-dark-200/60 transition-colors rounded-lg"
+                        className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-main/10 transition-colors rounded-base"
                       >
                         {isExpanded
                           ? <ChevronDown className="w-4 h-4 text-foreground/50 shrink-0" />
@@ -609,8 +609,8 @@ export default function MovementsPage() {
                                 variant="default"
                                 className={`font-mono text-[10px] shrink-0 ${
                                   isPositiveMovement(sig.movement)
-                                    ? 'bg-brand-500/20 text-brand-400 border-brand-500/30'
-                                    : 'bg-foreground/5 text-foreground/50 border-foreground/10'
+                                    ? 'bg-main text-main-foreground border-border'
+                                    : 'bg-secondary-background text-foreground/60 border-border/40'
                                 }`}
                               >
                                 {sig.movement}
@@ -648,13 +648,13 @@ export default function MovementsPage() {
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-4 pt-1 border-t border-gray-800/60">
+                            <div className="px-4 pb-4 pt-1 border-t-2 border-border/40">
                               {/* LinkedIn link */}
                               <a
                                 href={group.linkedinUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 w-fit mb-3"
+                                className="text-xs text-main hover:text-main/80 hover:underline flex items-center gap-1 w-fit mb-3 font-base"
                               >
                                 View LinkedIn Profile
                                 <ExternalLink className="w-3 h-3" />
@@ -675,12 +675,12 @@ export default function MovementsPage() {
                                       return (
                                         <div
                                           key={movement.id}
-                                          className="rounded-md border border-gray-800/60 bg-dark-200/30"
+                                          className="rounded-base border-2 border-border bg-background"
                                         >
                                           {/* Movement Card Header — always visible */}
                                           <button
                                             onClick={() => toggleMovement(movement.id)}
-                                            className="w-full px-3 py-2.5 flex items-start gap-3 text-left hover:bg-dark-200/40 transition-colors rounded-md"
+                                            className="w-full px-3 py-2.5 flex items-start gap-3 text-left hover:bg-main/5 transition-colors rounded-base"
                                           >
                                             <div className="flex-1 min-w-0">
                                               <div className="flex items-center gap-2 mb-1">
@@ -688,14 +688,14 @@ export default function MovementsPage() {
                                                   variant="default"
                                                   className={`font-mono text-[10px] flex items-center gap-1 ${
                                                     isPositiveMovement(movement.movement)
-                                                      ? 'bg-brand-500/20 text-brand-400 border-brand-500/30'
-                                                      : 'bg-foreground/5 text-foreground/50 border-foreground/10'
+                                                      ? 'bg-main text-main-foreground border-border'
+                                                      : 'bg-secondary-background text-foreground/60 border-border/40'
                                                   }`}
                                                 >
                                                   <Sparkles className="w-2.5 h-2.5" />
                                                   {movement.movement}
                                                 </Badge>
-                                                <span className={`text-xs font-medium ${isPositiveMovement(movement.movement) ? 'text-brand-400' : 'text-foreground/40'}`}>
+                                                <span className={`text-xs font-heading ${isPositiveMovement(movement.movement) ? 'text-main' : 'text-foreground/40'}`}>
                                                   {movement.metadata?.confidence}%
                                                 </span>
                                                 <span className="text-xs text-foreground/40">
@@ -743,14 +743,14 @@ export default function MovementsPage() {
                                                 transition={{ duration: 0.15 }}
                                                 className="overflow-hidden"
                                               >
-                                                <div className="px-3 pb-3 border-t border-gray-800/40 pt-2 space-y-3">
+                                                <div className="px-3 pb-3 border-t-2 border-border/30 pt-2 space-y-3">
                                                   {/* Full evidence */}
                                                   {hasEvidence && (
                                                     <div>
                                                       <p className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wider mb-1.5">Key Changes</p>
                                                       <div className="space-y-2">
                                                         {movement.metadata!.evidence!.map((item: any, idx: number) => (
-                                                          <div key={idx} className="rounded bg-dark-200/50 px-2.5 py-2 text-xs space-y-1">
+                                                          <div key={idx} className="rounded-base border border-border/20 bg-secondary-background/50 px-2.5 py-2 text-xs space-y-1">
                                                             <div className="font-medium text-foreground/70">
                                                               {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}
                                                             </div>
