@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Bell, Zap, Check, ArrowRight, Search, Calendar } from 'lucide-react';
+import { Zap, Check, ArrowRight, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 
@@ -83,14 +83,14 @@ export default function Home() {
               Create custom signals in plain English. Track companies, people, and triggers that matter to your business.
             </p>
 
-            <div className="flex flex-wrap gap-4 items-center">
-              {/* TODO: Replace with actual Calendly URL */}
+            {/* <div className="flex flex-wrap gap-4 items-center">
               <Link href="https://calendly.com/thirdeye/demo" target="_blank" rel="noopener noreferrer">
                 <Button size="lg">
                   Book a Demo <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </div>
+             */}
           </motion.div>
         </div>
       </section>
@@ -106,7 +106,7 @@ export default function Home() {
             className="mb-14"
           >
             <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
-              Signals you can't get
+              Signals you can&apos;t get
               <br />
               anywhere else.
             </h2>
@@ -127,7 +127,7 @@ export default function Home() {
                     <Search className="w-4 h-4 text-main" />
                   </div>
                   <p className="text-foreground/80 font-base text-sm leading-relaxed">
-                    "{signal}"
+                    &quot;{signal}&quot;
                   </p>
                 </div>
               </motion.div>

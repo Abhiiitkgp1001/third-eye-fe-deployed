@@ -152,6 +152,7 @@ export default function MovementsPage() {
           ? displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
           : "?",
         signals,
+        noChangeMovements: noChange,
         noChangeCount: noChange.length,
         allMovements: mvs,
         latestDate: mvs.length > 0 ? new Date(Math.max(...mvs.map(m => new Date(m.createdAt).getTime()))) : null,
@@ -576,7 +577,7 @@ export default function MovementsPage() {
 
                         <Avatar className="size-9 shrink-0">
                           <AvatarImage src={group.photoUrl ?? ""} alt={group.displayName} />
-                          <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30 text-xs">
+                          <AvatarFallback className="bg-main/20 text-main border-2 border-border text-xs font-heading">
                             {group.initials}
                           </AvatarFallback>
                         </Avatar>
@@ -660,9 +661,9 @@ export default function MovementsPage() {
                                 <ExternalLink className="w-3 h-3" />
                               </a>
 
-                              {group.signals.length === 0 ? (
+                              {group.signals.length === 0 && group.noChangeMovements.length === 0 ? (
                                 <p className="text-sm text-foreground/50">
-                                  Validated {group.noChangeCount} time{group.noChangeCount !== 1 ? 's' : ''} with no meaningful changes detected.
+                                  No validations recorded.
                                 </p>
                               ) : (
                                 <div className="space-y-2">
@@ -712,7 +713,7 @@ export default function MovementsPage() {
                                                         {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}:
                                                       </span>{' '}
                                                       {item.previousValue != null && item.currentValue != null
-                                                        ? <span>{String(item.previousValue).substring(0, 60)}{String(item.previousValue).length > 60 ? '...' : ''} <span className="text-brand-400">→</span> {String(item.currentValue).substring(0, 60)}{String(item.currentValue).length > 60 ? '...' : ''}</span>
+                                                        ? <span>{String(item.previousValue).substring(0, 60)}{String(item.previousValue).length > 60 ? '...' : ''} <span className="text-main font-heading">→</span> {String(item.currentValue).substring(0, 60)}{String(item.currentValue).length > 60 ? '...' : ''}</span>
                                                         : item.currentValue != null
                                                           ? String(item.currentValue).substring(0, 120) + (String(item.currentValue).length > 120 ? '...' : '')
                                                           : item.interpretation ?? String(item.previousValue ?? '')}
@@ -794,6 +795,66 @@ export default function MovementsPage() {
                                         </div>
                                       );
                                     })}
+
+                                  {/* NO_CHANGE entries — muted, not highlighted */}
+                                  {group.noChangeMovements.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-border/20">
+                                      <p className="text-[10px] font-semibold text-foreground/30 uppercase tracking-wider mb-2">
+                                        No Change ({group.noChangeMovements.length})
+                                      </p>
+                                      <div className="space-y-1">
+                                        {group.noChangeMovements
+                                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                                          .map((movement) => {
+                                            const isMovementExpanded = expandedMovements.has(movement.id);
+
+                                            return (
+                                              <div
+                                                key={movement.id}
+                                                className="rounded-base border border-border/15 bg-background/50 opacity-60"
+                                              >
+                                                <button
+                                                  onClick={() => toggleMovement(movement.id)}
+                                                  className="w-full px-3 py-2 flex items-center gap-2 text-left hover:opacity-100 transition-opacity rounded-base"
+                                                >
+                                                  <Badge
+                                                    variant="neutral"
+                                                    className="font-mono text-[10px] bg-transparent text-foreground/40 border-border/20"
+                                                  >
+                                                    {movement.metadata?.movementDefinition ?? 'NO_CHANGE'}
+                                                  </Badge>
+                                                  <span className="text-[10px] text-foreground/30">
+                                                    {new Date(movement.createdAt).toLocaleDateString()}
+                                                  </span>
+                                                  <span className="flex-1" />
+                                                  {movement.metadata?.reasoning && (
+                                                    <ChevronDown className={`w-3 h-3 text-foreground/25 shrink-0 transition-transform ${isMovementExpanded ? '' : '-rotate-90'}`} />
+                                                  )}
+                                                </button>
+
+                                                <AnimatePresence>
+                                                  {isMovementExpanded && movement.metadata?.reasoning && (
+                                                    <motion.div
+                                                      initial={{ height: 0, opacity: 0 }}
+                                                      animate={{ height: "auto", opacity: 1 }}
+                                                      exit={{ height: 0, opacity: 0 }}
+                                                      transition={{ duration: 0.15 }}
+                                                      className="overflow-hidden"
+                                                    >
+                                                      <div className="px-3 pb-2 border-t border-border/10 pt-1.5">
+                                                        <p className="text-xs text-foreground/40 leading-relaxed">
+                                                          {movement.metadata.reasoning}
+                                                        </p>
+                                                      </div>
+                                                    </motion.div>
+                                                  )}
+                                                </AnimatePresence>
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
