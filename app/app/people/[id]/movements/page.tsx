@@ -717,6 +717,17 @@ export default function MovementsPage() {
                                                         : item.currentValue != null
                                                           ? String(item.currentValue).substring(0, 120) + (String(item.currentValue).length > 120 ? '...' : '')
                                                           : item.interpretation ?? String(item.previousValue ?? '')}
+                                                      {item.sourceUrl && (
+                                                        <a
+                                                          href={item.sourceUrl}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="inline-flex items-center gap-0.5 ml-1.5 text-main hover:text-main/80 hover:underline"
+                                                          onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                          <ExternalLink className="w-3 h-3" />
+                                                        </a>
+                                                      )}
                                                     </div>
                                                   ))}
                                                 </div>
@@ -752,8 +763,21 @@ export default function MovementsPage() {
                                                       <div className="space-y-2">
                                                         {movement.metadata!.evidence!.map((item: any, idx: number) => (
                                                           <div key={idx} className="rounded-base border border-border/20 bg-secondary-background/50 px-2.5 py-2 text-xs space-y-1">
-                                                            <div className="font-medium text-foreground/70">
-                                                              {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}
+                                                            <div className="flex items-center justify-between">
+                                                              <div className="font-medium text-foreground/70">
+                                                                {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}
+                                                              </div>
+                                                              {item.sourceUrl && (
+                                                                <a
+                                                                  href={item.sourceUrl}
+                                                                  target="_blank"
+                                                                  rel="noopener noreferrer"
+                                                                  className="text-main hover:text-main/80 hover:underline flex items-center gap-1 shrink-0"
+                                                                  onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                  View Post <ExternalLink className="w-3 h-3" />
+                                                                </a>
+                                                              )}
                                                             </div>
                                                             {item.previousValue != null && item.currentValue != null ? (
                                                               <div className="space-y-1">
@@ -821,7 +845,7 @@ export default function MovementsPage() {
                                                     variant="neutral"
                                                     className="font-mono text-[10px] bg-transparent text-foreground/40 border-border/20"
                                                   >
-                                                    {movement.metadata?.movementDefinition ?? 'NO_CHANGE'}
+                                                    {String(movement.metadata?.movementDefinition ?? 'NO_CHANGE')}
                                                   </Badge>
                                                   <span className="text-[10px] text-foreground/30">
                                                     {new Date(movement.createdAt).toLocaleDateString()}
