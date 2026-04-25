@@ -86,6 +86,8 @@ export const MovementSchema = z.object({
       currentValue: z.any().nullish(),
       // AI interpretation of what this change means in context of the movement
       interpretation: z.string().nullish(),
+      // Link to the LinkedIn post/comment/reaction that triggered this signal
+      sourceUrl: z.string().nullish(),
     })).nullable().nullish(),
     validatedAt: z.string().nullish(),
     validationModel: z.string().nullish(),
