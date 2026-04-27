@@ -23,6 +23,6 @@ export async function getBackendAxios(): Promise<AxiosInstance> {
       "Content-Type": "application/json",
       ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
-    timeout: 60*60*1000, // 1 hour - allows for large lists with hundreds of entities 
+    timeout: 30000, // 30 seconds - validation triggers background process and returns immediately
   });
 }
