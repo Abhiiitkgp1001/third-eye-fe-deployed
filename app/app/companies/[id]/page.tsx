@@ -12,8 +12,8 @@ import ConfirmToggleModal from "./ConfirmToggleModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import RenameListModal from "./RenameListModal";
 import SignalsList from "./SignalsList";
-import { Button, Badge, Card, PageSpinner, useToast } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil } from 'lucide-react';
+import { Button, Badge, Card, PageSpinner, useToast, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui";
+import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil, AlertTriangle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -30,6 +30,9 @@ export default function CompanyListDetailsPage() {
   const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
   const [newItemUrl, setNewItemUrl] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [showNoMovementsDialog, setShowNoMovementsDialog] = useState(false);
+  const [showValidationErrorDialog, setShowValidationErrorDialog] = useState<string | null>(null);
+  const [showLargeListConfirmDialog, setShowLargeListConfirmDialog] = useState<{ total: number; estimatedMinutes: number } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
@@ -106,7 +109,7 @@ export default function CompanyListDetailsPage() {
       router.push(`/app/companies/${listId}/movements`);
     },
     onError: (error) => {
-      alert(`AI Validation failed: ${error.message}`);
+      setShowValidationErrorDialog(error.message);
     },
   });
 
@@ -188,22 +191,21 @@ export default function CompanyListDetailsPage() {
 
   const handleValidateSignals = () => {
     if (!list.movementDefinitions || list.movementDefinitions.length === 0) {
-      alert('This list has no movement definitions. Please add movement definitions to enable AI validation.');
+      setShowNoMovementsDialog(true);
       return;
     }
 
-    // Warn for large lists
     if (total > 50) {
       const estimatedMinutes = Math.ceil(total * 3 / 60);
-      const confirmed = window.confirm(
-        `⚠️ This list has ${total} companies.\n\n` +
-        `Estimated validation time: ${estimatedMinutes} minutes.\n\n` +
-        `During validation, you won't be able to add/remove companies or modify signals.\n\n` +
-        `Continue?`
-      );
-      if (!confirmed) return;
+      setShowLargeListConfirmDialog({ total, estimatedMinutes });
+      return;
     }
 
+    validateSignalsWithAIMutation.mutate({ id: listId });
+  };
+
+  const handleConfirmLargeListValidation = () => {
+    setShowLargeListConfirmDialog(null);
     validateSignalsWithAIMutation.mutate({ id: listId });
   };
 
@@ -643,6 +645,64 @@ export default function CompanyListDetailsPage() {
         company={selectedCompany}
         onClose={() => setSelectedCompany(null)}
       />
+
+      <AlertDialog open={showNoMovementsDialog} onOpenChange={(open) => !open && setShowNoMovementsDialog(false)}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-yellow-500/10 border-2 border-yellow-500 rounded-base">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              </div>
+              <AlertDialogTitle>No Movement Definitions</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              This list has no movement definitions. Please add movement definitions to enable AI validation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowNoMovementsDialog(false)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!showValidationErrorDialog} onOpenChange={(open) => !open && setShowValidationErrorDialog(null)}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-red-500/10 border-2 border-red-500 rounded-base">
+                <XCircle className="h-5 w-5 text-red-500" />
+              </div>
+              <AlertDialogTitle>AI Validation Failed</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              {showValidationErrorDialog}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowValidationErrorDialog(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!showLargeListConfirmDialog} onOpenChange={(open) => !open && setShowLargeListConfirmDialog(null)}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-yellow-500/10 border-2 border-yellow-500 rounded-base">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              </div>
+              <AlertDialogTitle>Large List Warning</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              This list has {showLargeListConfirmDialog?.total} companies. Estimated validation time: {showLargeListConfirmDialog?.estimatedMinutes} minutes. During validation, you won&apos;t be able to add/remove companies or modify signals.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmLargeListValidation}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

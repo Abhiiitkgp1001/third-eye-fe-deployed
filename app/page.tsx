@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Zap, Check, ArrowRight, Search } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 
@@ -39,7 +40,7 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b-2 border-border">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Third Eye Logo" className="w-10 h-10" />
+            <Image src="/logo.svg" alt="Third Eye Logo" width={40} height={40} />
             <span className="text-lg font-heading text-foreground">Third Eye</span>
           </Link>
           <Link href="/sign-in">
@@ -294,7 +295,7 @@ export default function Home() {
       <footer className="py-8 px-6 border-t-2 border-border bg-background">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Third Eye Logo" className="w-8 h-8" />
+            <Image src="/logo.svg" alt="Third Eye Logo" width={32} height={32} />
             <span className="text-sm font-heading text-foreground">Third Eye</span>
           </div>
           <p className="text-foreground/40 text-sm font-base">&copy; 2026 Third Eye. All rights reserved.</p>
