@@ -196,7 +196,7 @@ export default function CompanyListDetailsPage() {
     }
 
     if (total > 50) {
-      const estimatedMinutes = Math.ceil(total * 3 / 60);
+      const estimatedMinutes = Math.ceil(total * 1 / 60);
       setShowLargeListConfirmDialog({ total, estimatedMinutes });
       return;
     }
@@ -223,7 +223,7 @@ export default function CompanyListDetailsPage() {
             <div>
               <p className="font-bold text-purple-500 text-lg">Validating Signals with AI</p>
               <p className="text-sm text-purple-400">
-                Processing {total} companies to detect movements. This may take several minutes (est. ~3 seconds per company).
+                Processing {total} companies to detect movements. This may take a few minutes (est. ~1 second per company).
               </p>
               <p className="text-xs text-purple-300 mt-1">
                 Please wait... The page will automatically refresh when validation is complete.
