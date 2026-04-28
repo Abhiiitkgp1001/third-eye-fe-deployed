@@ -3,24 +3,30 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { Badge, Card, PageSpinner, Button } from "@/components/ui";
-import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Badge, Card, PageSpinner, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
+import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search, ChevronDown, ChevronRight, MessageSquareText, Building2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const isPositiveMovement = (movement: string) =>
+  movement !== "NO_CHANGE" &&
+  !movement.endsWith("_NOT_CHANGED") &&
+  !movement.endsWith("_NOT_DETECTED");
 
 export default function MovementsPage() {
   const params = useParams();
   const router = useRouter();
   const listId = params.id as string;
 
-  // Filter states
   const [selectedMovementTypes, setSelectedMovementTypes] = useState<Set<string>>(new Set());
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
+  const [expandedMovements, setExpandedMovements] = useState<Set<string>>(new Set());
 
   const { data: listData, isLoading: listLoading } = trpc.companyLists.getById.useQuery({
     id: listId,
-    limit: 1000, // Get all companies for stats
+    limit: 1000,
     offset: 0,
   });
 
@@ -28,39 +34,32 @@ export default function MovementsPage() {
     id: listId,
   });
 
-  // Debug logging
-  console.log('[MovementsPage] List ID:', listId);
-  console.log('[MovementsPage] Movements data:', movements);
-  console.log('[MovementsPage] Movements count:', movements?.length ?? 0);
-  console.log('[MovementsPage] Is loading:', movementsLoading);
-
-  const isLoading = listLoading || movementsLoading;
-
-  // Calculate statistics (must be called unconditionally before any returns)
   const actualMovements = useMemo(() => movements.filter(m => m.movement !== "NO_CHANGE"), [movements]);
   const noChangeRecords = useMemo(() => movements.filter(m => m.movement === "NO_CHANGE"), [movements]);
 
   const totalMovements = actualMovements.length;
   const totalValidations = movements.length;
-  const uniqueCompaniesWithMovements = useMemo(() => new Set(actualMovements.map(m => m.companyId)).size, [actualMovements]);
-  const uniqueCompaniesValidated = useMemo(() => new Set(movements.map(m => m.companyId)).size, [movements]);
+  const uniqueCompaniesWithMovements = new Set(actualMovements.map(m => m.companyId)).size;
+  const uniqueCompaniesValidated = new Set(movements.map(m => m.companyId)).size;
 
-  const movementsByType = useMemo(() => actualMovements.reduce((acc, m) => {
-    acc[m.movement] = (acc[m.movement] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>), [actualMovements]);
+  const movementsByType = useMemo(() => {
+    return actualMovements.reduce((acc, m) => {
+      acc[m.movement] = (acc[m.movement] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [actualMovements]);
 
-  // Add NO_CHANGE to movement types if there are any
   const allMovementTypes = useMemo(() => {
     const types = new Set(movements.map(m => m.movement));
     return Array.from(types).sort();
   }, [movements]);
 
-  const averageConfidence = useMemo(() => actualMovements.length > 0
-    ? Math.round(actualMovements.reduce((sum, m) => sum + (m.metadata?.confidence || 0), 0) / actualMovements.length)
-    : 0, [actualMovements]);
+  const averageConfidence = useMemo(() => {
+    return actualMovements.length > 0
+      ? Math.round(actualMovements.reduce((sum, m) => sum + (m.metadata?.confidence || 0), 0) / actualMovements.length)
+      : 0;
+  }, [actualMovements]);
 
-  // Get unique companies with movements
   const companiesWithMovements = useMemo(() => {
     if (!listData) return [];
     const { companies } = listData;
@@ -68,8 +67,10 @@ export default function MovementsPage() {
     return companies
       .filter(c => uniqueCompanyIds.has(c.id))
       .map(c => {
-        const metadata = c.latestMetadata as any;
-        const displayName = metadata?.name || metadata?.company_name || c.linkedinUrl;
+        const rawMeta = c.latestMetadata as any;
+        const isAgg = rawMeta && typeof rawMeta === 'object' && 'company' in rawMeta;
+        const companyData = isAgg ? rawMeta.company : rawMeta;
+        const displayName = companyData?.name || companyData?.company_name || c.linkedinUrl;
         return {
           id: c.id,
           displayName,
@@ -80,29 +81,27 @@ export default function MovementsPage() {
       .sort((a, b) => b.movementCount - a.movementCount);
   }, [movements, listData]);
 
-  // Apply filters
   const filteredMovements = useMemo(() => {
     if (!listData) return [];
     const { companies } = listData;
     let filtered = [...movements];
 
-    // Filter by selected company
     if (selectedCompanyId) {
       filtered = filtered.filter(m => m.companyId === selectedCompanyId);
     }
 
-    // Filter by movement type
     if (selectedMovementTypes.size > 0) {
       filtered = filtered.filter(m => selectedMovementTypes.has(m.movement));
     }
 
-    // Filter by company search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(m => {
         const company = companies.find(c => c.id === m.companyId);
-        const metadata = company?.latestMetadata as any;
-        const displayName = metadata?.name || metadata?.company_name || "";
+        const rawMeta = company?.latestMetadata as any;
+        const isAgg = rawMeta && typeof rawMeta === 'object' && 'company' in rawMeta;
+        const companyData = isAgg ? rawMeta.company : rawMeta;
+        const displayName = companyData?.name || companyData?.company_name || "";
         const linkedinUrl = m.linkedinUrl.toLowerCase();
 
         return (
@@ -116,9 +115,55 @@ export default function MovementsPage() {
     return filtered;
   }, [movements, selectedCompanyId, selectedMovementTypes, searchQuery, listData]);
 
-  const recentMovements = useMemo(() => filteredMovements.slice(0, 50), [filteredMovements]); // Show last 50 filtered
+  // Group filtered movements by company, sorted by most signals first
+  const groupedByCompany = useMemo(() => {
+    if (!listData) return [];
+    const { companies: allCompanies } = listData;
+    const groups = new Map<string, typeof filteredMovements>();
 
-  // Early returns AFTER all hooks
+    for (const m of filteredMovements) {
+      const existing = groups.get(m.companyId) ?? [];
+      existing.push(m);
+      groups.set(m.companyId, existing);
+    }
+
+    return Array.from(groups.entries()).map(([companyId, mvs]) => {
+      const company = allCompanies.find(c => c.id === companyId);
+      const rawMetadata = company?.latestMetadata as any;
+      const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'company' in rawMetadata;
+      const companyData = isAggregatedFormat ? rawMetadata.company : rawMetadata;
+      const displayName = companyData?.name || companyData?.company_name || company?.linkedinUrl || companyId;
+      const signals = mvs.filter(m => m.movement !== "NO_CHANGE");
+      const noChange = mvs.filter(m => m.movement === "NO_CHANGE");
+
+      return {
+        companyId,
+        displayName,
+        linkedinUrl: company?.linkedinUrl ?? "",
+        logoUrl: companyData?.logo_url ?? companyData?.logo ?? null,
+        description: companyData?.tagline ?? companyData?.description ?? null,
+        initials: displayName
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase() || "?",
+        signals,
+        noChangeMovements: noChange,
+        noChangeCount: noChange.length,
+        allMovements: mvs,
+        latestDate: mvs.length > 0 ? new Date(Math.max(...mvs.map(m => new Date(m.createdAt).getTime()))) : null,
+      };
+    }).sort((a, b) => b.signals.length - a.signals.length);
+  }, [filteredMovements, listData]);
+
+  const hasActiveFilters = useMemo(() =>
+    selectedMovementTypes.size > 0 || selectedCompanyId.length > 0 || searchQuery.trim().length > 0,
+    [selectedMovementTypes, selectedCompanyId, searchQuery]
+  );
+
+  const isLoading = listLoading || movementsLoading;
+
   if (isLoading) {
     return <PageSpinner />;
   }
@@ -131,9 +176,8 @@ export default function MovementsPage() {
     );
   }
 
-  const { list, companies, total } = listData;
+  const { list } = listData;
 
-  // Toggle movement type filter
   const toggleMovementType = (type: string) => {
     const newSelected = new Set(selectedMovementTypes);
     if (newSelected.has(type)) {
@@ -144,14 +188,40 @@ export default function MovementsPage() {
     setSelectedMovementTypes(newSelected);
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setSelectedMovementTypes(new Set());
     setSelectedCompanyId("");
     setSearchQuery("");
   };
 
-  const hasActiveFilters = selectedMovementTypes.size > 0 || selectedCompanyId.length > 0 || searchQuery.trim().length > 0;
+  const toggleCompany = (companyId: string) => {
+    const next = new Set(expandedCompanies);
+    if (next.has(companyId)) {
+      next.delete(companyId);
+    } else {
+      next.add(companyId);
+    }
+    setExpandedCompanies(next);
+  };
+
+  const toggleMovement = (movementId: string) => {
+    const next = new Set(expandedMovements);
+    if (next.has(movementId)) {
+      next.delete(movementId);
+    } else {
+      next.add(movementId);
+    }
+    setExpandedMovements(next);
+  };
+
+  const expandAll = () => {
+    setExpandedCompanies(new Set(groupedByCompany.map(g => g.companyId)));
+  };
+
+  const collapseAll = () => {
+    setExpandedCompanies(new Set());
+    setExpandedMovements(new Set());
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -205,7 +275,6 @@ export default function MovementsPage() {
           >
             <Card>
               <div className="p-4 space-y-4">
-                {/* Select Company */}
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
                     Select Company
@@ -224,7 +293,6 @@ export default function MovementsPage() {
                   </select>
                 </div>
 
-                {/* Search by Company */}
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
                     Search Companies
@@ -249,7 +317,6 @@ export default function MovementsPage() {
                   </div>
                 </div>
 
-                {/* Filter by Movement Type */}
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
                     Movement Types
@@ -282,7 +349,6 @@ export default function MovementsPage() {
                   </div>
                 </div>
 
-                {/* Clear Filters */}
                 {hasActiveFilters && (
                   <div className="pt-2 border-t border-gray-800">
                     <Button
@@ -403,9 +469,7 @@ export default function MovementsPage() {
                     </div>
                   ))}
                 {noChangeRecords.length > 0 && (
-                  <div
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-200/60 border border-gray-800"
-                  >
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-200/60 border border-gray-800">
                     <Badge variant="neutral" className="font-mono text-xs">
                       NO_CHANGE
                     </Badge>
@@ -421,7 +485,7 @@ export default function MovementsPage() {
         </Card>
       </motion.div>
 
-      {/* Recent Movements List */}
+      {/* Company Accordions */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -433,22 +497,35 @@ export default function MovementsPage() {
               <h2 className="text-lg font-bold text-foreground">
                 {hasActiveFilters ? (
                   <>
-                    Filtered Movements
+                    Filtered Companies
                     <span className="ml-2 text-sm font-normal text-foreground/60">
-                      ({filteredMovements.length} of {movements.length})
+                      ({groupedByCompany.length} of {uniqueCompaniesValidated})
                     </span>
                   </>
                 ) : (
                   <>
-                    Recent Movements
-                    {recentMovements.length < movements.length && (
-                      <span className="ml-2 text-sm font-normal text-foreground/60">
-                        (Last {recentMovements.length})
-                      </span>
-                    )}
+                    Companies
+                    <span className="ml-2 text-sm font-normal text-foreground/60">
+                      ({groupedByCompany.length})
+                    </span>
                   </>
                 )}
               </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={expandAll}
+                  className="text-xs font-base text-foreground/60 hover:text-main transition-colors"
+                >
+                  Expand all
+                </button>
+                <span className="text-foreground/30">|</span>
+                <button
+                  onClick={collapseAll}
+                  className="text-xs font-base text-foreground/60 hover:text-main transition-colors"
+                >
+                  Collapse all
+                </button>
+              </div>
             </div>
 
             {totalValidations === 0 ? (
@@ -456,10 +533,10 @@ export default function MovementsPage() {
                 <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p className="text-lg mb-2">No validations yet</p>
                 <p className="text-sm">
-                  Run "Validate Signals" to detect company changes with AI
+                  Run &quot;Validate Signals&quot; to detect company changes with AI
                 </p>
               </div>
-            ) : filteredMovements.length === 0 ? (
+            ) : groupedByCompany.length === 0 ? (
               <div className="text-center py-12 text-foreground/60">
                 <Filter className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p className="text-lg mb-2">No movements match your filters</p>
@@ -471,106 +548,340 @@ export default function MovementsPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
-                {recentMovements.map((movement) => {
-                  const company = companies.find(c => c.id === movement.companyId);
-                  const metadata = company?.latestMetadata as any;
-                  const displayName = metadata?.name || metadata?.company_name || company?.linkedinUrl;
-
-                  const isNoChange = movement.movement === "NO_CHANGE";
+              <div className="space-y-2">
+                {groupedByCompany.map((group) => {
+                  const isExpanded = expandedCompanies.has(group.companyId);
+                  const hasSignals = group.signals.length > 0;
 
                   return (
                     <div
-                      key={movement.id}
-                      className={`rounded-lg border ${
-                        isNoChange
-                          ? 'bg-dark-200/30 border-gray-800'
-                          : 'bg-dark-200/60 border-gray-800'
+                      key={group.companyId}
+                      className={`rounded-base border-2 border-border transition-colors ${
+                        hasSignals
+                          ? 'bg-secondary-background shadow-shadow'
+                          : 'bg-secondary-background/50'
                       }`}
                     >
-                      {/* Company Header */}
-                      <div className="p-4 border-b border-gray-800">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <p className="text-sm font-medium text-foreground">
-                                {displayName}
-                              </p>
+                      {/* Company Accordion Header */}
+                      <button
+                        onClick={() => toggleCompany(group.companyId)}
+                        className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-main/10 transition-colors rounded-base"
+                      >
+                        {isExpanded
+                          ? <ChevronDown className="w-4 h-4 text-foreground/50 shrink-0" />
+                          : <ChevronRight className="w-4 h-4 text-foreground/50 shrink-0" />
+                        }
+
+                        <Avatar className="size-9 shrink-0">
+                          <AvatarImage src={group.logoUrl ?? ""} alt={group.displayName} />
+                          <AvatarFallback className="bg-main/20 text-main border-2 border-border text-xs font-heading">
+                            {group.initials}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground truncate">
+                              {group.displayName}
+                            </span>
+                            {!hasSignals && (
+                              <span className="text-xs text-foreground/40">
+                                No changes detected
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Description + signal badges row */}
+                          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                            {group.description && (
+                              <span className="text-xs text-foreground/40 line-clamp-1 max-w-[300px]">
+                                {group.description}
+                              </span>
+                            )}
+                            {hasSignals && group.description && (
+                              <span className="text-foreground/20">·</span>
+                            )}
+                            {group.signals.slice(0, 3).map((sig, i) => (
                               <Badge
-                                variant={isNoChange ? "neutral" : "default"}
-                                className={`font-mono text-[10px] flex items-center gap-1 ${
-                                  isNoChange
-                                    ? 'bg-foreground/5 text-foreground/60 border-foreground/20'
-                                    : 'bg-brand-500/20 text-brand-400 border-brand-500/30'
+                                key={i}
+                                variant="default"
+                                className={`font-mono text-[10px] shrink-0 ${
+                                  isPositiveMovement(sig.movement)
+                                    ? 'bg-main text-main-foreground border-border'
+                                    : 'bg-secondary-background text-foreground/60 border-border/40'
                                 }`}
                               >
-                                <Sparkles className="w-2.5 h-2.5" />
-                                {movement.movement}
+                                {sig.movement}
                               </Badge>
-                              {movement.metadata?.confidence && (
-                                <span className={`text-xs font-medium ${
-                                  isNoChange ? 'text-foreground/50' : 'text-brand-400'
-                                }`}>
-                                  {movement.metadata.confidence}%
-                                </span>
-                              )}
-                            </div>
-                            {company && (
+                            ))}
+                            {group.signals.length > 3 && (
+                              <span className="text-xs text-foreground/50">
+                                +{group.signals.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          {group.noChangeCount > 0 && (
+                            <span className="text-xs text-foreground/40">
+                              {group.noChangeCount} scan{group.noChangeCount !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                          {group.latestDate && (
+                            <span className="text-xs text-foreground/40">
+                              {group.latestDate.toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Expanded Content */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 pt-1 border-t-2 border-border/40">
+                              {/* LinkedIn link */}
                               <a
-                                href={company.linkedinUrl}
+                                href={group.linkedinUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 w-fit"
-                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs text-main hover:text-main/80 hover:underline flex items-center gap-1 w-fit mb-3 font-base"
                               >
                                 View LinkedIn Company Page
                                 <ExternalLink className="w-3 h-3" />
                               </a>
-                            )}
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs text-foreground/50">
-                              {new Date(movement.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-foreground/50">
-                              {new Date(movement.createdAt).toLocaleTimeString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
 
-                      {/* AI Reasoning */}
-                      {movement.metadata?.reasoning && (
-                        <div className="p-4 bg-dark-200/40">
-                          <p className="text-xs font-semibold text-foreground/60 mb-1">AI Analysis</p>
-                          <p className="text-sm text-foreground leading-relaxed">
-                            {movement.metadata.reasoning}
-                          </p>
-                        </div>
-                      )}
+                              {group.signals.length === 0 && group.noChangeMovements.length === 0 ? (
+                                <p className="text-sm text-foreground/50">
+                                  No validations recorded.
+                                </p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {group.signals
+                                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                                    .map((movement) => {
+                                      const isMovementExpanded = expandedMovements.has(movement.id);
+                                      const hasEvidence = movement.metadata?.evidence && movement.metadata.evidence.length > 0;
 
-                      {/* Evidence */}
-                      {movement.metadata?.evidence && movement.metadata.evidence.length > 0 && !isNoChange && (
-                        <div className="p-4 border-t border-gray-800">
-                          <p className="text-xs font-semibold text-foreground/60 mb-2">Key Changes</p>
-                          <div className="space-y-1">
-                            {movement.metadata.evidence.map((item, idx) => (
-                              <div key={idx} className="flex items-start gap-2 text-xs">
-                                <span className="text-foreground/50 font-medium min-w-[120px]">
-                                  {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}:
-                                </span>
-                                <span className="text-foreground flex-1">
-                                  {item.previousValue != null && item.currentValue != null
-                                    ? `${String(item.previousValue)} → ${String(item.currentValue)}`
-                                    : item.currentValue != null
-                                      ? String(item.currentValue)
-                                      : item.interpretation ?? String(item.previousValue ?? '')}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                                      return (
+                                        <div
+                                          key={movement.id}
+                                          className="rounded-base border-2 border-border bg-background"
+                                        >
+                                          {/* Movement Card Header — always visible */}
+                                          <button
+                                            onClick={() => toggleMovement(movement.id)}
+                                            className="w-full px-3 py-2.5 flex items-start gap-3 text-left hover:bg-main/5 transition-colors rounded-base"
+                                          >
+                                            <div className="flex-1 min-w-0">
+                                              <div className="flex items-center gap-2 mb-1">
+                                                <Badge
+                                                  variant="default"
+                                                  className={`font-mono text-[10px] flex items-center gap-1 ${
+                                                    isPositiveMovement(movement.movement)
+                                                      ? 'bg-main text-main-foreground border-border'
+                                                      : 'bg-secondary-background text-foreground/60 border-border/40'
+                                                  }`}
+                                                >
+                                                  <Sparkles className="w-2.5 h-2.5" />
+                                                  {movement.movement}
+                                                </Badge>
+                                                <span className={`text-xs font-heading ${isPositiveMovement(movement.movement) ? 'text-main' : 'text-foreground/40'}`}>
+                                                  {movement.metadata?.confidence}%
+                                                </span>
+                                                <span className="text-xs text-foreground/40">
+                                                  {new Date(movement.createdAt).toLocaleDateString()}
+                                                </span>
+                                              </div>
+
+                                              {/* Key changes preview — always visible */}
+                                              {hasEvidence && (
+                                                <div className="space-y-0.5">
+                                                  {movement.metadata!.evidence!.map((item: any, idx: number) => (
+                                                    <div key={idx} className="text-xs text-foreground/70">
+                                                      <span className="text-foreground/50 font-medium">
+                                                        {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}:
+                                                      </span>{' '}
+                                                      {item.previousValue != null && item.currentValue != null
+                                                        ? <span>{String(item.previousValue).substring(0, 60)}{String(item.previousValue).length > 60 ? '...' : ''} <span className="text-main font-heading">→</span> {String(item.currentValue).substring(0, 60)}{String(item.currentValue).length > 60 ? '...' : ''}</span>
+                                                        : item.currentValue != null
+                                                          ? String(item.currentValue).substring(0, 120) + (String(item.currentValue).length > 120 ? '...' : '')
+                                                          : item.interpretation ?? String(item.previousValue ?? '')}
+                                                      {item.sourceUrl && (
+                                                        <a
+                                                          href={item.sourceUrl}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="inline-flex items-center gap-0.5 ml-1.5 text-main hover:text-main/80 hover:underline"
+                                                          onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                          <ExternalLink className="w-3 h-3" />
+                                                        </a>
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              )}
+
+                                              {!hasEvidence && movement.metadata?.reasoning && (
+                                                <p className="text-xs text-foreground/50 line-clamp-1">
+                                                  {movement.metadata.reasoning}
+                                                </p>
+                                              )}
+                                            </div>
+
+                                            {(hasEvidence || movement.metadata?.reasoning) && (
+                                              <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 shrink-0 mt-0.5 transition-transform ${isMovementExpanded ? '' : '-rotate-90'}`} />
+                                            )}
+                                          </button>
+
+                                          {/* Expanded: full evidence + AI analysis */}
+                                          <AnimatePresence>
+                                            {isMovementExpanded && (
+                                              <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="overflow-hidden"
+                                              >
+                                                <div className="px-3 pb-3 border-t-2 border-border/30 pt-2 space-y-3">
+                                                  {/* Full evidence */}
+                                                  {hasEvidence && (
+                                                    <div>
+                                                      <p className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wider mb-1.5">Key Changes</p>
+                                                      <div className="space-y-2">
+                                                        {movement.metadata!.evidence!.map((item: any, idx: number) => (
+                                                          <div key={idx} className="rounded-base border border-border/20 bg-secondary-background/50 px-2.5 py-2 text-xs space-y-1">
+                                                            <div className="flex items-center justify-between">
+                                                              <div className="font-medium text-foreground/70">
+                                                                {item.field.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (str: string) => str.toUpperCase())}
+                                                              </div>
+                                                              {item.sourceUrl && (
+                                                                <a
+                                                                  href={item.sourceUrl}
+                                                                  target="_blank"
+                                                                  rel="noopener noreferrer"
+                                                                  className="text-main hover:text-main/80 hover:underline flex items-center gap-1 shrink-0"
+                                                                  onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                  View Post <ExternalLink className="w-3 h-3" />
+                                                                </a>
+                                                              )}
+                                                            </div>
+                                                            {item.previousValue != null && item.currentValue != null ? (
+                                                              <div className="space-y-1">
+                                                                <div className="text-foreground/40">
+                                                                  <span className="text-red-400/70 line-through">{String(item.previousValue)}</span>
+                                                                </div>
+                                                                <div className="text-foreground/80">
+                                                                  <span className="text-green-400/80">{String(item.currentValue)}</span>
+                                                                </div>
+                                                              </div>
+                                                            ) : item.currentValue != null ? (
+                                                              <div className="text-foreground/80">{String(item.currentValue)}</div>
+                                                            ) : null}
+                                                            {item.interpretation && (
+                                                              <div className="text-foreground/50 italic">{item.interpretation}</div>
+                                                            )}
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                    </div>
+                                                  )}
+
+                                                  {/* AI Analysis */}
+                                                  {movement.metadata?.reasoning && (
+                                                    <div>
+                                                      <p className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                        <MessageSquareText className="w-3 h-3" />
+                                                        AI Analysis
+                                                      </p>
+                                                      <p className="text-xs text-foreground/60 leading-relaxed">
+                                                        {movement.metadata.reasoning}
+                                                      </p>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </motion.div>
+                                            )}
+                                          </AnimatePresence>
+                                        </div>
+                                      );
+                                    })}
+
+                                  {/* NO_CHANGE entries — muted, not highlighted */}
+                                  {group.noChangeMovements.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-border/20">
+                                      <p className="text-[10px] font-semibold text-foreground/30 uppercase tracking-wider mb-2">
+                                        No Change ({group.noChangeMovements.length})
+                                      </p>
+                                      <div className="space-y-1">
+                                        {group.noChangeMovements
+                                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                                          .map((movement) => {
+                                            const isMovementExpanded = expandedMovements.has(movement.id);
+
+                                            return (
+                                              <div
+                                                key={movement.id}
+                                                className="rounded-base border border-border/15 bg-background/50 opacity-60"
+                                              >
+                                                <button
+                                                  onClick={() => toggleMovement(movement.id)}
+                                                  className="w-full px-3 py-2 flex items-center gap-2 text-left hover:opacity-100 transition-opacity rounded-base"
+                                                >
+                                                  <Badge
+                                                    variant="neutral"
+                                                    className="font-mono text-[10px] bg-transparent text-foreground/40 border-border/20"
+                                                  >
+                                                    {String(movement.metadata?.movementDefinition ?? 'NO_CHANGE')}
+                                                  </Badge>
+                                                  <span className="text-[10px] text-foreground/30">
+                                                    {new Date(movement.createdAt).toLocaleDateString()}
+                                                  </span>
+                                                  <span className="flex-1" />
+                                                  {movement.metadata?.reasoning && (
+                                                    <ChevronDown className={`w-3 h-3 text-foreground/25 shrink-0 transition-transform ${isMovementExpanded ? '' : '-rotate-90'}`} />
+                                                  )}
+                                                </button>
+
+                                                <AnimatePresence>
+                                                  {isMovementExpanded && movement.metadata?.reasoning && (
+                                                    <motion.div
+                                                      initial={{ height: 0, opacity: 0 }}
+                                                      animate={{ height: "auto", opacity: 1 }}
+                                                      exit={{ height: 0, opacity: 0 }}
+                                                      transition={{ duration: 0.15 }}
+                                                      className="overflow-hidden"
+                                                    >
+                                                      <div className="px-3 pb-2 border-t border-border/10 pt-1.5">
+                                                        <p className="text-xs text-foreground/40 leading-relaxed">
+                                                          {movement.metadata.reasoning}
+                                                        </p>
+                                                      </div>
+                                                    </motion.div>
+                                                  )}
+                                                </AnimatePresence>
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}
