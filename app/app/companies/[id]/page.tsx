@@ -104,9 +104,9 @@ export default function CompanyListDetailsPage() {
   const validateSignalsWithAIMutation = trpc.companyLists.validateSignalsWithAI.useMutation({
     onSuccess: (data) => {
       utils.companyLists.getById.invalidate({ id: listId });
-      utils.companyLists.getListMovements.invalidate({ id: listId });
-      // Navigate to movements page to see results
-      router.push(`/app/companies/${listId}/movements`);
+      // utils.companyLists.getListMovements.invalidate({ id: listId });
+      // // Navigate to movements page to see results
+      // router.push(`/app/companies/${listId}/movements`);
     },
     onError: (error) => {
       setShowValidationErrorDialog(error.message);

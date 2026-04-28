@@ -98,9 +98,9 @@ export default function PeopleListDetailsPage() {
   const validateSignalsWithAIMutation = trpc.peopleLists.validateSignalsWithAI.useMutation({
     onSuccess: (data) => {
       utils.peopleLists.getById.invalidate({ id: listId });
-      utils.peopleLists.getListMovements.invalidate({ id: listId });
-      // Navigate to movements page to see results
-      router.push(`/app/people/${listId}/movements`);
+      // utils.peopleLists.getListMovements.invalidate({ id: listId });
+      // // Navigate to movements page to see results
+      // router.push(`/app/people/${listId}/movements`);
     },
     onError: (error) => {
       setShowValidationErrorDialog(error.message);
