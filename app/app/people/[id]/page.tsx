@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import ProfileRow from "./ProfileRow";
 import ProfileSheet from "./ProfileSheet";
@@ -287,6 +288,23 @@ export default function PeopleListDetailsPage() {
           <div className="p-6 space-y-4 relative">
             {/* Breadcrumb & Title */}
             <div>
+              <nav aria-label="Breadcrumb" className="mb-3">
+                <ol className="flex items-center gap-2 text-xs text-foreground/60">
+                  <li>
+                    <Link href="/app" className="hover:text-foreground transition-colors">
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>/</li>
+                  <li>
+                    <Link href="/app/people" className="hover:text-foreground transition-colors">
+                      People Lists
+                    </Link>
+                  </li>
+                  <li>/</li>
+                  <li className="text-foreground font-medium truncate max-w-[220px]">{list.name}</li>
+                </ol>
+              </nav>
               <button
                 onClick={() => router.push("/app/people")}
                 className="flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors mb-3 group"

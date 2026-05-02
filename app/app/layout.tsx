@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import GlobalCommandPalette from "@/components/GlobalCommandPalette";
 import Image from "next/image";
 
 const navigation = (peopleLists: number, companyLists: number) => {
@@ -279,6 +280,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
 
           <div className="flex-1" />
+
+          <GlobalCommandPalette />
 
           {/* Theme Toggle */}
           <ThemeToggle />
