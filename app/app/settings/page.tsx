@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { trpc } from "@/lib/trpc";
+import { Copy, Eye, EyeOff, Key, Trash2 } from 'lucide-react';
 import {
   PageSpinner,
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -20,6 +22,41 @@ export default function SettingsPage() {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [newApiKey, setNewApiKey] = useState<string | null>(null);
+  const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+
+  // Fetch API keys
+  const { data: apiKeys, isLoading: isLoadingKeys, refetch: refetchKeys } = trpc.apiKey.getAll.useQuery(
+    { orgId: organization?.id || '' },
+    { enabled: !!organization?.id }
+  );
+
+  // Create API key mutation
+  const createApiKeyMutation = trpc.apiKey.create.useMutation({
+    onSuccess: (data) => {
+      setNewApiKey(data.rawKey);
+      refetchKeys();
+      setSuccessMessage('API key created successfully! Copy it now - you won\'t see it again.');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    },
+    onError: (error) => {
+      setErrorMessage(`Error creating API key: ${error.message}`);
+    },
+  });
+
+  // Delete API key mutation
+  const deleteApiKeyMutation = trpc.apiKey.delete.useMutation({
+    onSuccess: () => {
+      refetchKeys();
+      setKeyToDelete(null);
+      setSuccessMessage('API key deleted successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    },
+    onError: (error) => {
+      setErrorMessage(`Error deleting API key: ${error.message}`);
+    },
+  });
 
   // Fetch organization from backend
   const { data: backendOrg, isLoading: isLoadingOrg, refetch } = trpc.organization.get.useQuery(
@@ -150,8 +187,134 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* API Keys Section */}
+        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden mb-6">
+          <div className="p-6 border-b border-primary-700/40 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-white">API Keys</h2>
+              <p className="text-secondary-50 text-sm mt-1">
+                Generate API keys to access Third Eye programmatically.{' '}
+                <a href="/api-docs" target="_blank" className="text-primary-400 hover:text-primary-300 underline">
+                  View API Documentation →
+                </a>
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Create API Key Button */}
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-white text-sm">
+                  API keys allow external applications to interact with your Third Eye data.
+                </p>
+                <p className="text-secondary-50 text-xs mt-1">
+                  Keep your API keys secure and never share them publicly.
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  if (!organization?.id) return;
+                  createApiKeyMutation.mutate({ orgId: organization.id });
+                }}
+                disabled={createApiKeyMutation.isPending}
+                size="lg"
+              >
+                <Key className="w-4 h-4 mr-2" />
+                {createApiKeyMutation.isPending ? 'Creating...' : 'Create API Key'}
+              </Button>
+            </div>
+
+            {/* New API Key Display */}
+            {newApiKey && (
+              <div className="bg-green-500/10 border border-green-500/40 rounded-lg p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <p className="text-green-400 font-semibold mb-1">New API Key Created!</p>
+                    <p className="text-green-300/80 text-sm mb-3">
+                      Copy this key now. For security, it won&apos;t be shown again.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-primary-800/80 border border-primary-700/40 rounded px-3 py-2 text-sm text-white font-mono">
+                        {newApiKey}
+                      </code>
+                      <Button
+                        onClick={() => {
+                          navigator.clipboard.writeText(newApiKey);
+                          setSuccessMessage('API key copied to clipboard!');
+                        }}
+                        size="sm"
+                        variant="neutral"
+                      >
+                        <Copy className="w-4 h-4 mr-1" />
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setNewApiKey(null)}
+                    className="text-green-300/60 hover:text-green-300 ml-2"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Existing API Keys List */}
+            <div>
+              <h3 className="text-white font-semibold mb-3">Your API Keys</h3>
+              {isLoadingKeys ? (
+                <div className="text-secondary-50 text-sm py-4 text-center">
+                  Loading API keys...
+                </div>
+              ) : !apiKeys || apiKeys.length === 0 ? (
+                <div className="text-secondary-50 text-sm italic py-4 text-center border border-dashed border-primary-700/40 rounded-lg">
+                  No API keys yet. Create one to get started.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {apiKeys.map((key) => (
+                    <div key={key.id} className="bg-primary-800/50 border border-primary-700/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Key className="w-4 h-4 text-primary-400" />
+                            <code className="text-sm text-white font-mono">
+                              {key.keyPrefix}••••••••••••••••
+                            </code>
+                            {key.name && (
+                              <span className="text-xs text-secondary-300 ml-2">
+                                ({key.name})
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-4 text-xs text-secondary-50">
+                            <span>Created: {new Date(key.createdAt).toLocaleDateString()}</span>
+                            {key.lastUsedAt && (
+                              <span>Last used: {new Date(key.lastUsedAt).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => setKeyToDelete(key.id)}
+                          variant="destructive"
+                          size="sm"
+                          disabled={deleteApiKeyMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Webhook Info */}
-        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden">
+        <div className="bg-secondary-background opacity-100 rounded-2xl border border-gray-800 overflow-hidden mb-6">
           <div className="p-6 border-b border-primary-700/40">
             <h2 className="text-2xl font-bold text-white">Webhook Details</h2>
           </div>
@@ -231,6 +394,35 @@ export default function SettingsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setErrorMessage(null)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete API Key Confirmation Dialog */}
+      <AlertDialog open={!!keyToDelete} onOpenChange={() => setKeyToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete API Key?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this API key. Any applications using this key will stop working immediately.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setKeyToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!organization?.id || !keyToDelete) return;
+                deleteApiKeyMutation.mutate({
+                  orgId: organization.id,
+                  keyId: keyToDelete,
+                });
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteApiKeyMutation.isPending}
+            >
+              {deleteApiKeyMutation.isPending ? 'Deleting...' : 'Delete Key'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

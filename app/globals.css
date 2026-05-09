@@ -160,3 +160,94 @@
     background: #6b7280;
   }
 }
+
+@layer utilities {
+  /* Gradient shift animations */
+  @keyframes gradient-shift {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translate(10%, 10%) scale(1.1);
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes gradient-shift-reverse {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.2;
+    }
+    50% {
+      transform: translate(-10%, -10%) scale(1.2);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(72, 147, 129, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(72, 147, 129, 0.6);
+    }
+  }
+
+  @keyframes spotlight {
+    0% {
+      opacity: 0.3;
+      transform: translateY(-100%);
+    }
+    50% {
+      opacity: 0.6;
+    }
+    100% {
+      opacity: 0.3;
+      transform: translateY(100%);
+    }
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 15s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift-reverse {
+    animation: gradient-shift-reverse 20s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-spotlight {
+    animation: spotlight 8s ease-in-out infinite;
+  }
+
+  /* Glow effects for cards */
+  .glow-card {
+    position: relative;
+  }
+
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(72, 147, 129, 0.4), rgba(132, 120, 204, 0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+
+  .glow-card:hover {
+    box-shadow: 0 0 30px rgba(72, 147, 129, 0.3);
+  }
+}

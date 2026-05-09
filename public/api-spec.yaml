@@ -1,0 +1,840 @@
+openapi: 3.1.0
+info:
+  title: Third Eye API
+  version: 1.0.0
+  description: |
+    Third Eye REST API for programmatic access to GTM intelligence tracking.
+
+    ## Authentication
+    All API requests require an API key. Include your API key in the `Authorization` header:
+    ```
+    Authorization: Bearer YOUR_API_KEY
+    ```
+
+    Generate your API key in the [Settings](/app/settings) page.
+
+    ## Rate Limits
+    - 1000 requests per hour per organization
+    - 10 concurrent requests maximum
+
+    ## Base URL
+    ```
+    https://api.thirdeye.ai/v1
+    ```
+  contact:
+    name: Third Eye Support
+    email: support@thirdeye.ai
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+  - url: https://api.thirdeye.ai/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API key obtained from Third Eye dashboard
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "NOT_FOUND"
+        message:
+          type: string
+          example: "List not found"
+
+    PeopleList:
+      type: object
+      required:
+        - id
+        - orgId
+        - name
+        - enabled
+        - syncStatus
+        - cadence
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        orgId:
+          type: string
+          description: Organization ID
+          example: "org_2abc"
+        name:
+          type: string
+          example: "Series A SaaS CTOs"
+        min:
+          type: integer
+          nullable: true
+          example: 10
+        max:
+          type: integer
+          nullable: true
+          example: 100
+        enabled:
+          type: boolean
+          example: true
+          description: "Whether signal tracking is active and billable"
+        syncStatus:
+          type: string
+          enum: [DRAFT, BUILDING, ENRICHING, NORMAL, FAILED]
+          example: "NORMAL"
+        allowedMovements:
+          type: array
+          items:
+            type: string
+          example: ["JOB_CHANGED", "PROMOTED", "COMPANY_CHANGED"]
+        movementDefinitions:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "JOB_CHANGED"
+              description:
+                type: string
+                example: "Person changed job title or role"
+        prompt:
+          type: string
+          nullable: true
+          example: "Track CTOs at Series A SaaS companies"
+        cadence:
+          type: string
+          enum: [MANUAL, DAILY, WEEKLY, MONTHLY]
+          example: "DAILY"
+        cadenceInterval:
+          type: integer
+          example: 1
+        profileCount:
+          type: integer
+          example: 42
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CompanyList:
+      type: object
+      required:
+        - id
+        - orgId
+        - name
+        - enabled
+        - syncStatus
+        - cadence
+      properties:
+        id:
+          type: string
+          format: uuid
+        orgId:
+          type: string
+        name:
+          type: string
+          example: "YC W23 Batch"
+        min:
+          type: integer
+          nullable: true
+        max:
+          type: integer
+          nullable: true
+        enabled:
+          type: boolean
+        syncStatus:
+          type: string
+          enum: [DRAFT, BUILDING, ENRICHING, NORMAL, FAILED]
+        allowedMovements:
+          type: array
+          items:
+            type: string
+        movementDefinitions:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+        prompt:
+          type: string
+          nullable: true
+        cadence:
+          type: string
+          enum: [MANUAL, DAILY, WEEKLY, MONTHLY]
+        cadenceInterval:
+          type: integer
+        companyCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        listId:
+          type: string
+          format: uuid
+        linkedinUrl:
+          type: string
+          example: "https://linkedin.com/in/johndoe"
+        metadata:
+          type: object
+          description: "Latest enriched LinkedIn data"
+        previousMetadata:
+          type: object
+          nullable: true
+          description: "Previous snapshot for change detection"
+        enrichedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        listId:
+          type: string
+          format: uuid
+        linkedinUrl:
+          type: string
+          example: "https://linkedin.com/company/acme"
+        metadata:
+          type: object
+        previousMetadata:
+          type: object
+          nullable: true
+        enrichedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    Movement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        profileId:
+          type: string
+          format: uuid
+          nullable: true
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+        linkedinUrl:
+          type: string
+        movement:
+          type: string
+          example: "JOB_CHANGED"
+        metadata:
+          type: object
+          nullable: true
+          description: "Movement details, confidence, reasoning"
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /people-lists:
+    get:
+      summary: List all people lists
+      description: Returns all people lists for your organization
+      operationId: listPeopleLists
+      tags:
+        - People Lists
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeopleList'
+        '401':
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a people list
+      description: Create a new people list to track specific profiles
+      operationId: createPeopleList
+      tags:
+        - People Lists
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "Series A CTOs"
+                prompt:
+                  type: string
+                  example: "Track CTOs at Series A SaaS companies who recently raised funding"
+                min:
+                  type: integer
+                  example: 10
+                max:
+                  type: integer
+                  example: 100
+                cadence:
+                  type: string
+                  enum: [MANUAL, DAILY, WEEKLY, MONTHLY]
+                  default: MANUAL
+                cadenceInterval:
+                  type: integer
+                  default: 1
+      responses:
+        '201':
+          description: List created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    $ref: '#/components/schemas/PeopleList'
+                  movements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+        '400':
+          description: Bad request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /people-lists/{listId}:
+    get:
+      summary: Get people list details
+      description: Returns a specific people list with all profiles
+      operationId: getPeopleList
+      tags:
+        - People Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    $ref: '#/components/schemas/PeopleList'
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+        '404':
+          description: List not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update people list
+      description: Update list properties like name, enabled status, or cadence
+      operationId: updatePeopleList
+      tags:
+        - People Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                enabled:
+                  type: boolean
+                prompt:
+                  type: string
+                  nullable: true
+                min:
+                  type: integer
+                  nullable: true
+                max:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: List updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeopleList'
+
+    delete:
+      summary: Delete people list
+      description: Permanently delete a people list and all associated profiles
+      operationId: deletePeopleList
+      tags:
+        - People Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: List deleted successfully
+        '404':
+          description: List not found
+
+  /people-lists/{listId}/profiles:
+    post:
+      summary: Add profiles to list
+      description: Add one or more LinkedIn profiles to the list
+      operationId: addProfiles
+      tags:
+        - People Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - linkedinUrls
+              properties:
+                linkedinUrls:
+                  type: array
+                  items:
+                    type: string
+                  example: ["https://linkedin.com/in/johndoe", "https://linkedin.com/in/janedoe"]
+      responses:
+        '201':
+          description: Profiles added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  added:
+                    type: integer
+                    example: 2
+                  duplicates:
+                    type: integer
+                    example: 0
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+
+  /people-lists/{listId}/run:
+    post:
+      summary: Trigger manual refresh
+      description: Manually trigger signal detection for all profiles in the list
+      operationId: triggerPeopleListRefresh
+      tags:
+        - People Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '202':
+          description: Refresh triggered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Refresh triggered successfully"
+                  jobId:
+                    type: string
+                    example: "job_123"
+
+  /people-lists/{listId}/movements:
+    get:
+      summary: Get all movements (signals)
+      description: Returns all detected movements/signals for profiles in this list
+      operationId: getPeopleListMovements
+      tags:
+        - People Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movement'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+  /company-lists:
+    get:
+      summary: List all company lists
+      description: Returns all company lists for your organization
+      operationId: listCompanyLists
+      tags:
+        - Company Lists
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanyList'
+
+    post:
+      summary: Create a company list
+      description: Create a new company list to track specific companies
+      operationId: createCompanyList
+      tags:
+        - Company Lists
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "YC W23 Batch"
+                prompt:
+                  type: string
+                  example: "Track YC W23 companies that raised Series A"
+                min:
+                  type: integer
+                max:
+                  type: integer
+                cadence:
+                  type: string
+                  enum: [MANUAL, DAILY, WEEKLY, MONTHLY]
+                  default: MANUAL
+                cadenceInterval:
+                  type: integer
+                  default: 1
+      responses:
+        '201':
+          description: List created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    $ref: '#/components/schemas/CompanyList'
+                  movements:
+                    type: array
+                    items:
+                      type: object
+
+  /company-lists/{listId}:
+    get:
+      summary: Get company list details
+      description: Returns a specific company list with all companies
+      operationId: getCompanyList
+      tags:
+        - Company Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    $ref: '#/components/schemas/CompanyList'
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Company'
+
+    patch:
+      summary: Update company list
+      description: Update list properties
+      operationId: updateCompanyList
+      tags:
+        - Company Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                enabled:
+                  type: boolean
+                prompt:
+                  type: string
+                  nullable: true
+                min:
+                  type: integer
+                  nullable: true
+                max:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: List updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyList'
+
+    delete:
+      summary: Delete company list
+      description: Permanently delete a company list and all associated companies
+      operationId: deleteCompanyList
+      tags:
+        - Company Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: List deleted successfully
+
+  /company-lists/{listId}/companies:
+    post:
+      summary: Add companies to list
+      description: Add one or more LinkedIn company URLs to the list
+      operationId: addCompanies
+      tags:
+        - Company Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - linkedinUrls
+              properties:
+                linkedinUrls:
+                  type: array
+                  items:
+                    type: string
+                  example: ["https://linkedin.com/company/acme", "https://linkedin.com/company/globex"]
+      responses:
+        '201':
+          description: Companies added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  added:
+                    type: integer
+                  duplicates:
+                    type: integer
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Company'
+
+  /company-lists/{listId}/run:
+    post:
+      summary: Trigger manual refresh
+      description: Manually trigger signal detection for all companies in the list
+      operationId: triggerCompanyListRefresh
+      tags:
+        - Company Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '202':
+          description: Refresh triggered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  jobId:
+                    type: string
+
+  /company-lists/{listId}/movements:
+    get:
+      summary: Get all company movements
+      description: Returns all detected movements/signals for companies in this list
+      operationId: getCompanyListMovements
+      tags:
+        - Company Lists
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movement'
+                  total:
+                    type: integer
+
+tags:
+  - name: People Lists
+    description: Manage people tracking lists and profiles
+  - name: Company Lists
+    description: Manage company tracking lists
