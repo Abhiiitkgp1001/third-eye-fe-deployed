@@ -7,9 +7,7 @@ export default function ApiDocsPage() {
   return (
     <ApiReferenceReact
       configuration={{
-        spec: {
-          url: '/api-spec.yaml',
-        },
+        specUrl: '/api-spec.yaml',
       }}
     />
   );
