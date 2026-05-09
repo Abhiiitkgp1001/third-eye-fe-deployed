@@ -274,7 +274,7 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {apiKeys.map((key) => (
+                  {apiKeys.map((key: any) => (
                     <div key={key.id} className="bg-primary-800/50 border border-primary-700/30 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -298,7 +298,7 @@ export default function SettingsPage() {
                         </div>
                         <Button
                           onClick={() => setKeyToDelete(key.id)}
-                          variant="destructive"
+                          variant="reverse"
                           size="sm"
                           disabled={deleteApiKeyMutation.isPending}
                         >
