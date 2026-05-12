@@ -257,7 +257,7 @@ export default function CompanySheet({ company, onClose }: CompanySheetProps) {
                           <div className="flex items-center gap-4 text-xs text-foreground/50">
                             {createdAt && (
                               <span>
-                                {new Date(createdAt * 1000).toLocaleDateString("en-US", {
+                                {new Date(createdAt).toLocaleDateString("en-US", {
                                   month: "short",
                                   day: "numeric",
                                   year: "numeric"
