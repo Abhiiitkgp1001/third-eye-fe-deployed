@@ -651,7 +651,7 @@ export default function CompanyActivitiesPage() {
                                             <div key={type} className="flex items-center gap-1.5 bg-secondary-background/50 rounded-base border border-border/30 px-3 py-1.5">
                                               <span className="text-sm">{getReactionEmoji(type)}</span>
                                               <span className="text-xs text-foreground/60 capitalize">{type}</span>
-                                              <span className="text-xs text-foreground/80 font-semibold">({count})</span>
+                                              <span className="text-xs text-foreground/80 font-semibold">({String(count)})</span>
                                             </div>
                                           ));
                                         })()}
@@ -886,7 +886,7 @@ export default function CompanyActivitiesPage() {
                                         <div key={type} className="flex items-center gap-1.5 bg-secondary-background/50 rounded-base border border-border/30 px-3 py-1.5">
                                           <span className="text-sm">{getReactionEmoji(type)}</span>
                                           <span className="text-xs text-foreground/60 capitalize">{type}</span>
-                                          <span className="text-xs text-foreground/80 font-semibold">({count})</span>
+                                          <span className="text-xs text-foreground/80 font-semibold">({String(count)})</span>
                                         </div>
                                       ));
                                     })()}

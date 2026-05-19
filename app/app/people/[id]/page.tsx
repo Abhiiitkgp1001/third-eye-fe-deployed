@@ -14,7 +14,7 @@ import RenameListModal from "./RenameListModal";
 import SignalsList from "./SignalsList";
 import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner, useToast, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui";
-import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil, AlertTriangle, XCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil, AlertTriangle, XCircle, Sparkles, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -352,6 +352,16 @@ export default function PeopleListDetailsPage() {
                   >
                     <Sparkles className="h-4 w-4" />
                     View Activities
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => router.push(`/app/people/${listId}/chat`)}
+                    disabled={isEnriching || validateSignalsWithAIMutation.isPending}
+                    title="Chat with AI about this list"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Chat with AI
                   </Button>
                   <Button
                     variant="neutral"
