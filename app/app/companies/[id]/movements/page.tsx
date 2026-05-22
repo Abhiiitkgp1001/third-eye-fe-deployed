@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import { Badge, Card, PageSpinner, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
-import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search, ChevronDown, ChevronRight, MessageSquareText, Building2 } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Sparkles, Calendar, Target, BarChart3, ExternalLink, Filter, X, Search, ChevronDown, ChevronRight, MessageSquareText, Building2, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const isPositiveMovement = (movement: string) =>
@@ -23,6 +23,7 @@ export default function MovementsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
   const [expandedMovements, setExpandedMovements] = useState<Set<string>>(new Set());
+  const [signalsOnly, setSignalsOnly] = useState(true); // Default to showing only signals
 
   const { data: listData, isLoading: listLoading } = trpc.companyLists.getById.useQuery({
     id: listId,
@@ -53,6 +54,18 @@ export default function MovementsPage() {
     const types = new Set(movements.map(m => m.movement));
     return Array.from(types).sort();
   }, [movements]);
+
+  // Filtered movement types based on signalsOnly toggle
+  const visibleMovementTypes = useMemo(() => {
+    if (signalsOnly) {
+      return allMovementTypes.filter(type =>
+        type !== "NO_CHANGE" &&
+        !type.endsWith("_NOT_DETECTED") &&
+        !type.endsWith("_NOT_CHANGED")
+      );
+    }
+    return allMovementTypes;
+  }, [allMovementTypes, signalsOnly]);
 
   const averageConfidence = useMemo(() => {
     return actualMovements.length > 0
@@ -86,6 +99,15 @@ export default function MovementsPage() {
     const { companies } = listData;
     let filtered = [...movements];
 
+    // Apply signals-only filter first
+    if (signalsOnly) {
+      filtered = filtered.filter(m =>
+        m.movement !== "NO_CHANGE" &&
+        !m.movement.endsWith("_NOT_DETECTED") &&
+        !m.movement.endsWith("_NOT_CHANGED")
+      );
+    }
+
     if (selectedCompanyId) {
       filtered = filtered.filter(m => m.companyId === selectedCompanyId);
     }
@@ -113,7 +135,7 @@ export default function MovementsPage() {
     }
 
     return filtered;
-  }, [movements, selectedCompanyId, selectedMovementTypes, searchQuery, listData]);
+  }, [movements, selectedCompanyId, selectedMovementTypes, searchQuery, listData, signalsOnly]);
 
   // Group filtered movements by company, sorted by most signals first
   const groupedByCompany = useMemo(() => {
@@ -223,6 +245,39 @@ export default function MovementsPage() {
     setExpandedMovements(new Set());
   };
 
+  const exportMovements = () => {
+    if (!listData) return;
+
+    const exportData = filteredMovements.map(m => {
+      const company = listData.companies.find(c => c.id === m.companyId);
+      const rawMeta = company?.latestMetadata as any;
+      const isAgg = rawMeta && typeof rawMeta === 'object' && 'company' in rawMeta;
+      const companyData = isAgg ? rawMeta.company : rawMeta;
+      const displayName = companyData?.name || companyData?.company_name || "";
+
+      return {
+        companyName: displayName || company?.linkedinUrl || "",
+        linkedinUrl: m.linkedinUrl,
+        movement: m.movement,
+        confidence: m.metadata?.confidence || 0,
+        reasoning: m.metadata?.reasoning || "",
+        evidence: m.metadata?.evidence || [],
+        detectedAt: m.createdAt,
+      };
+    });
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `movements-${list.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -250,19 +305,67 @@ export default function MovementsPage() {
               AI-detected company changes for {list.name}
             </p>
           </div>
-          <Button
-            variant={hasActiveFilters ? "default" : "neutral"}
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-            {hasActiveFilters && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-brand-400 text-white">
-                {selectedMovementTypes.size + (selectedCompanyId ? 1 : 0) + (searchQuery.trim() ? 1 : 0)}
-              </span>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="neutral"
+              onClick={exportMovements}
+              disabled={filteredMovements.length === 0}
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export ({filteredMovements.length})
+            </Button>
+            <Button
+              variant={hasActiveFilters ? "default" : "neutral"}
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+              {hasActiveFilters && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-brand-400 text-white">
+                  {selectedMovementTypes.size + (selectedCompanyId ? 1 : 0) + (searchQuery.trim() ? 1 : 0)}
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Quick Filter Buttons */}
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-2 border-2 border-border rounded-base bg-background p-1">
+            <button
+              onClick={() => setSignalsOnly(true)}
+              className={`px-3 py-1.5 rounded-base text-sm font-medium transition-all ${
+                signalsOnly
+                  ? 'bg-main text-main-foreground shadow-shadow'
+                  : 'text-foreground/60 hover:text-foreground'
+              }`}
+            >
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Signals Only
+              </div>
+            </button>
+            <button
+              onClick={() => setSignalsOnly(false)}
+              className={`px-3 py-1.5 rounded-base text-sm font-medium transition-all ${
+                !signalsOnly
+                  ? 'bg-main text-main-foreground shadow-shadow'
+                  : 'text-foreground/60 hover:text-foreground'
+              }`}
+            >
+              All Validations
+            </button>
+          </div>
+
+          {!signalsOnly && noChangeRecords.length > 0 && (
+            <div className="text-xs text-foreground/50 flex items-center gap-1.5 px-3 py-1.5 bg-secondary-background border-2 border-border rounded-base">
+              <span className="font-medium">Showing</span>
+              <span className="font-mono text-foreground/70">{noChangeRecords.length}</span>
+              <span>validation scans with no changes</span>
+            </div>
+          )}
         </div>
 
         {/* Filter Panel */}
@@ -319,12 +422,13 @@ export default function MovementsPage() {
 
                 <div>
                   <label className="text-sm font-medium text-foreground/80 mb-2 block">
-                    Movement Types
+                    {signalsOnly ? 'Signal Types' : 'Movement Types'}
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {allMovementTypes.map((type) => {
+                    {visibleMovementTypes.map((type) => {
                       const isSelected = selectedMovementTypes.has(type);
                       const isNoChange = type === "NO_CHANGE";
+                      const isActualSignal = !type.endsWith('_NOT_DETECTED') && !type.endsWith('_NOT_CHANGED') && type !== "NO_CHANGE";
                       const count = type === "NO_CHANGE"
                         ? noChangeRecords.length
                         : movementsByType[type] || 0;
@@ -333,12 +437,16 @@ export default function MovementsPage() {
                         <button
                           key={type}
                           onClick={() => toggleMovementType(type)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-base text-xs font-medium transition-all border-2 ${
                             isSelected
-                              ? isNoChange
-                                ? 'bg-foreground/10 text-foreground border-2 border-foreground/30'
-                                : 'bg-brand-500/20 text-brand-400 border-2 border-brand-500/50'
-                              : 'bg-dark-200/60 text-foreground/60 border border-gray-800 hover:border-gray-700'
+                              ? isActualSignal
+                                ? 'bg-main/20 text-main border-main shadow-shadow'
+                                : isNoChange
+                                  ? 'bg-foreground/10 text-foreground border-foreground/30'
+                                  : 'bg-brand-500/20 text-brand-400 border-brand-500/50'
+                              : isActualSignal
+                                ? 'bg-main/5 text-foreground/80 border-main/20 hover:border-main/40'
+                                : 'bg-dark-200/60 text-foreground/60 border-gray-800 hover:border-gray-700'
                           }`}
                         >
                           <span className="font-mono">{type}</span>
@@ -378,12 +486,12 @@ export default function MovementsPage() {
         <Card>
           <div className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
-                <Target className="w-5 h-5 text-brand-400" />
+              <div className="w-10 h-10 rounded-lg bg-main/10 border border-main/30 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-main" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{totalMovements}</p>
-                <p className="text-xs text-foreground/60">Total Movements</p>
+                <p className="text-xs text-main">Actual Signals</p>
               </div>
             </div>
           </div>
@@ -393,7 +501,7 @@ export default function MovementsPage() {
           <div className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-brand-400" />
+                <Target className="w-5 h-5 text-brand-400" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{uniqueCompaniesWithMovements}</p>
@@ -420,16 +528,21 @@ export default function MovementsPage() {
         <Card>
           <div className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-brand-400" />
+              <div className="w-10 h-10 rounded-lg bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-foreground/40" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {uniqueCompaniesValidated}
+                <p className="text-2xl font-bold text-foreground/80">
+                  {totalValidations}
                 </p>
-                <p className="text-xs text-foreground/60">Companies Validated</p>
+                <p className="text-xs text-foreground/50">Total Validations</p>
               </div>
             </div>
+            {noChangeRecords.length > 0 && (
+              <p className="text-[10px] text-foreground/40 mt-1">
+                {noChangeRecords.length} with no changes
+              </p>
+            )}
           </div>
         </Card>
       </motion.div>
@@ -443,7 +556,9 @@ export default function MovementsPage() {
       >
         <Card>
           <div className="p-6">
-            <h2 className="text-lg font-bold text-foreground mb-4">Movement Types</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">
+              {signalsOnly ? 'Signal Types' : 'Movement Types'}
+            </h2>
             {totalMovements === 0 && noChangeRecords.length > 0 ? (
               <div className="text-center py-8 text-foreground/60">
                 <p className="text-sm">
@@ -453,28 +568,47 @@ export default function MovementsPage() {
             ) : (
               <div className="flex flex-wrap gap-3">
                 {Object.entries(movementsByType)
+                  .filter(([type]) => {
+                    // When signalsOnly is true, filter out NOT_DETECTED and NOT_CHANGED
+                    if (signalsOnly) {
+                      return !type.endsWith('_NOT_DETECTED') && !type.endsWith('_NOT_CHANGED');
+                    }
+                    return true;
+                  })
                   .sort((a, b) => b[1] - a[1])
-                  .map(([type, count]) => (
+                  .map(([type, count]) => {
+                    const isActualSignal = !type.endsWith('_NOT_DETECTED') && !type.endsWith('_NOT_CHANGED');
+                    return (
                     <div
                       key={type}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-200/60 border border-gray-800"
+                      className={`flex items-center gap-2 px-4 py-2 rounded-base border-2 transition-all ${
+                        isActualSignal
+                          ? 'bg-main/5 border-main/30 shadow-shadow'
+                          : 'bg-dark-200/60 border-gray-800'
+                      }`}
                     >
-                      <Badge variant="default" className="font-mono text-xs">
+                      <Badge
+                        variant={isActualSignal ? "default" : "neutral"}
+                        className={`font-mono text-xs ${isActualSignal ? 'bg-main text-main-foreground' : ''}`}
+                      >
                         {type}
                       </Badge>
-                      <span className="text-foreground font-semibold">{count}</span>
+                      <span className={`font-semibold ${isActualSignal ? 'text-foreground' : 'text-foreground/60'}`}>
+                        {count}
+                      </span>
                       <span className="text-foreground/50 text-sm">
                         ({((count / totalMovements) * 100).toFixed(1)}%)
                       </span>
                     </div>
-                  ))}
-                {noChangeRecords.length > 0 && (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-200/60 border border-gray-800">
-                    <Badge variant="neutral" className="font-mono text-xs">
+                    );
+                  })}
+                {!signalsOnly && noChangeRecords.length > 0 && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-base border-2 border-border/20 bg-background/50 opacity-60">
+                    <Badge variant="neutral" className="font-mono text-xs bg-transparent text-foreground/40">
                       NO_CHANGE
                     </Badge>
-                    <span className="text-foreground font-semibold">{noChangeRecords.length}</span>
-                    <span className="text-foreground/50 text-sm">
+                    <span className="text-foreground/60 font-semibold">{noChangeRecords.length}</span>
+                    <span className="text-foreground/40 text-sm">
                       (validated, no change)
                     </span>
                   </div>

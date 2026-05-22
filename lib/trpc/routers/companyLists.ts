@@ -444,4 +444,47 @@ export const companyListsRouter = router({
         });
       }
     }),
+
+  /**
+   * AI chat about company activities
+   */
+  chatAboutActivities: protectedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        companyIds: z.array(z.string()).min(1),
+        question: z.string().min(1),
+      })
+    )
+    .output(z.object({ answer: z.string() }))
+    .mutation(async ({ ctx, input }): Promise<{ answer: string }> => {
+      const axios = await getBackendAxios();
+
+      try {
+        const response = await axios.post("/companyList.chatAboutActivities", {
+          orgId: ctx.orgId,
+          listId: input.listId,
+          companyIds: input.companyIds,
+          question: input.question,
+        });
+
+        const parsed = z.object({ answer: z.string() }).safeParse(response.data.result.data);
+        if (!parsed.success) {
+          console.error("Failed to parse chat response:", parsed.error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response format from backend",
+          });
+        }
+
+        return parsed.data;
+      } catch (error) {
+        logErrorSafely("Error in chat about activities", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to chat about activities: ${getErrorMessage(error)}`,
+          cause: error,
+        });
+      }
+    }),
 });
