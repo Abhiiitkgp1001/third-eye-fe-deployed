@@ -6,6 +6,28 @@ const nextConfig: NextConfig = {
 
   // Security: Disable x-powered-by header
   poweredByHeader: false,
+
+  // Allow loading images from external domains
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.licdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.linkedin.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.licdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.licdn.com',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
