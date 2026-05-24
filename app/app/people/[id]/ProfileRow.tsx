@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
 import { Trash2, ExternalLink, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Profile, Movement } from "@/lib/trpc/schemas/peopleList-schemas";
+import Image from "next/image";
 
 interface ProfileRowProps {
   profile: Profile;
@@ -19,6 +20,8 @@ export default function ProfileRow({
   onRequestDelete,
   index,
 }: ProfileRowProps) {
+  const [imageError, setImageError] = useState(false);
+
   // Handle both old format (direct ProfileData) and new format (PeopleAggregatedData)
   const rawMetadata = profile.latestMetadata;
   const isAggregatedFormat = rawMetadata && typeof rawMetadata === 'object' && 'profile' in rawMetadata;
@@ -37,6 +40,14 @@ export default function ProfileRow({
     ? displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "?";
 
+  // Get profile image URL from metadata
+  const profileImageUrl = metadata?.profile_photo_url || metadata?.profile_pic_url || metadata?.image_url || null;
+
+  // Debug logging (remove in production)
+  if (metadata && !profileImageUrl && typeof window !== 'undefined') {
+    console.log(`[ProfileRow] No image URL found for ${displayName}. Metadata keys:`, Object.keys(metadata));
+  }
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     onRequestDelete(profile);
@@ -53,7 +64,16 @@ export default function ProfileRow({
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <Avatar className="size-9">
-            <AvatarImage src={metadata?.profile_photo_url ?? ""} alt={displayName ?? "Profile"} />
+            {profileImageUrl && !imageError ? (
+              <AvatarImage
+                src={profileImageUrl}
+                alt={displayName ?? "Profile"}
+                onError={() => {
+                  setImageError(true);
+                }}
+                className="object-cover"
+              />
+            ) : null}
             <AvatarFallback className="bg-brand-500/10 text-brand-400 border border-brand-500/30">
               {initials}
             </AvatarFallback>
