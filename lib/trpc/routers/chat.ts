@@ -35,8 +35,21 @@ const ConversationMessageSchema = z.object({
   content: z.string(),
 });
 
+const EvidenceItemSchema = z.object({
+  name: z.string(),
+  value: z.string(),
+  detail: z.string().optional(),
+  url: z.string().optional(),
+});
+
 const ChatResponseSchema = z.object({
   response: z.string(),
+  visualizationType: z.enum(["table", "cards", "list", "text"]),
+  evidence: z.array(EvidenceItemSchema),
+  summary: z.array(z.object({
+    key: z.string(),
+    value: z.string(),
+  })),
   usage: z.any().optional(),
 });
 

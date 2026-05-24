@@ -5,10 +5,27 @@ import { trpc } from "@/lib/trpc";
 import { Button, Card } from "@/components/ui";
 import { Send, Loader2, Sparkles, User, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import EnhancedMessageRenderer from "./EnhancedMessageRenderer";
+
+interface EvidenceItem {
+  name: string;
+  value: string;
+  detail?: string;
+  url?: string;
+}
+
+interface SummaryItem {
+  key: string;
+  value: string;
+}
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  // Enhanced fields for assistant messages
+  visualizationType?: "table" | "cards" | "list" | "text";
+  evidence?: EvidenceItem[];
+  summary?: SummaryItem[];
 }
 
 interface ChatInterfaceProps {
@@ -62,6 +79,9 @@ export default function ChatInterface({ listId, listType, listName }: ChatInterf
       const assistantMessage: Message = {
         role: "assistant",
         content: response.response,
+        visualizationType: response.visualizationType,
+        evidence: response.evidence,
+        summary: response.summary,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -94,13 +114,22 @@ export default function ChatInterface({ listId, listType, listName }: ChatInterf
     }
   };
 
-  const suggestedQuestions = [
-    "What are the main topics these people are posting about?",
-    "Who has the highest engagement on their posts?",
-    "Are there any emerging trends in their content?",
-    "What job changes have been detected?",
-    "Summarize the overall activity in this list",
-  ];
+  // Dynamic suggested questions based on list type
+  const suggestedQuestions = listType === "people"
+    ? [
+        "What are the main topics these people are posting about?",
+        "Who has the highest engagement on their posts?",
+        "What job changes have been detected recently?",
+        "Are there any emerging trends in their content?",
+        "Which profiles are most active this week?",
+      ]
+    : [
+        "What topics are these companies posting about?",
+        "Which companies have the highest social media engagement?",
+        "Are there any hiring signals or growth patterns?",
+        "What industry trends can you identify?",
+        "Which companies are most active this month?",
+      ];
 
   return (
     <div className="flex flex-col h-full">
@@ -138,7 +167,10 @@ export default function ChatInterface({ listId, listType, listName }: ChatInterf
                 Start a conversation
               </h3>
               <p className="text-foreground/60 font-base mb-6 max-w-md mx-auto">
-                I can help you analyze your {listType} list data, identify trends, and answer questions about the people and their activities.
+                {listType === "people"
+                  ? "I can help you analyze profiles, identify job changes, content trends, and engagement patterns."
+                  : "I can help you analyze companies, identify hiring signals, industry trends, and social media activity."
+                }
               </p>
 
               {/* Suggested Questions */}
@@ -185,11 +217,20 @@ export default function ChatInterface({ listId, listType, listName }: ChatInterf
                     : "bg-background border-border text-foreground"
                 }`}
               >
-                <div className="prose prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap font-base text-sm leading-relaxed">
-                    {message.content}
-                  </p>
-                </div>
+                {message.role === "assistant" && message.visualizationType ? (
+                  <EnhancedMessageRenderer
+                    answer={message.content}
+                    visualizationType={message.visualizationType}
+                    evidence={message.evidence}
+                    summary={message.summary}
+                  />
+                ) : (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="whitespace-pre-wrap font-base text-sm leading-relaxed">
+                      {message.content}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {message.role === "user" && (
