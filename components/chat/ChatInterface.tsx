@@ -10,8 +10,8 @@ import EnhancedMessageRenderer from "./EnhancedMessageRenderer";
 interface EvidenceItem {
   name: string;
   value: string;
-  detail?: string;
-  url?: string;
+  detail: string;
+  url: string;
 }
 
 interface SummaryItem {

@@ -38,8 +38,8 @@ const ConversationMessageSchema = z.object({
 const EvidenceItemSchema = z.object({
   name: z.string(),
   value: z.string(),
-  detail: z.string().optional(),
-  url: z.string().optional(),
+  detail: z.string(),
+  url: z.string(),
 });
 
 const ChatResponseSchema = z.object({

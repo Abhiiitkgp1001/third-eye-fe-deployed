@@ -6,8 +6,8 @@ import { CheckCircle2, ExternalLink } from "lucide-react";
 interface EvidenceItem {
   name: string;
   value: string;
-  detail?: string;
-  url?: string;
+  detail: string;
+  url: string;
 }
 
 interface ListViewProps {
@@ -38,13 +38,13 @@ export default function ListView({ evidence }: ListViewProps) {
                 {item.value}
               </span>
             </div>
-            {item.detail && (
+            {item.detail && item.detail.trim() && (
               <p className="text-sm text-foreground/70 font-base mt-1">
                 {item.detail}
               </p>
             )}
           </div>
-          {item.url && (
+          {item.url && item.url.trim() && (
             <a
               href={item.url}
               target="_blank"

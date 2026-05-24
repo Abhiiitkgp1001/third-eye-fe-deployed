@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 interface EvidenceItem {
   name: string;
   value: string;
-  detail?: string;
-  url?: string;
+  detail: string;
+  url: string;
 }
 
 interface CardsViewProps {
@@ -42,7 +42,7 @@ export default function CardsView({ evidence }: CardsViewProps) {
                 </span>
               </div>
             </div>
-            {item.url && (
+            {item.url && item.url.trim() && (
               <a
                 href={item.url}
                 target="_blank"
@@ -54,7 +54,7 @@ export default function CardsView({ evidence }: CardsViewProps) {
               </a>
             )}
           </div>
-          {item.detail && (
+          {item.detail && item.detail.trim() && (
             <p className="text-sm text-foreground/70 font-base mt-2 line-clamp-2">
               {item.detail}
             </p>
