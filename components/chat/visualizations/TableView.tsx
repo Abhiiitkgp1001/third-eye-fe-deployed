@@ -6,8 +6,8 @@ import { ExternalLink } from "lucide-react";
 interface EvidenceItem {
   name: string;
   value: string;
-  detail?: string;
-  url?: string;
+  detail: string;
+  url: string;
 }
 
 interface TableViewProps {
@@ -51,10 +51,10 @@ export default function TableView({ evidence }: TableViewProps) {
                 {item.value}
               </td>
               <td className="px-4 py-3 text-sm font-base text-foreground/80">
-                {item.detail || "—"}
+                {item.detail && item.detail.trim() ? item.detail : "—"}
               </td>
               <td className="px-4 py-3 text-center">
-                {item.url ? (
+                {item.url && item.url.trim() ? (
                   <a
                     href={item.url}
                     target="_blank"
