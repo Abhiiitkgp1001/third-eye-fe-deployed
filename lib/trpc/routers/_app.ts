@@ -10,6 +10,7 @@ import { promptsRouter } from "./prompts";
 import { activitiesRouter } from "./activities";
 import { apiKeyRouter } from "./apiKey";
 import { chatRouter } from "./chat";
+import { outreachRouter } from "./outreach";
 
 // Conditionally include test router only in development mode
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -28,6 +29,7 @@ export const appRouter = router({
   activities: activitiesRouter,
   apiKey: apiKeyRouter,
   chat: chatRouter,
+  outreach: outreachRouter,
   ...(isDevelopment ? { test: testRouter } : {}),
   prompts: promptsRouter,
   // Legacy naming (deprecated, use peopleList and companyList instead)

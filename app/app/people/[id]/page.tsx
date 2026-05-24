@@ -12,6 +12,7 @@ import ConfirmToggleModal from "./ConfirmToggleModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import RenameListModal from "./RenameListModal";
 import SignalsList from "./SignalsList";
+import MessageGeneratorModal from "./MessageGeneratorModal";
 import { Profile, Movement, formatCadence } from "@/lib/trpc/schemas/peopleList-schemas";
 import { Button, Badge, Card, PageSpinner, useToast, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui";
 import { ArrowLeft, Plus, Upload, X, RefreshCw, TrendingUp, Clock, Pencil, AlertTriangle, XCircle, Sparkles, MessageSquare } from 'lucide-react';
@@ -29,6 +30,7 @@ export default function PeopleListDetailsPage() {
   const [showConfirmToggleModal, setShowConfirmToggleModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [profileToDelete, setProfileToDelete] = useState<Profile | null>(null);
+  const [profileForMessage, setProfileForMessage] = useState<Profile | null>(null);
   const [newItemUrl, setNewItemUrl] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [showNoMovementsDialog, setShowNoMovementsDialog] = useState(false);
@@ -133,6 +135,10 @@ export default function PeopleListDetailsPage() {
 
   const handleRequestDelete = (profile: Profile) => {
     setProfileToDelete(profile);
+  };
+
+  const handleGenerateMessage = (profile: Profile) => {
+    setProfileForMessage(profile);
   };
 
   const handleConfirmDelete = () => {
@@ -538,6 +544,7 @@ export default function PeopleListDetailsPage() {
                       movements={profileMovements}
                       onViewProfile={setSelectedProfile}
                       onRequestDelete={handleRequestDelete}
+                      onGenerateMessage={handleGenerateMessage}
                       index={index}
                     />
                   );
@@ -678,6 +685,14 @@ export default function PeopleListDetailsPage() {
         onCancel={() => setProfileToDelete(null)}
         isLoading={removeProfileMutation.isPending}
       />
+
+      {profileForMessage && (
+        <MessageGeneratorModal
+          profile={profileForMessage}
+          isOpen={!!profileForMessage}
+          onClose={() => setProfileForMessage(null)}
+        />
+      )}
 
       <AlertDialog open={showNoMovementsDialog} onOpenChange={(open) => !open && setShowNoMovementsDialog(false)}>
         <AlertDialogContent className="sm:max-w-md">

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Badge, Button, Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
-import { Trash2, ExternalLink, Sparkles } from 'lucide-react';
+import { Trash2, ExternalLink, Sparkles, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Profile, Movement } from "@/lib/trpc/schemas/peopleList-schemas";
 import Image from "next/image";
@@ -10,6 +10,7 @@ interface ProfileRowProps {
   movements?: Movement[];
   onViewProfile: (profile: Profile) => void;
   onRequestDelete: (profile: Profile) => void;
+  onGenerateMessage: (profile: Profile) => void;
   index: number;
 }
 
@@ -18,6 +19,7 @@ export default function ProfileRow({
   movements = [],
   onViewProfile,
   onRequestDelete,
+  onGenerateMessage,
   index,
 }: ProfileRowProps) {
   const [imageError, setImageError] = useState(false);
@@ -51,6 +53,11 @@ export default function ProfileRow({
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     onRequestDelete(profile);
+  };
+
+  const handleGenerateMessage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onGenerateMessage(profile);
   };
 
   return (
@@ -130,11 +137,20 @@ export default function ProfileRow({
       <td className="px-6 py-4">
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
+            variant="default"
+            size="sm"
+            onClick={handleGenerateMessage}
+            title="Generate personalized message"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </Button>
+          <Button
             variant="neutral"
             size="sm"
             onClick={handleDelete}
+            title="Delete profile"
           >
-            <Trash2 className="h-4 w-4" /> Delete
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </td>
