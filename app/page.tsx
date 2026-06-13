@@ -467,7 +467,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-screen bg-background text-foreground relative overflow-hidden">
+    <main className="light min-h-screen bg-background text-foreground relative overflow-hidden">
       {/* Animated Background Gradient */}
       <div className="fixed inset-0 z-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-main/20 via-transparent to-purple-500/20 animate-gradient-shift" />
@@ -567,7 +567,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/50 font-base">
-              {['MCP-native', 'REST + tRPC', 'Real-time webhooks'].map((f) => (
+              {['MCP-native', 'REST', 'Real-time webhooks'].map((f) => (
                 <span key={f} className="flex items-center gap-1.5">
                   <Check className="w-4 h-4 text-main" />
                   {f}
