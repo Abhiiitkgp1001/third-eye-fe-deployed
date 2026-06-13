@@ -250,4 +250,88 @@
   .glow-card:hover {
     box-shadow: 0 0 30px rgba(72, 147, 129, 0.3);
   }
+
+  /* Marquee scroll for logo/trust strip */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 28s linear infinite;
+  }
+
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 12%,
+      black 88%,
+      transparent
+    );
+  }
+
+  /* Animated dashed pipeline connector */
+  @keyframes flow-line {
+    to {
+      stroke-dashoffset: -24;
+    }
+  }
+
+  .animate-flow-line {
+    stroke-dasharray: 6 6;
+    animation: flow-line 0.8s linear infinite;
+  }
+
+  /* Blinking terminal cursor */
+  @keyframes blink-cursor {
+    0%, 49% {
+      opacity: 1;
+    }
+    50%, 100% {
+      opacity: 0;
+    }
+  }
+
+  .animate-blink {
+    animation: blink-cursor 1s step-end infinite;
+  }
+
+  /* Subtle floating motion */
+  @keyframes float-soft {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .animate-float-soft {
+    animation: float-soft 6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee,
+    .animate-flow-line,
+    .animate-blink,
+    .animate-float-soft,
+    .animate-gradient-shift,
+    .animate-gradient-shift-reverse,
+    .animate-pulse-glow,
+    .animate-spotlight {
+      animation: none;
+    }
+  }
 }
