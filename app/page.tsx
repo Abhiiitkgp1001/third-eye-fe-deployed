@@ -1,272 +1,470 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Check, ArrowRight, Search, Bot, Network, Code2, Brain, Webhook, Sparkles } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  Bot,
+  Network,
+  Code2,
+  Brain,
+  Webhook,
+  Sparkles,
+  Terminal,
+  Plug,
+  Radio,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 
-const exampleSignals = [
-  "Agent queries: 'Find companies that just raised Series A and need a Head of Sales'",
-  "Agent monitors: 'Alert when any YC company posts their first design role'",
-  "Agent tracks: 'Notify when fintech CTOs under 50 people tweet about hiring'",
-  "Agent detects: 'Flag healthcare startups raising Series B without VP Marketing'",
-  "Agent watches: 'Track pricing page changes at developer-tool companies'",
-  "Agent scans: 'Monitor a16z portfolio companies posting AI/ML roles'",
-];
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
 
-const agenticFeatures = [
-  {
-    icon: Network,
-    title: 'MCP Integration',
-    description: 'Native Model Context Protocol support. Connect any MCP-compatible agent directly to Third Eye intelligence.',
-  },
-  {
-    icon: Bot,
-    title: 'Built-in AI Agents',
-    description: 'Autonomous agents continuously monitor, validate, and enrich signals without manual intervention.',
-  },
-  {
-    icon: Webhook,
-    title: 'Agent-Friendly API',
-    description: 'RESTful and tRPC endpoints designed for agent consumption. Real-time webhooks and streaming support.',
-  },
-  {
-    icon: Brain,
-    title: 'Agentic Orchestration',
-    description: 'Multi-agent workflows that coordinate signal detection, validation, and enrichment automatically.',
-  },
-];
+type ApiExample = {
+  id: string;
+  signal: string;
+  title: string;
+  description: string;
+  response: string;
+};
 
-const steps = [
-  {
-    number: '01',
-    title: 'Agents Define Signals',
-    description: 'Your AI agents create and configure custom signals through our API or MCP interface in natural language.',
-  },
-  {
-    number: '02',
-    title: 'Autonomous Monitoring',
-    description: 'Our built-in agents continuously scan, validate, and enrich data across all sources in real-time.',
-  },
-  {
-    number: '03',
-    title: 'Agent Callbacks',
-    description: 'Triggered signals flow directly to your agents via webhooks, MCP tools, or API polling for immediate action.',
-  },
-];
-
-const apiExamples = [
+const apiExamples: ApiExample[] = [
   {
     id: 'faang-startup',
+    signal: 'FAANG_TO_STARTUP',
     title: 'FAANG → Startup transitions',
     description: 'Alert when Big Tech engineers join seed-stage companies',
     response: `{
   "movements": [
     {
       "id": "mov_abc123",
-      "profileId": "prof_xyz789",
       "movement": "FAANG_TO_STARTUP",
       "linkedinUrl": "linkedin.com/in/alex-rivera",
       "metadata": {
         "previousRole": "Staff Engineer at Google",
-        "previousCompanySize": 150000,
         "newRole": "Founding Engineer at VectorAI",
         "newCompanySize": 8,
         "fundingStage": "Seed ($2M)",
-        "confidence": 0.97,
-        "detectedAt": "2026-05-09T08:30:00Z",
-        "signal": "High-caliber hire at early stage"
+        "confidence": 0.97
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'exec-hire',
+    signal: 'FIRST_VP_HIRE',
     title: 'First executive hire patterns',
     description: 'Detect when founders hire VP Sales/Marketing post-funding',
     response: `{
   "movements": [
     {
       "id": "mov_def456",
-      "profileId": "prof_abc456",
       "movement": "FIRST_VP_HIRE",
       "linkedinUrl": "linkedin.com/in/marcus-chen",
       "metadata": {
         "newRole": "VP of Sales at ZenithAI",
         "companyAge": "18 months",
-        "fundingStage": "Series A ($8M, 2 months ago)",
+        "fundingStage": "Series A ($8M)",
         "previouslyFounderLed": true,
-        "confidence": 0.93,
-        "detectedAt": "2026-05-09T09:15:00Z",
-        "signal": "GTM expansion signal - ready to scale"
+        "confidence": 0.93
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'competitor-poach',
+    signal: 'COMPETITOR_HIRE',
     title: 'Competitor talent poaching',
     description: 'Track when your ICP hires from direct competitors',
     response: `{
   "movements": [
     {
       "id": "mov_ghi789",
-      "profileId": "prof_def789",
       "movement": "COMPETITOR_HIRE",
       "linkedinUrl": "linkedin.com/in/priya-sharma",
       "metadata": {
         "previousRole": "Senior PM at Salesforce",
-        "previousProduct": "Einstein AI Platform",
         "newRole": "Head of Product at RevenueOS",
         "competitorOverlap": ["Salesforce", "HubSpot"],
-        "confidence": 0.91,
-        "detectedAt": "2026-05-09T10:45:00Z",
-        "signal": "ICP building competitive product"
+        "confidence": 0.91
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'devrel-wave',
+    signal: 'DEVREL_TEAM_BUILD',
     title: 'Series B DevRel hiring wave',
-    description: 'Detect when growth-stage companies build dev relations teams',
+    description: 'Detect growth-stage companies building dev relations teams',
     response: `{
   "movements": [
     {
       "id": "mov_jkl012",
-      "profileId": "prof_ghi012",
       "movement": "DEVREL_TEAM_BUILD",
       "linkedinUrl": "linkedin.com/in/jordan-williams",
       "metadata": {
         "newRole": "Head of Developer Relations at ApexDB",
         "isFirstDevRelHire": true,
         "companyStage": "Series B ($25M)",
-        "developerToolCategory": "Database",
-        "confidence": 0.89,
-        "detectedAt": "2026-05-09T11:20:00Z",
-        "signal": "Product-led growth initiative"
+        "confidence": 0.89
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'founder-transition',
+    signal: 'FOUNDER_STEP_BACK',
     title: 'Technical founder transitions',
     description: 'Monitor when CTOs move from operator to advisor role',
     response: `{
   "movements": [
     {
       "id": "mov_mno345",
-      "profileId": "prof_jkl345",
       "movement": "FOUNDER_STEP_BACK",
       "linkedinUrl": "linkedin.com/in/nina-patel",
       "metadata": {
         "previousRole": "CTO & Co-Founder at StreamFlow",
         "newRole": "Technical Advisor at StreamFlow",
         "companyStage": "Series C ($50M)",
-        "yearsAsOperator": 5,
-        "confidence": 0.88,
-        "detectedAt": "2026-05-09T12:00:00Z",
-        "signal": "Maturity signal - scaling beyond founders"
+        "confidence": 0.88
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'unicorn-acquisition',
+    signal: 'POST_ACQUISITION_EXIT',
     title: 'Post-acquisition talent retention',
     description: 'Track key employees staying or leaving after M&A',
     response: `{
   "movements": [
     {
       "id": "mov_pqr678",
-      "profileId": "prof_mno678",
       "movement": "POST_ACQUISITION_EXIT",
       "linkedinUrl": "linkedin.com/in/james-wilson",
       "metadata": {
         "previousRole": "Head of Engineering at AcquiredCo",
         "newRole": "Stealth Startup (Founder)",
-        "acquisitionDate": "2025-11-15",
         "daysAfterAcquisition": 175,
-        "acquirer": "BigTech Corp ($500M)",
-        "confidence": 0.94,
-        "detectedAt": "2026-05-09T13:30:00Z",
-        "signal": "Key talent exodus - potential acquihire failure"
+        "confidence": 0.94
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'international-expansion',
+    signal: 'GEO_EXPANSION_HIRE',
     title: 'Geographic expansion hires',
     description: 'Detect first country managers for market entry',
     response: `{
   "movements": [
     {
       "id": "mov_stu901",
-      "profileId": "prof_pqr901",
       "movement": "GEO_EXPANSION_HIRE",
       "linkedinUrl": "linkedin.com/in/sophie-mueller",
       "metadata": {
         "newRole": "Country Manager - Germany at CloudScale",
         "isFirstInternationalHire": true,
-        "companyHQ": "San Francisco",
         "targetMarket": "EMEA",
-        "companyStage": "Series B ($30M)",
-        "confidence": 0.92,
-        "detectedAt": "2026-05-09T14:15:00Z",
-        "signal": "International growth signal"
+        "confidence": 0.92
       }
     }
   ],
   "total": 1
-}`
+}`,
   },
   {
     id: 'pivot-indicator',
+    signal: 'SPECIALIST_HIRE_PIVOT',
     title: 'Product pivot indicators',
-    description: 'Spot PM/Designer hires signaling product direction changes',
+    description: 'Spot specialist hires signaling product direction changes',
     response: `{
   "movements": [
     {
       "id": "mov_vwx234",
-      "profileId": "prof_stu234",
       "movement": "SPECIALIST_HIRE_PIVOT",
       "linkedinUrl": "linkedin.com/in/raj-krishnan",
       "metadata": {
         "newRole": "Head of AI Products at AnalyticsPro",
         "previousDomain": "Traditional BI Tools",
-        "newDomain": "AI-Powered Analytics",
-        "companyPreviousFocus": "Business Intelligence",
         "hiringFromCompetitor": "OpenAI",
-        "confidence": 0.90,
-        "detectedAt": "2026-05-09T15:00:00Z",
-        "signal": "Strategic pivot to AI - competitive threat"
+        "confidence": 0.90
       }
     }
   ],
   "total": 1
-}`
-  }
+}`,
+  },
 ];
+
+const exampleSignals = [
+  "Find companies that just raised Series A and need a Head of Sales",
+  "Alert when any YC company posts their first design role",
+  "Notify when fintech CTOs under 50 people start hiring",
+  "Flag healthcare startups raising Series B without a VP Marketing",
+  "Watch for engineers leaving a16z portfolio companies",
+  "Track when our champions change jobs to a new account",
+];
+
+const capabilities = [
+  {
+    icon: Network,
+    title: 'MCP-native',
+    description:
+      'Expose every signal as a Model Context Protocol tool. Any MCP-compatible agent connects in one line — no glue code.',
+  },
+  {
+    icon: Webhook,
+    title: 'Streaming webhooks',
+    description:
+      'The moment a signal fires, we push the movement to your agent. Real-time, signed, and retried until delivered.',
+  },
+  {
+    icon: Code2,
+    title: 'Structured movements',
+    description:
+      'Every signal returns typed JSON with confidence scores and evidence — built to be parsed by a model, not a human.',
+  },
+  {
+    icon: Brain,
+    title: 'Plain-English signals',
+    description:
+      'Define what to watch for in natural language. Your agent creates and tunes its own signals through the API.',
+  },
+];
+
+const pipeline = [
+  {
+    icon: Plug,
+    number: '01',
+    title: 'Agents define signals',
+    description:
+      'Your agent describes what to track in plain English via the API or an MCP tool call.',
+  },
+  {
+    icon: Radio,
+    number: '02',
+    title: 'Third Eye monitors 24/7',
+    description:
+      'We continuously scan, enrich, and validate the market so your agent never has to poll.',
+  },
+  {
+    icon: Webhook,
+    number: '03',
+    title: 'Movements fire back',
+    description:
+      'Validated signals stream to your agent via webhook, MCP, or API — ready to act on instantly.',
+  },
+];
+
+const integrations = [
+  { name: 'MCP', subtitle: 'Model Context Protocol' },
+  { name: 'Claude', subtitle: 'Anthropic Agents' },
+  { name: 'Cursor', subtitle: 'Agentic IDE' },
+  { name: 'LangChain', subtitle: 'Agent Framework' },
+  { name: 'CrewAI', subtitle: 'Multi-Agent Systems' },
+  { name: 'AutoGPT', subtitle: 'Autonomous Agents' },
+  { name: 'n8n', subtitle: 'Agent Orchestration' },
+  { name: 'Webhooks', subtitle: 'Real-time Events' },
+];
+
+const trustStack = [
+  'MCP',
+  'Claude',
+  'Cursor',
+  'LangChain',
+  'CrewAI',
+  'AutoGPT',
+  'n8n',
+  'Zapier',
+  'Custom Agents',
+];
+
+// ---------------------------------------------------------------------------
+// Streaming code helpers
+// ---------------------------------------------------------------------------
+
+/** Reveals `text` character-by-character, restarting whenever `resetKey` changes. */
+function useStream(text: string, resetKey: string): string {
+  const [typed, setTyped] = useState('');
+
+  useEffect(() => {
+    setTyped('');
+    let i = 0;
+    const step = Math.max(3, Math.floor(text.length / 90));
+    const id = setInterval(() => {
+      i += step;
+      if (i >= text.length) {
+        setTyped(text);
+        clearInterval(id);
+      } else {
+        setTyped(text.slice(0, i));
+      }
+    }, 18);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
+
+  return typed;
+}
+
+function TerminalChrome({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-[#1a1625] border-2 border-border rounded-base shadow-shadow overflow-hidden flex flex-col">
+      <div className="bg-[#2a2137] border-b-2 border-border px-4 py-3 flex items-center gap-2">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-red-500 border border-border" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500 border border-border" />
+          <div className="w-3 h-3 rounded-full bg-green-500 border border-border" />
+        </div>
+        <span className="text-xs font-mono text-white/50 ml-2 flex items-center gap-1.5">
+          <Terminal className="w-3.5 h-3.5" />
+          {label}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Auto-cycling hero terminal — streams each signal then advances. */
+function HeroTerminal() {
+  const [index, setIndex] = useState(0);
+  const example = apiExamples[index];
+  const request = `curl https://api.thirdeye.ai/v1/movements?signal=${example.signal} \\
+  -H "Authorization: Bearer $THIRDEYE_API_KEY"`;
+  const typed = useStream(example.response, `hero-${index}`);
+  const done = typed.length >= example.response.length;
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setIndex((p) => (p + 1) % apiExamples.length),
+      5200,
+    );
+    return () => clearTimeout(t);
+  }, [index]);
+
+  return (
+    <TerminalChrome label="agent → Third Eye">
+      <div className="p-5 font-mono text-[13px] leading-relaxed overflow-x-auto min-h-[340px]">
+        <p className="text-main font-bold mb-2">$ REQUEST</p>
+        <pre className="text-green-400 whitespace-pre-wrap mb-5">{request}</pre>
+        <p className="text-main font-bold mb-2 flex items-center gap-2">
+          ↳ RESPONSE
+          {done && (
+            <span className="text-[10px] font-base px-1.5 py-0.5 rounded-base bg-green-500/15 text-green-400 border border-green-500/30">
+              200 OK
+            </span>
+          )}
+        </p>
+        <pre className="text-blue-300 whitespace-pre-wrap">
+          {typed}
+          {!done && <span className="text-main animate-blink">▍</span>}
+        </pre>
+      </div>
+    </TerminalChrome>
+  );
+}
+
+type PlaygroundTab = 'curl' | 'mcp' | 'webhook';
+
+function requestFor(ex: ApiExample, tab: PlaygroundTab): string {
+  if (tab === 'curl') {
+    return `curl https://api.thirdeye.ai/v1/movements?signal=${ex.signal} \\
+  -H "Authorization: Bearer $THIRDEYE_API_KEY"`;
+  }
+  if (tab === 'mcp') {
+    return `// Agent invokes Third Eye via MCP
+{
+  "tool": "thirdeye_query_movements",
+  "arguments": {
+    "signal": "${ex.signal}",
+    "listId": "list_9f2a"
+  }
+}`;
+  }
+  return `POST https://your-agent.dev/hooks/thirdeye
+x-thirdeye-signature: t=1715,v1=a3f9...
+
+// Third Eye pushes the movement the instant it fires`;
+}
+
+function PlaygroundTerminal({
+  example,
+  tab,
+}: {
+  example: ApiExample;
+  tab: PlaygroundTab;
+}) {
+  const request = requestFor(example, tab);
+  const typed = useStream(example.response, `${example.id}-${tab}`);
+  const done = typed.length >= example.response.length;
+  const responseLabel = tab === 'webhook' ? '↳ PAYLOAD' : '↳ RESPONSE';
+
+  return (
+    <div className="p-6 font-mono text-sm overflow-x-auto flex-1 min-h-[380px]">
+      <div className="mb-6">
+        <p className="text-main font-bold mb-3">
+          {tab === 'webhook' ? 'DELIVERY' : 'REQUEST'}
+        </p>
+        <pre className="text-green-400 leading-relaxed whitespace-pre-wrap">
+          {request}
+        </pre>
+      </div>
+      <div>
+        <p className="text-main font-bold mb-3 flex items-center gap-2">
+          {responseLabel}
+          {done && (
+            <span className="text-[10px] font-base px-1.5 py-0.5 rounded-base bg-green-500/15 text-green-400 border border-green-500/30">
+              {tab === 'webhook' ? 'DELIVERED' : '200 OK'}
+            </span>
+          )}
+        </p>
+        <pre className="text-blue-300 leading-relaxed whitespace-pre-wrap">
+          {typed}
+          {!done && <span className="text-main animate-blink">▍</span>}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function Home() {
   const [selectedSignal, setSelectedSignal] = useState(apiExamples[0].id);
-  const activeExample = apiExamples.find(ex => ex.id === selectedSignal) || apiExamples[0];
+  const [tab, setTab] = useState<PlaygroundTab>('curl');
+  const activeExample =
+    apiExamples.find((ex) => ex.id === selectedSignal) || apiExamples[0];
+
+  const tabs: { id: PlaygroundTab; label: string }[] = [
+    { id: 'curl', label: 'REST' },
+    { id: 'mcp', label: 'MCP' },
+    { id: 'webhook', label: 'Webhook' },
+  ];
 
   return (
     <main className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -278,13 +476,16 @@ export default function Home() {
 
       {/* Animated Grid */}
       <div className="fixed inset-0 z-0 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at center, transparent 0%, var(--background) 100%),
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at center, transparent 0%, var(--background) 100%),
                            linear-gradient(var(--border) 1px, transparent 1px),
                            linear-gradient(90deg, var(--border) 1px, transparent 1px)`,
-          backgroundSize: '100% 100%, 50px 50px, 50px 50px',
-          backgroundPosition: 'center, 0 0, 0 0',
-        }} />
+            backgroundSize: '100% 100%, 50px 50px, 50px 50px',
+            backgroundPosition: 'center, 0 0, 0 0',
+          }}
+        />
       </div>
 
       {/* Navigation */}
@@ -294,29 +495,38 @@ export default function Home() {
             <Image src="/logo.svg" alt="Third Eye Logo" width={40} height={40} />
             <span className="text-lg font-heading text-foreground">Third Eye</span>
           </Link>
-          <Link href="/sign-in">
-            <Button variant="noShadow" size="sm">
-              Sign In
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/api-docs" className="hidden sm:block">
+              <Button variant="neutral" size="sm">
+                API Docs
+              </Button>
+            </Link>
+            <Link href="/sign-in">
+              <Button variant="noShadow" size="sm">
+                Sign In
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 relative z-10">
-        {/* Spotlight Effect */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-main/20 rounded-full blur-3xl animate-spotlight" />
-          <div className="absolute top-20 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-spotlight" style={{ animationDelay: '2s' }} />
+          <div
+            className="absolute top-20 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-spotlight"
+            style={{ animationDelay: '2s' }}
+          />
         </div>
 
-        <div className="max-w-5xl mx-auto relative">
+        <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left: copy */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -329,21 +539,24 @@ export default function Home() {
               </span>
             </motion.div>
 
-            <h1 className="text-6xl md:text-8xl font-heading text-foreground mb-6 leading-none tracking-tight">
-              GTM Intelligence
+            <h1 className="text-5xl md:text-7xl font-heading text-foreground mb-6 leading-[0.95] tracking-tight">
+              GTM intelligence
               <br />
-              for <span className="text-main">AI Agents</span>
+              your <span className="text-main">agents</span> call
               <br />
+              directly.
             </h1>
 
-            <p className="text-lg text-foreground/60 mb-10 max-w-xl font-base leading-relaxed">
-              GTM intelligence that powers autonomous agents. Define signals in plain English, connect via MCP or API, and let AI track your market 24/7.
+            <p className="text-lg text-foreground/60 mb-8 max-w-xl font-base leading-relaxed">
+              Define a buying signal in plain English. Third Eye watches the
+              market 24/7 and streams structured movements straight to your
+              agents — over REST, MCP, or webhooks.
             </p>
 
-            <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-wrap gap-4 items-center mb-8">
               <Link href="/api-docs">
                 <Button size="lg">
-                  Explore API Docs <ArrowRight className="ml-1 h-4 w-4" />
+                  Explore the API <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/sign-in">
@@ -352,53 +565,53 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/50 font-base">
+              {['MCP-native', 'REST + tRPC', 'Real-time webhooks'].map((f) => (
+                <span key={f} className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-main" />
+                  {f}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Right: streaming terminal */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="animate-float-soft"
+          >
+            <HeroTerminal />
           </motion.div>
         </div>
       </section>
 
-      {/* Example Signals Section */}
-      <section className="py-20 px-6 border-t-2 border-border relative z-10">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mb-14"
-          >
-            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
-              What your agents
-              <br />
-              can do with Third Eye.
-            </h2>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            {exampleSignals.map((signal, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="glow-card bg-background border-2 border-border shadow-shadow rounded-base p-5 hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
+      {/* Trust marquee */}
+      <section className="py-8 border-y-2 border-border relative z-10 bg-secondary-background/50">
+        <p className="text-center text-xs font-heading uppercase tracking-widest text-foreground/40 mb-6">
+          Drops into any agent stack
+        </p>
+        <div className="marquee-mask overflow-hidden">
+          <div className="flex w-max animate-marquee gap-4">
+            {[...trustStack, ...trustStack].map((name, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 px-5 py-2.5 bg-background border-2 border-border rounded-base shadow-shadow shrink-0"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-base bg-main/10 border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-4 h-4 text-main" />
-                  </div>
-                  <p className="text-foreground/80 font-base text-sm leading-relaxed">
-                    {signal}
-                  </p>
-                </div>
-              </motion.div>
+                <Code2 className="w-4 h-4 text-main" />
+                <span className="text-sm font-heading text-foreground whitespace-nowrap">
+                  {name}
+                </span>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* API Demo Section */}
-      <section className="py-20 px-6 border-t-2 border-border relative z-10">
+      {/* Interactive API Playground */}
+      <section className="py-20 px-6 border-b-2 border-border relative z-10">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -408,17 +621,18 @@ export default function Home() {
             className="mb-14"
           >
             <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
-              Simple API,
+              One API.
               <br />
-              <span className="text-main">Powerful Intelligence.</span>
+              <span className="text-main">Three ways to talk to it.</span>
             </h2>
             <p className="text-foreground/60 font-base">
-              RESTful endpoints designed for agents. Get started in minutes.
+              Pick a signal. Watch your agent get the same structured movement
+              over REST, MCP, or a webhook.
             </p>
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Use Cases */}
+            {/* Use cases */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -437,76 +651,77 @@ export default function Home() {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-6 h-6 rounded-base border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                      selectedSignal === example.id
-                        ? 'bg-main border-main'
-                        : 'bg-main/10 border-border'
-                    }`}>
-                      <Check className={`w-3 h-3 ${
+                    <div
+                      className={`w-6 h-6 rounded-base border-2 flex items-center justify-center shrink-0 mt-0.5 ${
                         selectedSignal === example.id
-                          ? 'text-main-foreground'
-                          : 'text-main'
-                      }`} />
+                          ? 'bg-main border-main'
+                          : 'bg-main/10 border-border'
+                      }`}
+                    >
+                      <Check
+                        className={`w-3 h-3 ${
+                          selectedSignal === example.id
+                            ? 'text-main-foreground'
+                            : 'text-main'
+                        }`}
+                      />
                     </div>
                     <div>
-                      <p className="text-foreground font-base font-semibold mb-1">{example.title}</p>
-                      <p className="text-foreground/60 text-sm">{example.description}</p>
+                      <p className="text-foreground font-base font-semibold mb-1">
+                        {example.title}
+                      </p>
+                      <p className="text-foreground/60 text-sm">
+                        {example.description}
+                      </p>
                     </div>
                   </div>
                 </div>
               ))}
             </motion.div>
 
-            {/* Code Example */}
+            {/* Terminal + tabs */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="bg-[#1a1625] border-2 border-border rounded-base shadow-shadow overflow-hidden flex flex-col"
+              className="lg:sticky lg:top-24 h-fit"
             >
-              {/* Terminal Header */}
-              <div className="bg-[#2a2137] border-b-2 border-border px-4 py-3 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500 border border-border" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500 border border-border" />
-                  <div className="w-3 h-3 rounded-full bg-green-500 border border-border" />
+              <TerminalChrome label={`signal: ${activeExample.signal}`}>
+                {/* tab bar */}
+                <div className="flex border-b-2 border-border bg-[#221a2e]">
+                  {tabs.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setTab(t.id)}
+                      className={`px-4 py-2.5 text-xs font-heading uppercase tracking-wide transition-colors border-r-2 border-border ${
+                        tab === t.id
+                          ? 'bg-main text-main-foreground'
+                          : 'text-white/50 hover:text-white'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
                 </div>
-                <span className="text-xs font-mono text-foreground/60 ml-2">Signal Tracking</span>
-              </div>
-
-              {/* Code Content */}
-              <div className="p-6 font-mono text-sm overflow-x-auto flex-1">
-                <div className="mb-6">
-                  <p className="text-main font-bold mb-3">REQUEST</p>
-                  <pre className="text-green-400 leading-relaxed">
-{`curl https://api.thirdeye.ai/v1/people-lists/{listId}/movements \\
-  -H "Authorization: Bearer YOUR_API_KEY"`}
-                  </pre>
+                <PlaygroundTerminal example={activeExample} tab={tab} />
+                <div className="border-t-2 border-border bg-[#2a2137] px-6 py-4">
+                  <Link
+                    href="/api-docs"
+                    className="inline-flex items-center gap-2 text-main hover:text-main/80 transition-colors font-base text-sm"
+                  >
+                    <span>Read the full API reference</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </div>
-
-                <div>
-                  <p className="text-main font-bold mb-3">RESPONSE</p>
-                  <pre className="text-blue-300 leading-relaxed">
-{activeExample.response}
-                  </pre>
-                </div>
-              </div>
-
-              {/* View Docs Link */}
-              <div className="border-t-2 border-border bg-[#2a2137] px-6 py-4">
-                <Link href="/api-docs" className="inline-flex items-center gap-2 text-main hover:text-main/80 transition-colors font-base text-sm">
-                  <span>View full API documentation</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+              </TerminalChrome>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Agentic Features Section */}
-      <section className="py-20 px-6 border-t-2 border-border bg-secondary-background relative z-10">
+      {/* Example signals */}
+      <section className="py-20 px-6 border-b-2 border-border relative z-10">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -516,17 +731,134 @@ export default function Home() {
             className="mb-14"
           >
             <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
-              Built for the
+              Describe the signal.
               <br />
-              <span className="text-main">agentic era.</span>
+              <span className="text-main">We handle the rest.</span>
             </h2>
             <p className="text-foreground/60 font-base">
-              Connect any agent. Build autonomous workflows. Scale intelligently.
+              No filters, no firehose. Just tell your agent what matters.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {exampleSignals.map((signal, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
+                className="glow-card bg-background border-2 border-border shadow-shadow rounded-base p-5 hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-base bg-main/10 border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
+                    <Bot className="w-4 h-4 text-main" />
+                  </div>
+                  <p className="text-foreground/80 font-base text-sm leading-relaxed">
+                    &ldquo;{signal}&rdquo;
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Agent-to-agent pipeline */}
+      <section className="py-20 px-6 border-b-2 border-border bg-secondary-background relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-14"
+          >
+            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
+              Drop Third Eye into
+              <br />
+              <span className="text-main">any agent loop.</span>
+            </h2>
+            <p className="text-foreground/60 font-base">
+              Fully autonomous, agent-to-agent signal intelligence.
+            </p>
+          </motion.div>
+
+          <div className="relative">
+            {/* animated connector line (desktop) */}
+            <svg
+              className="hidden md:block absolute top-12 left-0 w-full h-2 z-0"
+              preserveAspectRatio="none"
+              viewBox="0 0 100 2"
+            >
+              <line
+                x1="0"
+                y1="1"
+                x2="100"
+                y2="1"
+                stroke="var(--main)"
+                strokeWidth="0.5"
+                className="animate-flow-line"
+                opacity="0.5"
+              />
+            </svg>
+
+            <div className="grid md:grid-cols-3 gap-6 relative z-10">
+              {pipeline.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <motion.div
+                    key={step.number}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.15 }}
+                    className="border-2 border-border rounded-base p-6 bg-background shadow-shadow"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-base bg-main border-2 border-border flex items-center justify-center animate-pulse-glow">
+                        <Icon className="w-6 h-6 text-main-foreground" />
+                      </div>
+                      <span className="text-4xl font-heading text-main/30 leading-none">
+                        {step.number}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-heading text-foreground mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-foreground/60 font-base text-sm">
+                      {step.description}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Capabilities */}
+      <section className="py-20 px-6 border-b-2 border-border relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-14"
+          >
+            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
+              Built for machines
+              <br />
+              <span className="text-main">to consume.</span>
+            </h2>
+            <p className="text-foreground/60 font-base">
+              Every design choice assumes the reader is an agent, not a human.
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {agenticFeatures.map((feature, index) => {
+            {capabilities.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <motion.div
@@ -540,7 +872,9 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-base bg-main/10 border-2 border-border flex items-center justify-center mb-4">
                     <Icon className="w-6 h-6 text-main" />
                   </div>
-                  <h3 className="text-xl font-heading text-foreground mb-2">{feature.title}</h3>
+                  <h3 className="text-xl font-heading text-foreground mb-2">
+                    {feature.title}
+                  </h3>
                   <p className="text-foreground/60 font-base text-sm leading-relaxed">
                     {feature.description}
                   </p>
@@ -551,45 +885,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 px-6 border-t-2 border-border relative z-10">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mb-14"
-          >
-            <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-3">
-              Agent-to-Agent Workflow
-            </h2>
-            <p className="text-foreground/60 font-base">Fully autonomous signal intelligence</p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {steps.map((step, index) => (
-              <motion.div
-                key={step.number}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.15 }}
-                className="border-2 border-border rounded-base p-6 bg-secondary-background shadow-shadow"
-              >
-                <span className="text-5xl font-heading text-main leading-none block mb-4">
-                  {step.number}
-                </span>
-                <h3 className="text-lg font-heading text-foreground mb-2">{step.title}</h3>
-                <p className="text-foreground/60 font-base text-sm">{step.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Agent Integrations Section */}
-      <section className="py-20 px-6 border-t-2 border-border relative z-10">
+      {/* Integrations */}
+      <section className="py-20 px-6 border-b-2 border-border relative z-10">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -604,21 +901,12 @@ export default function Home() {
               <span className="text-main">agent stack.</span>
             </h2>
             <p className="text-foreground/60 font-base">
-              Integrate with any agent framework or build custom workflows
+              Connect any framework, or wire up your own agents in minutes.
             </p>
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { name: 'MCP', subtitle: 'Model Context Protocol' },
-              { name: 'LangChain', subtitle: 'Agent Framework' },
-              { name: 'AutoGPT', subtitle: 'Autonomous Agents' },
-              { name: 'CrewAI', subtitle: 'Multi-Agent Systems' },
-              { name: 'Zapier', subtitle: 'Workflow Automation' },
-              { name: 'n8n', subtitle: 'Agent Orchestration' },
-              { name: 'Custom API', subtitle: 'Your Own Agents' },
-              { name: 'Webhooks', subtitle: 'Real-time Events' },
-            ].map((integration, index) => (
+            {integrations.map((integration, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -630,8 +918,12 @@ export default function Home() {
                 <div className="w-12 h-12 rounded-base bg-main/10 border-2 border-border flex items-center justify-center mx-auto mb-3">
                   <Code2 className="w-6 h-6 text-main" />
                 </div>
-                <h3 className="text-sm font-heading text-foreground mb-1">{integration.name}</h3>
-                <p className="text-xs text-foreground/50 font-base">{integration.subtitle}</p>
+                <h3 className="text-sm font-heading text-foreground mb-1">
+                  {integration.name}
+                </h3>
+                <p className="text-xs text-foreground/50 font-base">
+                  {integration.subtitle}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -646,89 +938,16 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-main/10 border-2 border-border rounded-base animate-pulse-glow">
               <Sparkles className="w-4 h-4 text-main" />
               <span className="text-sm font-base text-foreground">
-                <strong className="font-heading">MCP Server Available:</strong> Install via npm or connect directly through Claude Code
+                <strong className="font-heading">MCP Server:</strong> connect
+                directly through Claude, Cursor, or any MCP client
               </span>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Book a Demo Section - Hidden for now */}
-      {/* <section className="py-20 px-6 border-t-2 border-border">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="grid md:grid-cols-2 gap-12 items-center"
-          >
-            <div>
-              <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-6">
-                See Third Eye on
-                <br />
-                <span className="text-main">your actual signals.</span>
-              </h2>
-
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-main-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-foreground font-base font-semibold">15-minute call</p>
-                    <p className="text-foreground/60 text-sm">Quick, no-pressure walkthrough</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-main-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-foreground font-base font-semibold">Live demo with your ICP</p>
-                    <p className="text-foreground/60 text-sm">See how Third Eye tracks your exact targets</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-base bg-main border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-main-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-foreground font-base font-semibold">Custom signal built on the spot</p>
-                    <p className="text-foreground/60 text-sm">Walk away with a working signal</p>
-                  </div>
-                </li>
-              </ul>
-
-              <Link href="https://calendly.com/thirdeye/demo" target="_blank" rel="noopener noreferrer">
-                <Button size="lg">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Book Your Demo
-                </Button>
-              </Link>
-            </div>
-
-            <div>
-              <div className="relative rounded-base border-4 border-border bg-secondary-background shadow-[8px_8px_0_0_var(--border)] overflow-hidden">
-                <div className="aspect-[3/4] flex items-center justify-center p-8">
-                  <div className="text-center">
-                    <Calendar className="w-16 h-16 text-main mx-auto mb-4" />
-                    <p className="text-foreground/60 font-base">
-                      Calendly embed will appear here
-                    </p>
-                    <p className="text-foreground/40 font-base text-sm mt-2">
-                      Once you provide the inline embed code
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section> */}
-
-      {/* CTA Section */}
-      <section className="py-20 px-6 border-t-2 border-border bg-main relative z-10">
+      {/* CTA */}
+      <section className="py-20 px-6 border-b-2 border-border bg-main relative z-10">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -737,34 +956,37 @@ export default function Home() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-6xl font-heading text-main-foreground mb-4">
-              Ready to power your agents?
+              Give your agents eyes
+              <br />
+              on the market.
             </h2>
             <p className="text-main-foreground/70 font-base text-lg mb-8">
-              {/* TODO: Confirm the real number before deploy */}
-              Join 25+ teams building with agentic GTM intelligence.
+              Join the teams building autonomous GTM with agent-native
+              intelligence.
             </p>
 
             <div className="flex flex-wrap gap-4 items-center mb-10">
-              <Link href="/sign-in">
+              <Link href="/api-docs">
                 <Button variant="neutral" size="lg">
+                  Explore the API <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/sign-in">
+                <Button variant="noShadow" size="lg">
                   Connect Your Agents <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
             <div className="flex flex-wrap gap-6 text-sm text-main-foreground/70 font-base">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-main-foreground" />
-                <span>MCP-native</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-main-foreground" />
-                <span>Agent-friendly API</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-main-foreground" />
-                <span>Built-in automation</span>
-              </div>
+              {['MCP-native', 'Agent-friendly API', 'Real-time webhooks'].map(
+                (f) => (
+                  <div key={f} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-main-foreground" />
+                    <span>{f}</span>
+                  </div>
+                ),
+              )}
             </div>
           </motion.div>
         </div>
@@ -775,9 +997,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Image src="/logo.svg" alt="Third Eye Logo" width={32} height={32} />
-            <span className="text-sm font-heading text-foreground">Third Eye</span>
+            <span className="text-sm font-heading text-foreground">
+              Third Eye
+            </span>
           </div>
-          <p className="text-foreground/40 text-sm font-base">&copy; 2026 Third Eye. All rights reserved.</p>
+          <p className="text-foreground/40 text-sm font-base">
+            &copy; 2026 Third Eye. All rights reserved.
+          </p>
         </div>
       </footer>
     </main>
